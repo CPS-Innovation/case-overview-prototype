@@ -2,7 +2,7 @@ const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const Pagination = require('../helpers/pagination')
-const { groupTasks } = require('../helpers/taskGrouping')
+const { groupTasks, getDateGroup, getPaceClockGroup } = require('../helpers/taskGrouping')
 const { addTimeLimitDates } = require('../helpers/timeLimit')
 const taskNames = require('../data/task-names')
 
@@ -14,6 +14,9 @@ function resetFilters(req) {
   _.set(req, 'session.data.taskListFilters.urgent', null)
   _.set(req, 'session.data.taskListFilters.reminder', null)
   _.set(req, 'session.data.taskListFilters.timeLimitType', null)
+  _.set(req, 'session.data.taskListFilters.custodyTimeLimitRange', null)
+  _.set(req, 'session.data.taskListFilters.statutoryTimeLimitRange', null)
+  _.set(req, 'session.data.taskListFilters.paceClockRange', null)
 }
 
 module.exports = router => {
@@ -93,6 +96,9 @@ module.exports = router => {
     let selectedUrgentFilters = _.get(req.session.data.taskListFilters, 'urgent', [])
     let selectedReminderFilters = _.get(req.session.data.taskListFilters, 'reminder', [])
     let selectedTimeLimitTypeFilters = _.get(req.session.data.taskListFilters, 'timeLimitType', [])
+    let selectedCustodyTimeLimitRangeFilters = _.get(req.session.data.taskListFilters, 'custodyTimeLimitRange', [])
+    let selectedStatutoryTimeLimitRangeFilters = _.get(req.session.data.taskListFilters, 'statutoryTimeLimitRange', [])
+    let selectedPaceClockRangeFilters = _.get(req.session.data.taskListFilters, 'paceClockRange', [])
 
     let selectedFilters = { categories: [] }
 
@@ -103,6 +109,9 @@ module.exports = router => {
     let selectedUrgentItems = []
     let selectedReminderItems = []
     let selectedTimeLimitTypeItems = []
+    let selectedCustodyTimeLimitRangeItems = []
+    let selectedStatutoryTimeLimitRangeItems = []
+    let selectedPaceClockRangeItems = []
 
     // Owner filter display
     if (selectedOwnerFilters?.length) {
@@ -233,6 +242,78 @@ module.exports = router => {
       selectedFilters.categories.push({
         heading: { text: 'Time limit' },
         items: selectedTimeLimitTypeItems
+      })
+    }
+
+    // PACE clock range filter display
+    if (selectedPaceClockRangeFilters?.length) {
+      const paceClockRangeDisplayText = {
+        'expired': 'Expired',
+        'lessThan1Hour': 'Ends in less than 1 hour',
+        'lessThan2Hours': 'Ends in less than 2 hours',
+        'lessThan3Hours': 'Ends in less than 3 hours',
+        'moreThan3Hours': 'Ends in more than 3 hours'
+      }
+
+      selectedPaceClockRangeItems = selectedPaceClockRangeFilters.map(function(range) {
+        return {
+          text: paceClockRangeDisplayText[range] || range,
+          href: '/tasks/remove-pace-clock-range/' + encodeURIComponent(range)
+        }
+      })
+
+      selectedFilters.categories.push({
+        heading: { text: 'PACE clock' },
+        items: selectedPaceClockRangeItems
+      })
+    }
+
+    // Custody time limit range filter display
+    if (selectedCustodyTimeLimitRangeFilters?.length) {
+      // Map groupKey values to display text
+      const ctlRangeDisplayText = {
+        'overdue': 'Expired',
+        'today': 'Ends today',
+        'tomorrow': 'Ends tomorrow',
+        'thisWeek': 'Ends this week',
+        'nextWeek': 'Ends next week',
+        'later': 'Ends later'
+      }
+
+      selectedCustodyTimeLimitRangeItems = selectedCustodyTimeLimitRangeFilters.map(function(range) {
+        return {
+          text: ctlRangeDisplayText[range] || range,
+          href: '/tasks/remove-custody-time-limit-range/' + encodeURIComponent(range)
+        }
+      })
+
+      selectedFilters.categories.push({
+        heading: { text: 'Custody time limit' },
+        items: selectedCustodyTimeLimitRangeItems
+      })
+    }
+
+    // Statutory time limit range filter display
+    if (selectedStatutoryTimeLimitRangeFilters?.length) {
+      const stlRangeDisplayText = {
+        'overdue': 'Expired',
+        'today': 'Ends today',
+        'tomorrow': 'Ends tomorrow',
+        'thisWeek': 'Ends this week',
+        'nextWeek': 'Ends next week',
+        'later': 'Ends later'
+      }
+
+      selectedStatutoryTimeLimitRangeItems = selectedStatutoryTimeLimitRangeFilters.map(function(range) {
+        return {
+          text: stlRangeDisplayText[range] || range,
+          href: '/tasks/remove-statutory-time-limit-range/' + encodeURIComponent(range)
+        }
+      })
+
+      selectedFilters.categories.push({
+        heading: { text: 'Statutory time limit' },
+        items: selectedStatutoryTimeLimitRangeItems
       })
     }
 
@@ -474,16 +555,96 @@ module.exports = router => {
       { text: 'PACE clock', value: 'PACE clock' }
     ]
 
+    // Custody time limit range items
+    let custodyTimeLimitRangeItems = [
+      { text: 'Expired', value: 'overdue' },
+      { text: 'Ends today', value: 'today' },
+      { text: 'Ends tomorrow', value: 'tomorrow' },
+      { text: 'Ends this week', value: 'thisWeek' },
+      { text: 'Ends next week', value: 'nextWeek' },
+      { text: 'Ends later', value: 'later' }
+    ]
+
+    // Statutory time limit range items (SAME as CTL - date-based)
+    let statutoryTimeLimitRangeItems = [
+      { text: 'Expired', value: 'overdue' },
+      { text: 'Ends today', value: 'today' },
+      { text: 'Ends tomorrow', value: 'tomorrow' },
+      { text: 'Ends this week', value: 'thisWeek' },
+      { text: 'Ends next week', value: 'nextWeek' },
+      { text: 'Ends later', value: 'later' }
+    ]
+
+    // PACE clock range items (TIME-BASED - 5 options, not 6)
+    let paceClockRangeItems = [
+      { text: 'Expired', value: 'expired' },
+      { text: 'Ends in less than 1 hour', value: 'lessThan1Hour' },
+      { text: 'Ends in less than 2 hours', value: 'lessThan2Hours' },
+      { text: 'Ends in less than 3 hours', value: 'lessThan3Hours' },
+      { text: 'Ends in more than 3 hours', value: 'moreThan3Hours' }
+    ]
+
     // Handle sorting
     const sortBy = _.get(req.session.data, 'taskSort', 'Due date')
 
+    // Calculate today once to ensure consistency across grouping and filtering
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     // Add grouping metadata to tasks based on sort type
-    tasks = groupTasks(tasks, sortBy)
+    tasks = groupTasks(tasks, sortBy, today)
 
     // Filter by severity (after grouping, since severity is calculated in groupTasks)
     if (selectedSeverityFilters?.length) {
       tasks = tasks.filter(task => {
         return selectedSeverityFilters.includes(task.severity)
+      })
+    }
+
+    // Filter by custody time limit range (works regardless of sort order)
+    if (selectedCustodyTimeLimitRangeFilters?.length) {
+      tasks = tasks.filter(task => {
+        // Calculate CTL date group for this task
+        const ctlDate = task.case?.custodyTimeLimit || null
+        const ctlGroupKey = getDateGroup(ctlDate, today)
+
+        // Exclude tasks without CTL (groupKey === 'noDate')
+        if (ctlGroupKey === 'noDate') {
+          return false
+        }
+
+        // Include task if its CTL groupKey matches any selected filter
+        return selectedCustodyTimeLimitRangeFilters.includes(ctlGroupKey)
+      })
+    }
+
+    // Filter by statutory time limit range (works regardless of sort order)
+    if (selectedStatutoryTimeLimitRangeFilters?.length) {
+      tasks = tasks.filter(task => {
+        const stlDate = task.case?.statutoryTimeLimit || null
+        const stlGroupKey = getDateGroup(stlDate, today)
+
+        // Exclude tasks without STL
+        if (stlGroupKey === 'noDate') {
+          return false
+        }
+
+        return selectedStatutoryTimeLimitRangeFilters.includes(stlGroupKey)
+      })
+    }
+
+    // Filter by PACE clock range (works regardless of sort order)
+    if (selectedPaceClockRangeFilters?.length) {
+      tasks = tasks.filter(task => {
+        const paceClockDateTime = task.case?.paceClock || null
+        const paceClockGroupKey = getPaceClockGroup(paceClockDateTime)
+
+        // Exclude tasks without PACE clock
+        if (paceClockGroupKey === 'noPaceClock') {
+          return false
+        }
+
+        return selectedPaceClockRangeFilters.includes(paceClockGroupKey)
       })
     }
 
@@ -549,7 +710,7 @@ module.exports = router => {
     }
 
     let totalTasks = tasks.length
-    let pageSize = 25
+    let pageSize = req.query.limit || 25
     let pagination = new Pagination(tasks, req.query.page, pageSize)
     tasks = pagination.getData()
 
@@ -575,6 +736,15 @@ module.exports = router => {
       timeLimitTypeItems,
       selectedTimeLimitTypeFilters,
       selectedTimeLimitTypeItems,
+      custodyTimeLimitRangeItems,
+      selectedCustodyTimeLimitRangeFilters,
+      selectedCustodyTimeLimitRangeItems,
+      statutoryTimeLimitRangeItems,
+      selectedStatutoryTimeLimitRangeFilters,
+      selectedStatutoryTimeLimitRangeItems,
+      paceClockRangeItems,
+      selectedPaceClockRangeFilters,
+      selectedPaceClockRangeItems,
       taskNameItems,
       selectedTaskNameFilters,
       selectedTaskNameItems,
@@ -636,6 +806,27 @@ module.exports = router => {
     const currentFilters = _.get(req, 'session.data.taskListFilters.timeLimitType', [])
     const timeLimitType = decodeURIComponent(req.params.timeLimitType)
     _.set(req, 'session.data.taskListFilters.timeLimitType', _.pull(currentFilters, timeLimitType))
+    res.redirect('/tasks')
+  })
+
+  router.get('/tasks/remove-custody-time-limit-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.taskListFilters.custodyTimeLimitRange', [])
+    const range = decodeURIComponent(req.params.range)
+    _.set(req, 'session.data.taskListFilters.custodyTimeLimitRange', _.pull(currentFilters, range))
+    res.redirect('/tasks')
+  })
+
+  router.get('/tasks/remove-statutory-time-limit-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.taskListFilters.statutoryTimeLimitRange', [])
+    const range = decodeURIComponent(req.params.range)
+    _.set(req, 'session.data.taskListFilters.statutoryTimeLimitRange', _.pull(currentFilters, range))
+    res.redirect('/tasks')
+  })
+
+  router.get('/tasks/remove-pace-clock-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.taskListFilters.paceClockRange', [])
+    const range = decodeURIComponent(req.params.range)
+    _.set(req, 'session.data.taskListFilters.paceClockRange', _.pull(currentFilters, range))
     res.redirect('/tasks')
   })
 

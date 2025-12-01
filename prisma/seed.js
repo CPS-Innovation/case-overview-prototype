@@ -221,6 +221,57 @@ function generateCTL() {
   return d;
 }
 
+// Generate CTL that expired 1-7 days ago
+function generateExpiredCTL() {
+  const daysAgo = faker.number.int({ min: 1, max: 7 });
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate CTL that expires today
+function generateTodayCTL() {
+  const d = new Date();
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate CTL that expires tomorrow
+function generateTomorrowCTL() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate CTL that expires this week (2-7 days from now)
+function generateThisWeekCTL() {
+  const daysFromNow = faker.number.int({ min: 2, max: 7 });
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate CTL that expires next week (8-14 days from now)
+function generateNextWeekCTL() {
+  const daysFromNow = faker.number.int({ min: 8, max: 14 });
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate CTL that expires later (15-120 days from now)
+function generateLaterCTL() {
+  const daysFromNow = faker.number.int({ min: 15, max: 120 });
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
 // Generate STL between yesterday and 6 months (180 days) from now
 function generateSTL() {
   const daysFromNow = faker.number.int({ min: -1, max: 180 });
@@ -269,6 +320,97 @@ function getUpcomingSTL() {
   const d = new Date();
   d.setDate(d.getDate() + daysFromNow);
   d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate STL that expired 1-7 days ago
+function generateExpiredSTL() {
+  const daysAgo = faker.number.int({ min: 1, max: 7 });
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate STL that expires today
+function generateTodaySTL() {
+  const d = new Date();
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate STL that expires tomorrow
+function generateTomorrowSTL() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate STL that expires this week (2-7 days from now)
+function generateThisWeekSTL() {
+  const daysFromNow = faker.number.int({ min: 2, max: 7 });
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate STL that expires next week (8-14 days from now)
+function generateNextWeekSTL() {
+  const daysFromNow = faker.number.int({ min: 8, max: 14 });
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate STL that expires later (15-180 days from now)
+function generateLaterSTL() {
+  const daysFromNow = faker.number.int({ min: 15, max: 180 });
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+// Generate PACE clock that expired 1-12 hours ago
+function generateExpiredPACE() {
+  const hoursAgo = faker.number.int({ min: 1, max: 12 });
+  const d = new Date();
+  d.setHours(d.getHours() - hoursAgo);
+  return d;
+}
+
+// Generate PACE clock expiring in less than 1 hour (10-59 minutes)
+function generateLessThan1HourPACE() {
+  const minutesFromNow = faker.number.int({ min: 10, max: 59 });
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + minutesFromNow);
+  return d;
+}
+
+// Generate PACE clock expiring in 1-2 hours (60-119 minutes)
+function generateLessThan2HoursPACE() {
+  const minutesFromNow = faker.number.int({ min: 60, max: 119 });
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + minutesFromNow);
+  return d;
+}
+
+// Generate PACE clock expiring in 2-3 hours (120-179 minutes)
+function generateLessThan3HoursPACE() {
+  const minutesFromNow = faker.number.int({ min: 120, max: 179 });
+  const d = new Date();
+  d.setMinutes(d.getMinutes() + minutesFromNow);
+  return d;
+}
+
+// Generate PACE clock expiring in more than 3 hours (3-24 hours)
+function generateMoreThan3HoursPACE() {
+  const hoursFromNow = faker.number.int({ min: 3, max: 24 });
+  const d = new Date();
+  d.setHours(d.getHours() + hoursFromNow);
   return d;
 }
 
@@ -618,19 +760,37 @@ async function main() {
   // -------------------- Defendants with Charges --------------------
   // Step 1: Batch create all defendants with time limit type distribution
   // 50% CTL, 25% STL, 25% PACE
-  const defendantData = Array.from({ length: 200 }, (_, index) => {
-    const timeLimitType = index < 100 ? 'CTL' : index < 150 ? 'STL' : 'PACE';
+  // Track time limit type for each defendant (for charge creation)
+  const defendantTimeLimitTypes = [];
+
+  const defendantData = Array.from({ length: 300 }, (_, index) => {
+    // Randomly assign time limit type (equal probability)
+    const timeLimitType = faker.helpers.arrayElement(['CTL', 'STL', 'PACE']);
+    defendantTimeLimitTypes.push(timeLimitType);
+
+    // For PACE defendants, randomly assign a PACE clock from any time range
+    let paceClock = null;
+    if (timeLimitType === 'PACE') {
+      const paceGenerators = [
+        generateExpiredPACE,
+        generateLessThan1HourPACE,
+        generateLessThan2HoursPACE,
+        generateLessThan3HoursPACE,
+        generateMoreThan3HoursPACE
+      ];
+      paceClock = faker.helpers.arrayElement(paceGenerators)();
+    }
 
     return {
       firstName: faker.helpers.arrayElement(firstNames),
       lastName: faker.helpers.arrayElement(lastNames),
       gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
-      religion: faker.helpers.arrayElement([...religions, null]), // Some nulls
-      occupation: faker.helpers.arrayElement([...occupations, null]), // Some nulls
+      religion: faker.helpers.arrayElement([...religions, null]),
+      occupation: faker.helpers.arrayElement([...occupations, null]),
       dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
       remandStatus: faker.helpers.arrayElement(remandStatuses),
-      paceClock: timeLimitType === 'PACE' ? generatePACEClock() : null,
-      defenceLawyerId: faker.helpers.arrayElement(defenceLawyers).id,
+      paceClock,
+      defenceLawyerId: faker.helpers.arrayElement(defenceLawyers).id
     };
   });
 
@@ -643,8 +803,8 @@ async function main() {
   for (let i = 0; i < defendants.length; i++) {
     const defendant = defendants[i];
 
-    // Determine time limit type based on defendant index (same logic as creation)
-    const timeLimitType = i < 100 ? 'CTL' : i < 150 ? 'STL' : 'PACE';
+    // Get the time limit type for this defendant
+    const timeLimitType = defendantTimeLimitTypes[i];
 
     // Decide how many charges this defendant has (1-4, weighted towards 1-2)
     const numCharges = faker.helpers.weightedArrayElement([
@@ -660,9 +820,27 @@ async function main() {
     // Generate a time limit date for this defendant (will apply to at least one charge)
     let timeLimitDate = null;
     if (timeLimitType === 'CTL') {
-      timeLimitDate = generateCTL();
+      // Randomly select from CTL date range generators
+      const ctlGenerators = [
+        generateExpiredCTL,
+        generateTodayCTL,
+        generateTomorrowCTL,
+        generateThisWeekCTL,
+        generateNextWeekCTL,
+        generateLaterCTL
+      ];
+      timeLimitDate = faker.helpers.arrayElement(ctlGenerators)();
     } else if (timeLimitType === 'STL') {
-      timeLimitDate = generateSTL();
+      // Randomly select from STL date range generators
+      const stlGenerators = [
+        generateExpiredSTL,
+        generateTodaySTL,
+        generateTomorrowSTL,
+        generateThisWeekSTL,
+        generateNextWeekSTL,
+        generateLaterSTL
+      ];
+      timeLimitDate = faker.helpers.arrayElement(stlGenerators)();
     }
     // PACE is on defendant, not charges
 
@@ -747,10 +925,10 @@ async function main() {
     "Search warrant",
   ];
 
-  // Group defendants by time limit type for case assignment
-  const ctlDefendants = defendants.slice(0, 100);
-  const stlDefendants = defendants.slice(100, 150);
-  const paceDefendants = defendants.slice(150, 200);
+  // Group defendants by their actual assigned time limit type
+  const ctlDefendants = defendants.filter((_, index) => defendantTimeLimitTypes[index] === 'CTL');
+  const stlDefendants = defendants.filter((_, index) => defendantTimeLimitTypes[index] === 'STL');
+  const paceDefendants = defendants.filter((_, index) => defendantTimeLimitTypes[index] === 'PACE');
 
   for (let i = 0; i < TOTAL_CASES; i++) {
     // Randomly choose which time limit type this case will have
@@ -1508,285 +1686,26 @@ console.log(`✅ Assigned ${DGA_TARGET} cases needing DGA review with failure re
 
   console.log(`✅ Created ${guaranteedTasksCreated} guaranteed tasks (pending, due, overdue, escalated) for ${usersExcludingTony.length} users`);
 
-  // -------------------- Create Guaranteed CTL Charges for Testing --------------------
-  // Ensure each user has cases with charges where CTL expires today and tomorrow
-  let ctlChargesCreated = 0;
-  let ctlTasksCreated = 0;
+  // -------------------- Create Guaranteed Test Cases for Rachael Harvey and Simon Whatley --------------------
+  const rachaelHarvey = await prisma.user.findFirst({
+    where: { firstName: "Rachael", lastName: "Harvey" }
+  });
 
-  for (const user of usersExcludingTony) {
-    // Get user's unit IDs
-    const userWithUnits = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: { units: true }
-    });
-    const userUnitIds = userWithUnits.units.map(uu => uu.unitId);
+  const simonWhatley = await prisma.user.findFirst({
+    where: { firstName: "Simon", lastName: "Whatley" }
+  });
 
-    // Find all cases where this user is a prosecutor or paralegal officer in their units
-    const userCases = await prisma.case.findMany({
-      where: {
-        unitId: { in: userUnitIds },
-        OR: [
-          {
-            prosecutors: {
-              some: {
-                userId: user.id
-              }
-            }
-          },
-          {
-            paralegalOfficers: {
-              some: {
-                userId: user.id
-              }
-            }
-          }
-        ]
-      },
-      include: { defendants: true }
-    });
-
-    // Skip if user has no cases in their units
-    if (userCases.length === 0) continue;
-
-    // Pick two different cases for today and tomorrow CTL (or same if only one case)
-    const casesForCtl = faker.helpers.arrayElements(userCases, Math.min(2, userCases.length));
-    const caseForTodayCtl = casesForCtl[0];
-    const caseForTomorrowCtl = casesForCtl.length > 1 ? casesForCtl[1] : casesForCtl[0];
-
-    // Create defendant with charge that has CTL expiring TODAY
-    const todayCtlDefendant = await prisma.defendant.create({
-      data: {
-        firstName: faker.helpers.arrayElement(firstNames),
-        lastName: faker.helpers.arrayElement(lastNames),
-        gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
-        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
-        remandStatus: "REMANDED_IN_CUSTODY", // Must be in custody for CTL to matter
-        defenceLawyer: {
-          connect: { id: faker.helpers.arrayElement(defenceLawyers).id }
-        },
-        charges: {
-          create: {
-            chargeCode: faker.helpers.arrayElement(charges).code,
-            description: faker.helpers.arrayElement(charges).description,
-            status: "Charged",
-            offenceDate: faker.date.past(),
-            plea: faker.helpers.arrayElement(pleas),
-            particulars: faker.lorem.sentence(),
-            custodyTimeLimit: getTodayDate(),
-            isCount: false,
-          }
-        }
-      },
-    });
-
-    // Connect defendant to case
-    await prisma.case.update({
-      where: { id: caseForTodayCtl.id },
-      data: {
-        defendants: {
-          connect: { id: todayCtlDefendant.id }
-        }
-      }
-    });
-
-    // Update ALL other defendants in this case to have the same CTL expiring today
-    // This ensures the case only has ONE time limit
-    const existingDefendants = await prisma.defendant.findMany({
-      where: {
-        cases: { some: { id: caseForTodayCtl.id } },
-        id: { not: todayCtlDefendant.id }
-      },
-      include: { charges: true }
-    });
-
-    for (const defendant of existingDefendants) {
-      for (const charge of defendant.charges) {
-        await prisma.charge.update({
-          where: { id: charge.id },
-          data: {
-            custodyTimeLimit: getTodayDate(),
-            statutoryTimeLimit: null // Remove STL if present
-          }
-        });
-      }
-      // Remove PACE clock from defendant
-      await prisma.defendant.update({
-        where: { id: defendant.id },
-        data: { paceClock: null }
-      });
-    }
-
-    // Create task for today's CTL
-    const todayCtlDueDate = getTodayDate();
-    const todayCtlReminderDate = new Date(todayCtlDueDate);
-    todayCtlReminderDate.setDate(todayCtlReminderDate.getDate() - 3);
-    const todayCtlEscalationDate = new Date(todayCtlDueDate);
-    todayCtlEscalationDate.setDate(todayCtlEscalationDate.getDate() + 2);
-
-    await prisma.task.create({
-      data: {
-        name: "CTL expiry imminent",
-        reminderType: null,
-        reminderDate: todayCtlReminderDate,
-        dueDate: todayCtlDueDate,
-        escalationDate: todayCtlEscalationDate,
-        completedDate: null,
-        caseId: caseForTodayCtl.id,
-        assignedToUserId: user.id,
-        assignedToTeamId: null,
-      }
-    });
-
-    ctlChargesCreated++;
-    ctlTasksCreated++;
-
-    // Create defendant with charge that has CTL expiring TOMORROW
-    const tomorrowCtlDefendant = await prisma.defendant.create({
-      data: {
-        firstName: faker.helpers.arrayElement(firstNames),
-        lastName: faker.helpers.arrayElement(lastNames),
-        gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
-        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
-        remandStatus: "REMANDED_IN_CUSTODY", // Must be in custody for CTL to matter
-        defenceLawyer: {
-          connect: { id: faker.helpers.arrayElement(defenceLawyers).id }
-        },
-        charges: {
-          create: {
-            chargeCode: faker.helpers.arrayElement(charges).code,
-            description: faker.helpers.arrayElement(charges).description,
-            status: "Charged",
-            offenceDate: faker.date.past(),
-            plea: faker.helpers.arrayElement(pleas),
-            particulars: faker.lorem.sentence(),
-            custodyTimeLimit: getTomorrowDate(),
-            isCount: false,
-          }
-        }
-      },
-    });
-
-    // Connect defendant to case
-    await prisma.case.update({
-      where: { id: caseForTomorrowCtl.id },
-      data: {
-        defendants: {
-          connect: { id: tomorrowCtlDefendant.id }
-        }
-      }
-    });
-
-    // Update ALL other defendants in this case to have the same CTL expiring tomorrow
-    // This ensures the case only has ONE time limit
-    const existingDefendantsTomorrow = await prisma.defendant.findMany({
-      where: {
-        cases: { some: { id: caseForTomorrowCtl.id } },
-        id: { not: tomorrowCtlDefendant.id }
-      },
-      include: { charges: true }
-    });
-
-    for (const defendant of existingDefendantsTomorrow) {
-      for (const charge of defendant.charges) {
-        await prisma.charge.update({
-          where: { id: charge.id },
-          data: {
-            custodyTimeLimit: getTomorrowDate(),
-            statutoryTimeLimit: null // Remove STL if present
-          }
-        });
-      }
-      // Remove PACE clock from defendant
-      await prisma.defendant.update({
-        where: { id: defendant.id },
-        data: { paceClock: null }
-      });
-    }
-
-    // Create task for tomorrow's CTL
-    const tomorrowCtlDueDate = getTomorrowDate();
-    const tomorrowCtlReminderDate = new Date(tomorrowCtlDueDate);
-    tomorrowCtlReminderDate.setDate(tomorrowCtlReminderDate.getDate() - 3);
-    const tomorrowCtlEscalationDate = new Date(tomorrowCtlDueDate);
-    tomorrowCtlEscalationDate.setDate(tomorrowCtlEscalationDate.getDate() + 2);
-
-    await prisma.task.create({
-      data: {
-        name: "CTL expiry imminent",
-        reminderType: null,
-        reminderDate: tomorrowCtlReminderDate,
-        dueDate: tomorrowCtlDueDate,
-        escalationDate: tomorrowCtlEscalationDate,
-        completedDate: null,
-        caseId: caseForTomorrowCtl.id,
-        assignedToUserId: user.id,
-        assignedToTeamId: null,
-      }
-    });
-
-    ctlChargesCreated++;
-    ctlTasksCreated++;
-  }
-
-  console.log(`✅ Created ${ctlChargesCreated} charges with CTL expiring today/tomorrow for ${usersExcludingTony.length} users`);
-  console.log(`✅ Created ${ctlTasksCreated} CTL-related tasks for these charges`);
-
-  // -------------------- Create Guaranteed PACE Tasks for Testing --------------------
-  let paceDefendantsCreated = 0;
-  let paceTasksCreated = 0;
-
-  for (const user of usersExcludingTony) {
-    // Get user's unit IDs
-    const userWithUnits = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: { units: true }
-    });
-    const userUnitIds = userWithUnits.units.map(uu => uu.unitId);
-
-    // Find all cases where this user is a prosecutor or paralegal officer in their units
-    const userCases = await prisma.case.findMany({
-      where: {
-        unitId: { in: userUnitIds },
-        OR: [
-          {
-            prosecutors: {
-              some: {
-                userId: user.id
-              }
-            }
-          },
-          {
-            paralegalOfficers: {
-              some: {
-                userId: user.id
-              }
-            }
-          }
-        ]
-      },
-      include: { defendants: true }
-    });
-
-    // Skip if user has no cases in their units
-    if (userCases.length === 0) continue;
-
-    // Pick two different cases for overdue and today PACE (or same if only one case)
-    const casesForPace = faker.helpers.arrayElements(userCases, Math.min(2, userCases.length));
-    const caseForOverduePace = casesForPace[0];
-    const caseForTodayPace = casesForPace.length > 1 ? casesForPace[1] : casesForPace[0];
-
-    // Create defendant with PACE clock that expired (overdue)
-    const overduePaceDefendant = await prisma.defendant.create({
+  // Helper function to create a test case with defendant, charge, and task
+  async function createTestCase(user, unitId, timeLimitType, rangeKey, generateFn, defenceLawyers, charges, firstNames, lastNames, pleas, victims) {
+    const defendant = await prisma.defendant.create({
       data: {
         firstName: faker.helpers.arrayElement(firstNames),
         lastName: faker.helpers.arrayElement(lastNames),
         gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
         dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
         remandStatus: "REMANDED_IN_CUSTODY",
-        paceClock: getOverduePACEClock(),
-        defenceLawyer: {
-          connect: { id: faker.helpers.arrayElement(defenceLawyers).id }
-        },
+        paceClock: timeLimitType === 'PACE' ? generateFn() : null,
+        defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
         charges: {
           create: {
             chargeCode: faker.helpers.arrayElement(charges).code,
@@ -1795,401 +1714,99 @@ console.log(`✅ Assigned ${DGA_TARGET} cases needing DGA review with failure re
             offenceDate: faker.date.past(),
             plea: faker.helpers.arrayElement(pleas),
             particulars: faker.lorem.sentence(),
-            custodyTimeLimit: null,
-            statutoryTimeLimit: null,
-            isCount: false,
+            custodyTimeLimit: timeLimitType === 'CTL' ? generateFn() : null,
+            statutoryTimeLimit: timeLimitType === 'STL' ? generateFn() : null,
+            isCount: false
           }
         }
-      },
+      }
     });
 
-    // Connect defendant to case
-    await prisma.case.update({
-      where: { id: caseForOverduePace.id },
+    const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
+
+    const _case = await prisma.case.create({
       data: {
-        defendants: {
-          connect: { id: overduePaceDefendant.id }
+        reference: `${faker.string.alphanumeric(4).toUpperCase()}-${faker.string.alphanumeric(8).toUpperCase()}`,
+        type: faker.helpers.arrayElement(types),
+        complexity: faker.helpers.arrayElement(complexities),
+        unit: { connect: { id: unitId } },
+        defendants: { connect: { id: defendant.id } },
+        victims: { connect: victimIds }
+      }
+    });
+
+    // Assign prosecutor or paralegal officer based on user role
+    if (user.firstName === "Rachael") {
+      await prisma.caseParalegalOfficer.create({
+        data: {
+          caseId: _case.id,
+          userId: user.id
         }
-      }
-    });
-
-    // Update ALL other defendants in this case to have the same PACE clock
-    // This ensures the case only has ONE time limit
-    const existingDefendantsOverdue = await prisma.defendant.findMany({
-      where: {
-        cases: { some: { id: caseForOverduePace.id } },
-        id: { not: overduePaceDefendant.id }
-      },
-      include: { charges: true }
-    });
-
-    for (const defendant of existingDefendantsOverdue) {
-      // Set PACE clock on defendant
-      await prisma.defendant.update({
-        where: { id: defendant.id },
-        data: { paceClock: getOverduePACEClock() }
       });
-
-      // Clear CTL/STL from all charges
-      for (const charge of defendant.charges) {
-        await prisma.charge.update({
-          where: { id: charge.id },
-          data: {
-            custodyTimeLimit: null,
-            statutoryTimeLimit: null
-          }
-        });
-      }
+    } else if (user.firstName === "Simon") {
+      await prisma.caseProsecutor.create({
+        data: {
+          caseId: _case.id,
+          userId: user.id
+        }
+      });
     }
 
-    // Create task for overdue PACE
-    const overduePaceDueDate = getOverduePACEClock();
-    const overduePaceReminderDate = new Date(overduePaceDueDate);
-    overduePaceReminderDate.setHours(overduePaceReminderDate.getHours() - 6);
-    const overduePaceEscalationDate = new Date(overduePaceDueDate);
-    overduePaceEscalationDate.setHours(overduePaceEscalationDate.getHours() + 3);
-
+    // Create task for visibility
+    const timeLimit = generateFn();
     await prisma.task.create({
       data: {
-        name: "PACE clock expiry imminent",
+        name: faker.helpers.arrayElement(taskNames),
         reminderType: null,
-        reminderDate: overduePaceReminderDate,
-        dueDate: overduePaceDueDate,
-        escalationDate: overduePaceEscalationDate,
+        reminderDate: new Date(timeLimit.getTime() - 3 * 24 * 60 * 60 * 1000),
+        dueDate: timeLimit,
+        escalationDate: new Date(timeLimit.getTime() + 2 * 24 * 60 * 60 * 1000),
         completedDate: null,
-        caseId: caseForOverduePace.id,
-        assignedToUserId: user.id,
-        assignedToTeamId: null,
+        caseId: _case.id,
+        assignedToUserId: user.id
       }
     });
 
-    paceDefendantsCreated++;
-    paceTasksCreated++;
-
-    // Create defendant with PACE clock expiring today
-    const todayPaceDefendant = await prisma.defendant.create({
-      data: {
-        firstName: faker.helpers.arrayElement(firstNames),
-        lastName: faker.helpers.arrayElement(lastNames),
-        gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
-        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
-        remandStatus: "REMANDED_IN_CUSTODY",
-        paceClock: getTodayPACEClock(),
-        defenceLawyer: {
-          connect: { id: faker.helpers.arrayElement(defenceLawyers).id }
-        },
-        charges: {
-          create: {
-            chargeCode: faker.helpers.arrayElement(charges).code,
-            description: faker.helpers.arrayElement(charges).description,
-            status: "Charged",
-            offenceDate: faker.date.past(),
-            plea: faker.helpers.arrayElement(pleas),
-            particulars: faker.lorem.sentence(),
-            custodyTimeLimit: null,
-            statutoryTimeLimit: null,
-            isCount: false,
-          }
-        }
-      },
-    });
-
-    // Connect defendant to case
-    await prisma.case.update({
-      where: { id: caseForTodayPace.id },
-      data: {
-        defendants: {
-          connect: { id: todayPaceDefendant.id }
-        }
-      }
-    });
-
-    // Update ALL other defendants in this case to have the same PACE clock
-    // This ensures the case only has ONE time limit
-    const existingDefendantsToday = await prisma.defendant.findMany({
-      where: {
-        cases: { some: { id: caseForTodayPace.id } },
-        id: { not: todayPaceDefendant.id }
-      },
-      include: { charges: true }
-    });
-
-    for (const defendant of existingDefendantsToday) {
-      // Set PACE clock on defendant
-      await prisma.defendant.update({
-        where: { id: defendant.id },
-        data: { paceClock: getTodayPACEClock() }
-      });
-
-      // Clear CTL/STL from all charges
-      for (const charge of defendant.charges) {
-        await prisma.charge.update({
-          where: { id: charge.id },
-          data: {
-            custodyTimeLimit: null,
-            statutoryTimeLimit: null
-          }
-        });
-      }
-    }
-
-    // Create task for today's PACE clock
-    const todayPaceDueDate = getTodayPACEClock();
-    const todayPaceReminderDate = new Date(todayPaceDueDate);
-    todayPaceReminderDate.setHours(todayPaceReminderDate.getHours() - 6);
-    const todayPaceEscalationDate = new Date(todayPaceDueDate);
-    todayPaceEscalationDate.setHours(todayPaceEscalationDate.getHours() + 3);
-
-    await prisma.task.create({
-      data: {
-        name: "PACE clock expiry imminent",
-        reminderType: null,
-        reminderDate: todayPaceReminderDate,
-        dueDate: todayPaceDueDate,
-        escalationDate: todayPaceEscalationDate,
-        completedDate: null,
-        caseId: caseForTodayPace.id,
-        assignedToUserId: user.id,
-        assignedToTeamId: null,
-      }
-    });
-
-    paceDefendantsCreated++;
-    paceTasksCreated++;
+    return _case;
   }
 
-  console.log(`✅ Created ${paceDefendantsCreated} defendants with PACE clock expiring (overdue/today) for ${usersExcludingTony.length} users`);
-  console.log(`✅ Created ${paceTasksCreated} PACE clock-related tasks for these defendants`);
+  const testUsers = [
+    { user: rachaelHarvey, units: [3, 4] },
+    { user: simonWhatley, units: [9, 11, 13, 18] }
+  ];
 
-  // -------------------- Create Guaranteed STL Tasks for Testing --------------------
-  let stlChargesCreated = 0;
-  let stlTasksCreated = 0;
+  const testCases = [
+    // CTL
+    { type: 'CTL', range: 'Expired', fn: generateExpiredCTL },
+    { type: 'CTL', range: 'Today', fn: generateTodayCTL },
+    { type: 'CTL', range: 'Tomorrow', fn: generateTomorrowCTL },
+    { type: 'CTL', range: 'ThisWeek', fn: generateThisWeekCTL },
+    { type: 'CTL', range: 'NextWeek', fn: generateNextWeekCTL },
+    { type: 'CTL', range: 'Later', fn: generateLaterCTL },
+    // STL
+    { type: 'STL', range: 'Expired', fn: generateExpiredSTL },
+    { type: 'STL', range: 'Today', fn: generateTodaySTL },
+    { type: 'STL', range: 'Tomorrow', fn: generateTomorrowSTL },
+    { type: 'STL', range: 'ThisWeek', fn: generateThisWeekSTL },
+    { type: 'STL', range: 'NextWeek', fn: generateNextWeekSTL },
+    { type: 'STL', range: 'Later', fn: generateLaterSTL },
+    // PACE
+    { type: 'PACE', range: 'Expired', fn: generateExpiredPACE },
+    { type: 'PACE', range: '<1hr', fn: generateLessThan1HourPACE },
+    { type: 'PACE', range: '<2hrs', fn: generateLessThan2HoursPACE },
+    { type: 'PACE', range: '<3hrs', fn: generateLessThan3HoursPACE },
+    { type: 'PACE', range: '>3hrs', fn: generateMoreThan3HoursPACE }
+  ];
 
-  for (const user of usersExcludingTony) {
-    // Get user's unit IDs
-    const userWithUnits = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: { units: true }
-    });
-    const userUnitIds = userWithUnits.units.map(uu => uu.unitId);
+  for (const { user, units } of testUsers) {
+    for (let i = 0; i < testCases.length; i++) {
+      const { type, range, fn } = testCases[i];
+      const unitId = units[i % units.length];
 
-    // Find all cases where this user is a prosecutor or paralegal officer in their units
-    const userCases = await prisma.case.findMany({
-      where: {
-        unitId: { in: userUnitIds },
-        OR: [
-          {
-            prosecutors: {
-              some: {
-                userId: user.id
-              }
-            }
-          },
-          {
-            paralegalOfficers: {
-              some: {
-                userId: user.id
-              }
-            }
-          }
-        ]
-      },
-      include: { defendants: true }
-    });
-
-    // Skip if user has no cases in their units
-    if (userCases.length === 0) continue;
-
-    // Pick two different cases for overdue and upcoming STL (or same if only one case)
-    const casesForStl = faker.helpers.arrayElements(userCases, Math.min(2, userCases.length));
-    const caseForOverdueStl = casesForStl[0];
-    const caseForUpcomingStl = casesForStl.length > 1 ? casesForStl[1] : casesForStl[0];
-
-    // Create defendant with charge that has STL that expired (overdue)
-    const overdueStlDefendant = await prisma.defendant.create({
-      data: {
-        firstName: faker.helpers.arrayElement(firstNames),
-        lastName: faker.helpers.arrayElement(lastNames),
-        gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
-        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
-        remandStatus: faker.helpers.arrayElement(remandStatuses),
-        paceClock: null,
-        defenceLawyer: {
-          connect: { id: faker.helpers.arrayElement(defenceLawyers).id }
-        },
-        charges: {
-          create: {
-            chargeCode: faker.helpers.arrayElement(charges).code,
-            description: faker.helpers.arrayElement(charges).description,
-            status: "Charged",
-            offenceDate: faker.date.past(),
-            plea: faker.helpers.arrayElement(pleas),
-            particulars: faker.lorem.sentence(),
-            custodyTimeLimit: null,
-            statutoryTimeLimit: getOverdueSTL(),
-            isCount: false,
-          }
-        }
-      },
-    });
-
-    // Connect defendant to case
-    await prisma.case.update({
-      where: { id: caseForOverdueStl.id },
-      data: {
-        defendants: {
-          connect: { id: overdueStlDefendant.id }
-        }
-      }
-    });
-
-    // Update ALL other defendants in this case to have STL on their charges
-    // This ensures the case only has ONE time limit type
-    const existingDefendantsOverdue = await prisma.defendant.findMany({
-      where: {
-        cases: { some: { id: caseForOverdueStl.id } },
-        id: { not: overdueStlDefendant.id }
-      },
-      include: { charges: true }
-    });
-
-    for (const defendant of existingDefendantsOverdue) {
-      // Clear PACE clock from defendant
-      await prisma.defendant.update({
-        where: { id: defendant.id },
-        data: { paceClock: null }
-      });
-
-      // Set STL on charges, clear CTL
-      for (const charge of defendant.charges) {
-        await prisma.charge.update({
-          where: { id: charge.id },
-          data: {
-            custodyTimeLimit: null,
-            statutoryTimeLimit: getOverdueSTL()
-          }
-        });
-      }
+      await createTestCase(user, unitId, type, range, fn, defenceLawyers, charges, firstNames, lastNames, pleas, victims);
     }
-
-    // Create task for overdue STL
-    const overdueStlDueDate = getOverdueSTL();
-    const overdueStlReminderDate = new Date(overdueStlDueDate);
-    overdueStlReminderDate.setDate(overdueStlReminderDate.getDate() - 7);
-    const overdueStlEscalationDate = new Date(overdueStlDueDate);
-    overdueStlEscalationDate.setDate(overdueStlEscalationDate.getDate() + 3);
-
-    await prisma.task.create({
-      data: {
-        name: "STL expiry imminent",
-        reminderType: null,
-        reminderDate: overdueStlReminderDate,
-        dueDate: overdueStlDueDate,
-        escalationDate: overdueStlEscalationDate,
-        completedDate: null,
-        caseId: caseForOverdueStl.id,
-        assignedToUserId: user.id,
-        assignedToTeamId: null,
-      }
-    });
-
-    stlChargesCreated++;
-    stlTasksCreated++;
-
-    // Create defendant with charge that has STL expiring soon
-    const upcomingStlDefendant = await prisma.defendant.create({
-      data: {
-        firstName: faker.helpers.arrayElement(firstNames),
-        lastName: faker.helpers.arrayElement(lastNames),
-        gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
-        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
-        remandStatus: faker.helpers.arrayElement(remandStatuses),
-        paceClock: null,
-        defenceLawyer: {
-          connect: { id: faker.helpers.arrayElement(defenceLawyers).id }
-        },
-        charges: {
-          create: {
-            chargeCode: faker.helpers.arrayElement(charges).code,
-            description: faker.helpers.arrayElement(charges).description,
-            status: "Charged",
-            offenceDate: faker.date.past(),
-            plea: faker.helpers.arrayElement(pleas),
-            particulars: faker.lorem.sentence(),
-            custodyTimeLimit: null,
-            statutoryTimeLimit: getUpcomingSTL(),
-            isCount: false,
-          }
-        }
-      },
-    });
-
-    // Connect defendant to case
-    await prisma.case.update({
-      where: { id: caseForUpcomingStl.id },
-      data: {
-        defendants: {
-          connect: { id: upcomingStlDefendant.id }
-        }
-      }
-    });
-
-    // Update ALL other defendants in this case to have STL on their charges
-    // This ensures the case only has ONE time limit type
-    const existingDefendantsUpcoming = await prisma.defendant.findMany({
-      where: {
-        cases: { some: { id: caseForUpcomingStl.id } },
-        id: { not: upcomingStlDefendant.id }
-      },
-      include: { charges: true }
-    });
-
-    for (const defendant of existingDefendantsUpcoming) {
-      // Clear PACE clock from defendant
-      await prisma.defendant.update({
-        where: { id: defendant.id },
-        data: { paceClock: null }
-      });
-
-      // Set STL on charges, clear CTL
-      for (const charge of defendant.charges) {
-        await prisma.charge.update({
-          where: { id: charge.id },
-          data: {
-            custodyTimeLimit: null,
-            statutoryTimeLimit: getUpcomingSTL()
-          }
-        });
-      }
-    }
-
-    // Create task for upcoming STL
-    const upcomingStlDueDate = getUpcomingSTL();
-    const upcomingStlReminderDate = new Date(upcomingStlDueDate);
-    upcomingStlReminderDate.setDate(upcomingStlReminderDate.getDate() - 7);
-    const upcomingStlEscalationDate = new Date(upcomingStlDueDate);
-    upcomingStlEscalationDate.setDate(upcomingStlEscalationDate.getDate() + 3);
-
-    await prisma.task.create({
-      data: {
-        name: "STL expiry imminent",
-        reminderType: null,
-        reminderDate: upcomingStlReminderDate,
-        dueDate: upcomingStlDueDate,
-        escalationDate: upcomingStlEscalationDate,
-        completedDate: null,
-        caseId: caseForUpcomingStl.id,
-        assignedToUserId: user.id,
-        assignedToTeamId: null,
-      }
-    });
-
-    stlChargesCreated++;
-    stlTasksCreated++;
+    console.log(`✅ Created 17 guaranteed test cases for ${user.firstName} ${user.lastName}`);
   }
-
-  console.log(`✅ Created ${stlChargesCreated} charges with STL expiring (overdue/upcoming) for ${usersExcludingTony.length} users`);
-  console.log(`✅ Created ${stlTasksCreated} STL-related tasks for these charges`);
 
   // -------------------- Seed Case Notes --------------------
   // Fetch all cases and add notes to 30% of them

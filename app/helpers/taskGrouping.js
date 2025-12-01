@@ -66,6 +66,64 @@ function getDateGroup(date, today) {
 }
 
 /**
+ * Get the PACE clock group key based on time remaining
+ * @param {Date|string} paceClockDateTime - The PACE clock DateTime
+ * @returns {string} - Group key: 'expired', 'lessThan1Hour', 'lessThan2Hours', 'lessThan3Hours', 'moreThan3Hours', or 'noPaceClock'
+ */
+function getPaceClockGroup(paceClockDateTime) {
+  if (!paceClockDateTime) {
+    return 'noPaceClock'
+  }
+
+  const now = new Date()
+  const paceClock = new Date(paceClockDateTime)
+  const msRemaining = paceClock - now
+  const hoursRemaining = msRemaining / (1000 * 60 * 60)
+
+  if (hoursRemaining < 0) return 'expired'
+  if (hoursRemaining < 1) return 'lessThan1Hour'
+  if (hoursRemaining < 2) return 'lessThan2Hours'
+  if (hoursRemaining < 3) return 'lessThan3Hours'
+  return 'moreThan3Hours'
+}
+
+/**
+ * Get the sort order for PACE clock groups
+ * @param {string} groupKey - The PACE clock group key
+ * @returns {number} - Sort priority (lower = higher priority)
+ */
+function getPaceClockSortOrder(groupKey) {
+  const order = {
+    'expired': 1,
+    'lessThan1Hour': 2,
+    'lessThan2Hours': 3,
+    'lessThan3Hours': 4,
+    'moreThan3Hours': 5,
+    'noPaceClock': 6
+  }
+
+  return order[groupKey] || 999
+}
+
+/**
+ * Get the heading text for a PACE clock group
+ * @param {string} groupKey - The PACE clock group key
+ * @returns {string} - The heading text
+ */
+function getPaceClockGroupHeading(groupKey) {
+  const headings = {
+    expired: 'PACE clock expired',
+    lessThan1Hour: 'PACE clock ends in less than 1 hour',
+    lessThan2Hours: 'PACE clock ends in less than 2 hours',
+    lessThan3Hours: 'PACE clock ends in less than 3 hours',
+    moreThan3Hours: 'PACE clock ends in more than 3 hours',
+    noPaceClock: 'No PACE clock'
+  }
+
+  return headings[groupKey] || groupKey
+}
+
+/**
  * Get the heading text for a date group based on sort type
  * @param {string} groupKey - The group key
  * @param {string} sortBy - The sort type ('Time limit', 'Custody time limit', 'Hearing date')
@@ -100,15 +158,6 @@ function getDateGroupHeading(groupKey, sortBy) {
       later: 'Statutory time limit ends later',
       noDate: 'No statutory time limit'
     },
-    'PACE clock': {
-      overdue: 'PACE clock expired',
-      today: 'PACE clock ends today',
-      tomorrow: 'PACE clock ends tomorrow',
-      thisWeek: 'PACE clock ends this week',
-      nextWeek: 'PACE clock ends next week',
-      later: 'PACE clock ends later',
-      noDate: 'No PACE clock'
-    },
     'Hearing date': {
       overdue: 'Hearing date has passed',
       today: 'Hearing is today',
@@ -127,13 +176,38 @@ function getDateGroupHeading(groupKey, sortBy) {
  * Add group metadata to tasks based on their severity or date (depending on sortBy)
  * @param {Array} tasks - Array of task objects
  * @param {string} sortBy - Optional. The sort type ('Time limit', 'Custody time limit', 'Hearing date'). Defaults to severity-based grouping.
+ * @param {Date} today - Optional. Today's date (midnight). If not provided, will be calculated.
  * @returns {Array} - Tasks with groupKey, groupHeading, sortOrder, and severity properties added
  */
-function groupTasks(tasks, sortBy) {
-  if (sortBy === 'Time limit' || sortBy === 'Custody time limit' || sortBy === 'Statutory time limit' || sortBy === 'PACE clock' || sortBy === 'Hearing date') {
+function groupTasks(tasks, sortBy, today) {
+  if (sortBy === 'PACE clock') {
+    // Use time-based grouping for PACE clock (hours, not days)
+    return tasks.map(task => {
+      const paceClockDateTime = task.case?.paceClock || null
+
+      // Get the PACE clock group key and heading
+      const groupKey = getPaceClockGroup(paceClockDateTime)
+      const groupHeading = getPaceClockGroupHeading(groupKey)
+      const sortOrder = getPaceClockSortOrder(groupKey)
+
+      // Always calculate severity for filtering purposes
+      const severity = getTaskSeverity(task)
+
+      // Add group metadata to task
+      return {
+        ...task,
+        severity,
+        sortOrder,
+        groupKey,
+        groupHeading
+      }
+    })
+  } else if (sortBy === 'Time limit' || sortBy === 'Custody time limit' || sortBy === 'Statutory time limit' || sortBy === 'Hearing date') {
     // Use date-based grouping
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    if (!today) {
+      today = new Date()
+      today.setHours(0, 0, 0, 0)
+    }
 
     return tasks.map(task => {
       let dateToUse = null
@@ -148,9 +222,6 @@ function groupTasks(tasks, sortBy) {
       } else if (sortBy === 'Statutory time limit') {
         // Only use date if this task has a STL
         dateToUse = task.case?.statutoryTimeLimit || null
-      } else if (sortBy === 'PACE clock') {
-        // Only use date if this task has a PACE clock
-        dateToUse = task.case?.paceClock || null
       } else if (sortBy === 'Hearing date') {
         dateToUse = task.case?.hearings?.[0]?.startDate
       }
@@ -196,5 +267,6 @@ module.exports = {
   getSeveritySortOrder,
   getDateGroup,
   getDateGroupHeading,
+  getPaceClockGroup,
   groupTasks
 };

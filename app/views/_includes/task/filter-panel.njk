@@ -66,6 +66,48 @@
     },
     items: timeLimitTypeItems,
     values: selectedTimeLimitTypeFilters
+  }) if 1==2}}
+
+  {{ govukCheckboxes({
+    idPrefix: "taskListFilters[paceClockRange]",
+    name: "taskListFilters[paceClockRange]",
+    classes: "govuk-checkboxes--small",
+    fieldset: {
+      legend: {
+        text: "PACE clock",
+        classes: "govuk-fieldset__legend--s"
+      }
+    },
+    items: paceClockRangeItems,
+    values: selectedPaceClockRangeFilters
+  }) }}
+
+  {{ govukCheckboxes({
+    idPrefix: "taskListFilters[custodyTimeLimitRange]",
+    name: "taskListFilters[custodyTimeLimitRange]",
+    classes: "govuk-checkboxes--small",
+    fieldset: {
+      legend: {
+        text: "Custody time limit",
+        classes: "govuk-fieldset__legend--s"
+      }
+    },
+    items: custodyTimeLimitRangeItems,
+    values: selectedCustodyTimeLimitRangeFilters
+  }) }}
+
+  {{ govukCheckboxes({
+    idPrefix: "taskListFilters[statutoryTimeLimitRange]",
+    name: "taskListFilters[statutoryTimeLimitRange]",
+    classes: "govuk-checkboxes--small",
+    fieldset: {
+      legend: {
+        text: "Statutory time limit",
+        classes: "govuk-fieldset__legend--s"
+      }
+    },
+    items: statutoryTimeLimitRangeItems,
+    values: selectedStatutoryTimeLimitRangeFilters
   }) }}
 
   {{ govukCheckboxes({
