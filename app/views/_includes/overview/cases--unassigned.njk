@@ -1,0 +1,18 @@
+{% if unassignedCaseCount > 0 %}
+  <div class="app-overview-section">
+    <h2 class="govuk-heading-m">Cases</h2>
+    <div class="app-overview-cards govuk-!-margin-bottom-9">
+      <a href="/cases/shortcut/unassigned" class="app-overview-card app-overview-card--green">
+        <span class="app-overview-card__count">{{unassignedCaseCount}}</span>
+        <span class="app-overview-card__status">
+          {% if unassignedCaseCount == 1 %}
+            case does not
+          {% else %}
+            cases do not
+          {% endif %}
+          have a prosecutor assigned
+        </span>
+      </a>
+    </div>
+  </div>
+{% endif %}

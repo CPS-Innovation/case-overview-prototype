@@ -1,0 +1,75 @@
+{% if paceClockCountsByRange.expired > 0 or paceClockCountsByRange.lessThan1Hour > 0 or paceClockCountsByRange.lessThan2Hours > 0 or paceClockCountsByRange.lessThan3Hours > 0 or paceClockCountsByRange.moreThan3Hours > 0 %}
+  <div class="app-overview-section">  
+    <h2 class="govuk-heading-m">Tasks with a PACE clock</h2>
+
+    {% if paceClockCountsByRange.expired > 0 or paceClockCountsByRange.lessThan1Hour > 0 %}
+      <div class="app-overview-cards govuk-!-margin-bottom-5">
+        {% if paceClockCountsByRange.expired > 0 %}
+          <a href="/tasks/shortcut/pace-expired" class="app-overview-card app-overview-card--red">
+            <span class="app-overview-card__count">{{paceClockCountsByRange.expired}}</span>
+            <span class="app-overview-card__status">
+              {% if paceClockCountsByRange.expired == 1 %}
+                task - PACE clock expired
+              {% else %}
+                tasks - PACE clock expired
+              {% endif %}
+            </span>
+          </a>
+        {% endif %}
+        {% if paceClockCountsByRange.lessThan1Hour > 0 %}
+          <a href="/tasks/shortcut/pace-less-than-1-hour" class="app-overview-card app-overview-card--red">
+            <span class="app-overview-card__count">{{paceClockCountsByRange.lessThan1Hour}}</span>
+            <span class="app-overview-card__status">
+              {% if paceClockCountsByRange.lessThan1Hour == 1 %}
+                task - PACE clock ends in less than 1 hour
+              {% else %}
+                tasks - PACE clock ends in less than 1 hour
+              {% endif %}
+            </span>
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% if paceClockCountsByRange.lessThan2Hours > 0 or paceClockCountsByRange.lessThan3Hours > 0 or paceClockCountsByRange.moreThan3Hours > 0 %}
+      <ul class="govuk-list govuk-list--bullet">
+        {% if paceClockCountsByRange.lessThan2Hours > 0 %}
+          <li>
+            <a href="/tasks/shortcut/pace-less-than-2-hours">
+              {{paceClockCountsByRange.lessThan2Hours}}
+              {% if paceClockCountsByRange.lessThan2Hours == 1 %}
+                task - PACE clock ends in less than 2 hours
+              {% else %}
+                tasks - PACE clock ends in less than 2 hours
+              {% endif %}
+            </a>
+          </li>
+        {% endif %}
+        {% if paceClockCountsByRange.lessThan3Hours > 0 %}
+          <li>
+            <a href="/tasks/shortcut/pace-less-than-3-hours">
+              {{paceClockCountsByRange.lessThan3Hours}}
+              {% if paceClockCountsByRange.lessThan3Hours == 1 %}
+                task - PACE clock ends in less than 3 hours
+              {% else %}
+                tasks - PACE clock ends in less than 3 hours
+              {% endif %}
+            </a>
+          </li>
+        {% endif %}
+        {% if paceClockCountsByRange.moreThan3Hours > 0 %}
+          <li>
+            <a href="/tasks/shortcut/pace-more-than-3-hours">
+              {{paceClockCountsByRange.moreThan3Hours}}
+              {% if paceClockCountsByRange.moreThan3Hours == 1 %}
+                task - PACE clock ends in more than 3 hours
+              {% else %}
+                tasks - PACE clock ends in more than 3 hours
+              {% endif %}
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}

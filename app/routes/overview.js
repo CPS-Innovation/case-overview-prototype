@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const { getTaskSeverity } = require('../helpers/taskState')
 const { addTimeLimitDates } = require('../helpers/timeLimit')
+const { getDateGroup, getPaceClockGroup } = require('../helpers/taskGrouping')
 
 module.exports = router => {
 
@@ -86,10 +87,35 @@ module.exports = router => {
       'Not due yet': []
     }
 
-    // Count tasks by time limit type
-    let ctlTaskCount = 0
-    let stlTaskCount = 0
-    let paceClockTaskCount = 0
+    // Initialize counters for each time limit type and range
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const ctlCountsByRange = {
+      overdue: 0,
+      today: 0,
+      tomorrow: 0,
+      thisWeek: 0,
+      nextWeek: 0,
+      later: 0
+    }
+
+    const stlCountsByRange = {
+      overdue: 0,
+      today: 0,
+      tomorrow: 0,
+      thisWeek: 0,
+      nextWeek: 0,
+      later: 0
+    }
+
+    const paceClockCountsByRange = {
+      expired: 0,
+      lessThan1Hour: 0,
+      lessThan2Hours: 0,
+      lessThan3Hours: 0,
+      moreThan3Hours: 0
+    }
 
     tasks.forEach(task => {
       const severity = getTaskSeverity(task)
@@ -100,10 +126,29 @@ module.exports = router => {
       // Calculate time limit info for this task's case
       addTimeLimitDates(task.case)
 
-      // Count by time limit type
-      if (task.case.custodyTimeLimit) ctlTaskCount++
-      if (task.case.statutoryTimeLimit) stlTaskCount++
-      if (task.case.paceClock) paceClockTaskCount++
+      // Count by CTL date range
+      if (task.case.custodyTimeLimit) {
+        const ctlGroupKey = getDateGroup(task.case.custodyTimeLimit, today)
+        if (ctlGroupKey !== 'noDate' && ctlCountsByRange[ctlGroupKey] !== undefined) {
+          ctlCountsByRange[ctlGroupKey]++
+        }
+      }
+
+      // Count by STL date range
+      if (task.case.statutoryTimeLimit) {
+        const stlGroupKey = getDateGroup(task.case.statutoryTimeLimit, today)
+        if (stlGroupKey !== 'noDate' && stlCountsByRange[stlGroupKey] !== undefined) {
+          stlCountsByRange[stlGroupKey]++
+        }
+      }
+
+      // Count by PACE clock time range
+      if (task.case.paceClock) {
+        const paceGroupKey = getPaceClockGroup(task.case.paceClock)
+        if (paceGroupKey !== 'noPaceClock' && paceClockCountsByRange[paceGroupKey] !== undefined) {
+          paceClockCountsByRange[paceGroupKey]++
+        }
+      }
     })
 
     // Fetch directions for cases assigned to current user (as prosecutor or paralegal officer)
@@ -143,9 +188,8 @@ module.exports = router => {
       where: directionWhere
     })
 
-    // Categorize directions by due date
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // Categorize directions by due date (reuse today from above)
+    // const today is already defined earlier for time limit grouping
 
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
@@ -200,9 +244,9 @@ module.exports = router => {
       incompleteProfileCount,
       needsDGAReviewCount,
       urgentTaskCount,
-      ctlTaskCount,
-      stlTaskCount,
-      paceClockTaskCount,
+      ctlCountsByRange,
+      stlCountsByRange,
+      paceClockCountsByRange,
       criticallyOverdueTaskCount: tasksBySeverity['Critically overdue'].length,
       overdueTaskCount: tasksBySeverity['Overdue'].length,
       dueSoonTaskCount: tasksBySeverity['Due soon'].length,
