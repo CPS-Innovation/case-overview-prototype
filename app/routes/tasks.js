@@ -55,105 +55,105 @@ module.exports = router => {
   router.get('/tasks/shortcut/ctl-overdue', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Custody time limit&taskListFilters[custodyTimeLimitRange][]=overdue`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[custodyTimeLimitRange][]=overdue`)
   })
 
   router.get('/tasks/shortcut/ctl-today', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Custody time limit&taskListFilters[custodyTimeLimitRange][]=today`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[custodyTimeLimitRange][]=today`)
   })
 
   router.get('/tasks/shortcut/ctl-tomorrow', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Custody time limit&taskListFilters[custodyTimeLimitRange][]=tomorrow`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[custodyTimeLimitRange][]=tomorrow`)
   })
 
   router.get('/tasks/shortcut/ctl-this-week', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Custody time limit&taskListFilters[custodyTimeLimitRange][]=thisWeek`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[custodyTimeLimitRange][]=thisWeek`)
   })
 
   router.get('/tasks/shortcut/ctl-next-week', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Custody time limit&taskListFilters[custodyTimeLimitRange][]=nextWeek`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[custodyTimeLimitRange][]=nextWeek`)
   })
 
   router.get('/tasks/shortcut/ctl-later', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Custody time limit&taskListFilters[custodyTimeLimitRange][]=later`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[custodyTimeLimitRange][]=later`)
   })
 
   // Statutory Time Limit shortcuts
   router.get('/tasks/shortcut/stl-overdue', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Statutory time limit&taskListFilters[statutoryTimeLimitRange][]=overdue`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[statutoryTimeLimitRange][]=overdue`)
   })
 
   router.get('/tasks/shortcut/stl-today', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Statutory time limit&taskListFilters[statutoryTimeLimitRange][]=today`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[statutoryTimeLimitRange][]=today`)
   })
 
   router.get('/tasks/shortcut/stl-tomorrow', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Statutory time limit&taskListFilters[statutoryTimeLimitRange][]=tomorrow`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[statutoryTimeLimitRange][]=tomorrow`)
   })
 
   router.get('/tasks/shortcut/stl-this-week', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Statutory time limit&taskListFilters[statutoryTimeLimitRange][]=thisWeek`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[statutoryTimeLimitRange][]=thisWeek`)
   })
 
   router.get('/tasks/shortcut/stl-next-week', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Statutory time limit&taskListFilters[statutoryTimeLimitRange][]=nextWeek`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[statutoryTimeLimitRange][]=nextWeek`)
   })
 
   router.get('/tasks/shortcut/stl-later', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=Statutory time limit&taskListFilters[statutoryTimeLimitRange][]=later`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[statutoryTimeLimitRange][]=later`)
   })
 
   // PACE Clock shortcuts
   router.get('/tasks/shortcut/pace-expired', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=PACE clock&taskListFilters[paceClockRange][]=expired`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[paceClockRange][]=expired`)
   })
 
   router.get('/tasks/shortcut/pace-less-than-1-hour', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=PACE clock&taskListFilters[paceClockRange][]=lessThan1Hour`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[paceClockRange][]=lessThan1Hour`)
   })
 
   router.get('/tasks/shortcut/pace-less-than-2-hours', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=PACE clock&taskListFilters[paceClockRange][]=lessThan2Hours`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[paceClockRange][]=lessThan2Hours`)
   })
 
   router.get('/tasks/shortcut/pace-less-than-3-hours', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=PACE clock&taskListFilters[paceClockRange][]=lessThan3Hours`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[paceClockRange][]=lessThan3Hours`)
   })
 
   router.get('/tasks/shortcut/pace-more-than-3-hours', (req, res) => {
     const currentUser = req.session.data.user
     resetFilters(req)
-    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[timeLimitType][]=PACE clock&taskListFilters[paceClockRange][]=moreThan3Hours`)
+    res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[paceClockRange][]=moreThan3Hours`)
   })
 
   router.get("/tasks", async (req, res) => {
