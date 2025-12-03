@@ -1,19 +1,19 @@
 {% extends "layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set pageName = "Confirm that you want to mark as not urgent" %}
+{% set pageName = "Reason for marking as not urgent" %}
 
 {% block beforeContent %}
   {{ govukBackLink({
     text: 'Back',
-    href: 'javascript:history.back()'
+    href: "/cases/:caseId/tasks/:taskId" | replace(':caseId', _case.id) | replace(':taskId', task.id)
   }) }}
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-      <span class="govuk-caption-l">{{_case.reference}}</span>
+      <span class="govuk-caption-l">{{_case.reference}} - {{task.name}}</span>
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
       {% set taskHtml %}
@@ -25,11 +25,22 @@
       }) }}
 
       <form method="post">
+
+        {{ govukCharacterCount({
+          name: "notUrgentNote",
+          id: "notUrgentNote",
+          maxlength: 5000,
+          label: {
+            text: pageName,
+            classes: "govuk-label--m"
+          },
+          value: notUrgentNote
+        }) }}
+
         {{ govukButton({
-          text: "Mark as not urgent"
+          text: "Continue"
         }) }}
       </form>
-      <p><a href="/cases/{{_case.id}}/tasks/{{task.id}}">Cancel</a></p>
     </div>
   </div>
 {% endblock %}
