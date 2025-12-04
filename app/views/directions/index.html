@@ -46,6 +46,28 @@
                 {% endif %}
               {% endset %}
 
+              {% set prosecutorValue %}
+                {% if direction.case.prosecutors.length %}
+                  {{direction.case.prosecutors[0].user.firstName}} {{direction.case.prosecutors[0].user.lastName}}
+                  {% if direction.case.prosecutors.length > 1 %}
+                    and {{direction.case.prosecutors.length - 1}} more
+                  {% endif %}
+                {% else %}
+                  Unassigned
+                {% endif %}
+              {% endset %}
+
+              {% set paralegalOfficerValue %}
+                {% if direction.case.paralegalOfficers.length %}
+                  {{direction.case.paralegalOfficers[0].user.firstName}} {{direction.case.paralegalOfficers[0].user.lastName}}
+                  {% if direction.case.paralegalOfficers.length > 1 %}
+                    and {{direction.case.paralegalOfficers.length - 1}} more
+                  {% endif %}
+                {% else %}
+                  Unassigned
+                {% endif %}
+              {% endset %}
+
               {% set dueDateValue %}
                 {{ direction.dueDate | isoDateString | govukDateTime }}
                 <span>({{ direction.dueDate | daysUntil }})</span>
@@ -81,6 +103,22 @@
                     },
                     value: {
                       html: defendantsValue
+                    }
+                  },
+                  {
+                    key: {
+                      html: 'Prosecutor'
+                    },
+                    value: {
+                      html: prosecutorValue
+                    }
+                  },
+                  {
+                    key: {
+                      html: 'Paralegal officer'
+                    },
+                    value: {
+                      html: paralegalOfficerValue
                     }
                   },
                   {

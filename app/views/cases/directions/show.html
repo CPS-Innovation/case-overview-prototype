@@ -61,12 +61,38 @@
         rows: [
           {
             key: {
-              text: 'Details'
+              text: 'Title'
+            },
+            value: {
+              text: direction.title
+            },
+            actions: {
+              items: [
+                {
+                  href: "/cases/" + _case.id + "/directions/" + direction.id + "/edit",
+                  text: "Change",
+                  visuallyHiddenText: "title"
+                }
+              ]
+            }
+          },
+          {
+            key: {
+              text: 'Description'
             },
             value: {
               text: direction.description
+            },
+            actions: {
+              items: [
+                {
+                  href: "/cases/" + _case.id + "/directions/" + direction.id + "/edit",
+                  text: "Change",
+                  visuallyHiddenText: "description"
+                }
+              ]
             }
-          } if direction.description.length > 100,
+          },
           {
             key: {
               text: 'Defendant'

@@ -42,6 +42,28 @@
                 {% endif %}
               </h3>
 
+              {% set prosecutorValue %}
+                {% if _case.prosecutors.length %}
+                  {{_case.prosecutors[0].user.firstName}} {{_case.prosecutors[0].user.lastName}}
+                  {% if _case.prosecutors.length > 1 %}
+                    and {{_case.prosecutors.length - 1}} more
+                  {% endif %}
+                {% else %}
+                  Unassigned
+                {% endif %}
+              {% endset %}
+
+              {% set paralegalOfficerValue %}
+                {% if _case.paralegalOfficers.length %}
+                  {{_case.paralegalOfficers[0].user.firstName}} {{_case.paralegalOfficers[0].user.lastName}}
+                  {% if _case.paralegalOfficers.length > 1 %}
+                    and {{_case.paralegalOfficers.length - 1}} more
+                  {% endif %}
+                {% else %}
+                  Unassigned
+                {% endif %}
+              {% endset %}
+
               {% set dueDateValue %}
                 {{ direction.dueDate | isoDateString | govukDateTime }}
                 <span>({{ direction.dueDate | daysUntil }})</span>
@@ -60,18 +82,34 @@
                   } if direction.defendant,
                   {
                     key: {
-                      text: 'Assignee'
+                      html: 'Prosecutor'
                     },
                     value: {
-                      text: direction.assignee
+                      html: prosecutorValue
                     }
                   },
                   {
                     key: {
-                      text: 'Due date'
+                      html: 'Paralegal officer'
+                    },
+                    value: {
+                      html: paralegalOfficerValue
+                    }
+                  },
+                  {
+                    key: {
+                      html: 'Due date'
                     },
                     value: {
                       html: dueDateValue
+                    }
+                  },
+                  {
+                    key: {
+                      html: 'Assignee'
+                    },
+                    value: {
+                      html: direction.assignee
                     }
                   },
                   {
