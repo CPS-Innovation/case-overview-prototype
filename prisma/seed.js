@@ -1,7 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcrypt");
 const { faker } = require("@faker-js/faker");
-const _ = require("lodash");
 
 // App data
 const complexities = require("../app/data/complexities.js");
@@ -10,7 +8,6 @@ const lastNames = require("../app/data/last-names.js");
 const types = require("../app/data/types.js");
 const taskNames = require("../app/data/task-names.js");
 const documentTypes = require("../app/data/document-types.js");
-const specialisms = require("../app/data/specialisms.js");
 const venues = require("../app/data/venues.js");
 const remandStatuses = require("../app/data/remand-statuses.js");
 const charges = require("../app/data/charges.js");
@@ -70,289 +67,31 @@ const {
   generateMoreThan3HoursPACE
 } = require("./seed-helpers/pace-generators");
 
+const { seedUnits } = require("./seed-helpers/units");
+const { seedTeams } = require("./seed-helpers/teams");
+const { seedUsers } = require("./seed-helpers/users");
+const { seedSpecialisms } = require("./seed-helpers/specialisms");
+const { seedProsecutors } = require("./seed-helpers/prosecutors");
+
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Starting seed...");
 
   // -------------------- Units --------------------
-  await prisma.unit.createMany({
-    data: [
-      // Wessex area units
-      { name: "Dorset Magistrates Court" },
-      { name: "Hampshire Magistrates Court" },
-      { name: "Wessex Crown Court" },
-      { name: "Wessex RASSO" },
-      { name: "Wessex CCU" },
-      { name: "Wessex Fraud" },
-      { name: "Wiltshire Magistrates Court" },
-      // Yorkshire and Humberside area units
-      { name: "North Yorkshire Crown Court" },
-      { name: "North Yorkshire Magistrates Court" },
-      { name: "South Yorkshire Crown Court" },
-      { name: "South Yorkshire Magistrates Court" },
-      { name: "West Yorkshire Crown Court" },
-      { name: "West Yorkshire Magistrates Court" },
-      { name: "Yorkshire and Humberside CCU" },
-      { name: "Yorkshire and Humberside RASSO" },
-      { name: "Humberside South Yorkshire RASSO" },
-      { name: "Humberside Crown Court" },
-      { name: "Humberside Magistrates Court" },
-    ],
-  });
-  console.log("✅ 18 units seeded");
+  await seedUnits(prisma);
 
   // -------------------- Teams --------------------
-  const standardTeamNames = [
-    "Admin pool",
-    "Crown Court",
-    "Magistrates Court General",
-    "Magistrates Court Contested"
-  ];
-
-  for (let unitId = 1; unitId <= 18; unitId++) {
-    await prisma.team.createMany({
-      data: standardTeamNames.map(name => ({
-        name,
-        unitId,
-        isStandard: true
-      }))
-    });
-  }
-  console.log("✅ 72 standard teams created (4 per unit)");
+  await seedTeams(prisma);
 
   // -------------------- Users --------------------
-  const users = [];
-  const userData = [
-    {
-      email: "reporting.admin@cps.gov.uk",
-      password: "password123",
-      role: "Reporting admin",
-      firstName: "Veronica",
-      lastName: "Mars",
-    },
-    {
-      email: "adam@cps.gov.uk",
-      password: "password123",
-      role: "Paralegal officer",
-      firstName: "Adam",
-      lastName: "Silver",
-    },
-    {
-      email: "rachael@cps.gov.uk",
-      password: "password123",
-      role: "Paralegal officer",
-      firstName: "Rachael",
-      lastName: "Harvey",
-    },
-    {
-      email: "simon@cps.gov.uk",
-      password: "password123",
-      role: "Prosecutor",
-      firstName: "Simon",
-      lastName: "Whatley",
-    },
-    {
-      email: "tony@cps.gov.uk",
-      password: "password123",
-      role: "Casework assistant",
-      firstName: "Tony",
-      lastName: "Stark",
-    },
-  ];
-
-  // Generate 200 Prosecutors
-  for (let i = 0; i < 200; i++) {
-    const firstName = faker.helpers.arrayElement(firstNames);
-    const lastName = faker.helpers.arrayElement(lastNames);
-    userData.push({
-      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}.p${i}@example.com`,
-      password: "password123",
-      role: "Prosecutor",
-      firstName: firstName,
-      lastName: lastName,
-    });
-  }
-
-  // Generate 200 Paralegal officers
-  for (let i = 0; i < 200; i++) {
-    const firstName = faker.helpers.arrayElement(firstNames);
-    const lastName = faker.helpers.arrayElement(lastNames);
-    userData.push({
-      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}.po${i}@example.com`,
-      password: "password123",
-      role: "Paralegal officer",
-      firstName: firstName,
-      lastName: lastName,
-    });
-  }
-
-  // Hash all passwords in parallel
-  const hashedUserData = await Promise.all(
-    userData.map(async (u) => ({
-      ...u,
-      password: await bcrypt.hash(u.password, 10),
-    }))
-  );
-
-  // Create all users in one batch
-  const createdUsers = await prisma.user.createManyAndReturn({
-    data: hashedUserData,
-  });
-  users.push(...createdUsers);
-  console.log(`✅ ${users.length} users seeded`);
-
-  // -------------------- User-Unit Assignments --------------------
-  // Assign each user to 1-3 random units
-  for (const user of users) {
-    let selectedUnits;
-
-    // Rachael Harvey gets specific units
-    if (user.firstName === "Rachael" && user.lastName === "Harvey") {
-      selectedUnits = [3, 4]; // Wessex Crown Court, Wessex RASSO
-    } else if (user.firstName === "Simon" && user.lastName === "Whatley") {
-      selectedUnits = [9, 11, 13, 18]; // North Yorkshire Magistrates Court, South Yorkshire Magistrates Court, West Yorkshire Magistrates Court, Humberside Magistrates Court
-    } else if (user.firstName === "Tony" && user.lastName === "Stark") {
-      selectedUnits = [1, 2, 3, 4, 5, 6, 7]; // All Wessex units: Dorset Magistrates Court, Hampshire Magistrates Court, Wessex Crown Court, Wessex RASSO, Wessex CCU, Wessex Fraud, Wiltshire Magistrates Court
-    } else if (user.firstName === "Veronica" && user.lastName === "Mars") {
-      selectedUnits = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]; // All Yorkshire and Humberside units
-    }
-    else {
-      const numUnits = faker.number.int({ min: 1, max: 3 });
-      selectedUnits = faker.helpers.arrayElements(
-        Array.from({ length: 18 }, (_, i) => i + 1),
-        numUnits
-      );
-    }
-
-    await prisma.userUnit.createMany({
-      data: selectedUnits.map(unitId => ({
-        userId: user.id,
-        unitId
-      }))
-    });
-  }
-  console.log(`✅ Users assigned to units`);
-
-  // Refetch users with their units included for later use
-  const usersWithUnits = await prisma.user.findMany({
-    include: {
-      units: true
-    }
-  });
-  // Replace users array with the one that includes units
-  users.length = 0;
-  users.push(...usersWithUnits);
+  const users = await seedUsers(prisma);
 
   // -------------------- Specialisms --------------------
-  await prisma.specialism.createMany({
-    data: specialisms.map((name) => ({ name })),
-  });
-  console.log("✅ Specialisms seeded");
+  await seedSpecialisms(prisma);
 
   // -------------------- Prosecutors (Users with role="Prosecutor") --------------------
-  const prosecutors = [];
-
-  const tonyUnitId = faker.number.int({ min: 1, max: 18 });
-  const tony = await prisma.user.create({
-    data: {
-      firstName: "Tony",
-      lastName: "Stark",
-      email: "tony.stark@cps.gov.uk",
-      password: bcrypt.hashSync("password123", 10),
-      role: "Prosecutor",
-      units: {
-        create: {
-          unitId: tonyUnitId
-        }
-      }
-    },
-    include: {
-      units: true
-    }
-  });
-  prosecutors.push(tony);
-
-  // Michael Chen - specialist in Hate crime with exclusions for all youth specialisms
-  const michaelUnitId = faker.number.int({ min: 1, max: 18 });
-  const michaelChen = await prisma.user.create({
-    data: {
-      firstName: "Michael",
-      lastName: "Chen",
-      email: "michael.chen@cps.gov.uk",
-      password: bcrypt.hashSync("password123", 10),
-      role: "Prosecutor",
-      units: {
-        create: {
-          unitId: michaelUnitId
-        }
-      },
-      specialistAreas: { connect: [{ name: 'Hate crime' }] },
-      preferredAreas: { connect: [] },
-      restrictedAreas: { connect: [
-        { name: 'Youth justice' },
-        { name: 'Youth RASSO' },
-        { name: 'Youth specialist' }
-      ] },
-    },
-    include: {
-      units: true
-    }
-  });
-  prosecutors.push(michaelChen);
-
-  for (let i = 0; i < 150; i++) {
-    const specialistAreas = faker.helpers.arrayElements(
-      specialisms,
-      faker.number.int({ min: 0, max: 2 })
-    );
-    const remainingForPreferred = specialisms.filter(
-      (s) => !specialistAreas.includes(s)
-    );
-    const preferredAreas = faker.helpers.arrayElements(
-      remainingForPreferred,
-      faker.number.int({ min: 0, max: 2 })
-    );
-    const remainingForRestricted = specialisms.filter(
-      (s) => !specialistAreas.includes(s) && !preferredAreas.includes(s)
-    );
-    const restrictedAreas = faker.helpers.arrayElements(
-      remainingForRestricted,
-      faker.number.int({ min: 0, max: 2 })
-    );
-
-    const prosecutorUnitId = faker.number.int({ min: 1, max: 18 });
-    const prosecutor = await prisma.user.create({
-      data: {
-        firstName: faker.helpers.arrayElement(firstNames),
-        lastName: faker.helpers.arrayElement(lastNames),
-        email: `prosecutor.${faker.string.alphanumeric(8).toLowerCase()}@cps.gov.uk`,
-        password: bcrypt.hashSync("password123", 10),
-        role: "Prosecutor",
-        units: {
-          create: {
-            unitId: prosecutorUnitId
-          }
-        },
-        specialistAreas: { connect: specialistAreas.map((name) => ({ name })) },
-        preferredAreas: { connect: preferredAreas.map((name) => ({ name })) },
-        restrictedAreas: { connect: restrictedAreas.map((name) => ({ name })) },
-      },
-      include: {
-        units: true
-      }
-    });
-    prosecutors.push(prosecutor);
-  }
-  console.log("✅ Prosecutors seeded");
-
-  // Re-fetch all prosecutors with units included to ensure we have complete data
-  const allProsecutors = await prisma.user.findMany({
-    where: { role: 'Prosecutor' },
-    include: { units: true }
-  });
-  prosecutors.length = 0;
-  prosecutors.push(...allProsecutors);
+  const prosecutors = await seedProsecutors(prisma);
 
   // -------------------- Defence Lawyers --------------------
   const defenceLawyerData = Array.from({ length: 100 }, () => ({
@@ -506,7 +245,7 @@ async function main() {
   console.log("✅ Victims seeded");
 
   // -------------------- Cases --------------------
-  const TOTAL_CASES = 1165;
+  const TOTAL_CASES = 1065;
   const UNASSIGNED_TARGET = 7;
   const DGA_TARGET = 10; // set desired number of DGAs
 
