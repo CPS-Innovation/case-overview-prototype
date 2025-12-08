@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { faker } = require("@faker-js/faker");
 
-// App data
+// Data
 const complexities = require("../app/data/complexities.js");
 const firstNames = require("../app/data/first-names.js");
 const lastNames = require("../app/data/last-names.js");
@@ -13,7 +13,6 @@ const remandStatuses = require("../app/data/remand-statuses.js");
 const charges = require("../app/data/charges.js");
 const chargeStatuses = require("../app/data/charge-statuses.js");
 const pleas = require("../app/data/pleas.js");
-const defenceLawyerOrganisations = require("../app/data/defence-lawyer-organisations.js");
 const ukCities = require("../app/data/uk-cities.js");
 const religions = require("../app/data/religions.js");
 const occupations = require("../app/data/occupations.js");
@@ -21,52 +20,16 @@ const taskNoteDescriptions = require("../app/data/task-note-descriptions.js");
 const manualTaskNamesShort = require("../app/data/manual-task-names-short.js");
 const manualTaskNamesLong = require("../app/data/manual-task-names-long.js");
 
-// Seed helper functions
+// Helpers
 const { generateCaseReference } = require("./seed-helpers/identifiers");
+const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require("./seed-helpers/phone-numbers");
+const { futureDateAt10am } = require("./seed-helpers/dates");
+const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates, generateEscalatedTaskDates } = require("./seed-helpers/task-dates");
+const { generateExpiredCTL, generateTodayCTL, generateTomorrowCTL, generateThisWeekCTL, generateNextWeekCTL, generateLaterCTL } = require("./seed-helpers/ctl-generators");
+const { generateExpiredSTL, generateTodaySTL, generateTomorrowSTL, generateThisWeekSTL, generateNextWeekSTL, generateLaterSTL } = require("./seed-helpers/stl-generators");
+const { generateExpiredPACE, generateLessThan1HourPACE, generateLessThan2HoursPACE, generateLessThan3HoursPACE, generateMoreThan3HoursPACE } = require("./seed-helpers/pace-generators");
 
-const {
-  generateUKMobileNumber,
-  generateUKLandlineNumber,
-  generateUKPhoneNumber
-} = require("./seed-helpers/phone-numbers");
-
-const {
-  futureDateAt10am,
-} = require("./seed-helpers/dates");
-
-const {
-  generatePendingTaskDates,
-  generateDueTaskDates,
-  generateOverdueTaskDates,
-  generateEscalatedTaskDates
-} = require("./seed-helpers/task-dates");
-
-const {
-  generateExpiredCTL,
-  generateTodayCTL,
-  generateTomorrowCTL,
-  generateThisWeekCTL,
-  generateNextWeekCTL,
-  generateLaterCTL
-} = require("./seed-helpers/ctl-generators");
-
-const {
-  generateExpiredSTL,
-  generateTodaySTL,
-  generateTomorrowSTL,
-  generateThisWeekSTL,
-  generateNextWeekSTL,
-  generateLaterSTL
-} = require("./seed-helpers/stl-generators");
-
-const {
-  generateExpiredPACE,
-  generateLessThan1HourPACE,
-  generateLessThan2HoursPACE,
-  generateLessThan3HoursPACE,
-  generateMoreThan3HoursPACE
-} = require("./seed-helpers/pace-generators");
-
+// Seeds
 const { seedUnits } = require("./seed-helpers/units");
 const { seedTeams } = require("./seed-helpers/teams");
 const { seedUsers } = require("./seed-helpers/users");
@@ -79,22 +42,22 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // -------------------- Units --------------------
+  // Seed: Units
   await seedUnits(prisma);
 
-  // -------------------- Teams --------------------
+  // Seed: Teams
   await seedTeams(prisma);
 
-  // -------------------- Users --------------------
+  // Seed: Users
   const users = await seedUsers(prisma);
 
-  // -------------------- Specialisms --------------------
+  // Seed: Specialisms
   await seedSpecialisms(prisma);
 
-  // -------------------- Prosecutors (Users with role="Prosecutor") --------------------
+  // Seed: Prosecutors (users with role="Prosecutor")
   const prosecutors = await seedProsecutors(prisma);
 
-  // -------------------- Defence Lawyers --------------------
+  // Seed: Defence lawyers
   const defenceLawyers = await seedDefenceLawyers(prisma);
 
   // -------------------- Defendants with Charges --------------------
@@ -223,7 +186,7 @@ async function main() {
   }
 
   await prisma.charge.createMany({ data: allChargesData });
-  console.log("✅ Defendants and charges seeded");
+  console.log("✅ Defendants seeded");
 
   // -------------------- Victims --------------------
   const victimData = Array.from({ length: 200 }, () => ({

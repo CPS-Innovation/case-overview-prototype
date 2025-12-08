@@ -17,6 +17,7 @@ function resetFilters(req) {
   _.set(req, 'session.data.taskListFilters.custodyTimeLimitRange', null)
   _.set(req, 'session.data.taskListFilters.statutoryTimeLimitRange', null)
   _.set(req, 'session.data.taskListFilters.paceClockRange', null)
+  _.set(req, 'session.data.taskListFilters.hearingDateRange', null)
 }
 
 module.exports = router => {
@@ -192,6 +193,7 @@ module.exports = router => {
     let selectedCustodyTimeLimitRangeFilters = _.get(req.session.data.taskListFilters, 'custodyTimeLimitRange', [])
     let selectedStatutoryTimeLimitRangeFilters = _.get(req.session.data.taskListFilters, 'statutoryTimeLimitRange', [])
     let selectedPaceClockRangeFilters = _.get(req.session.data.taskListFilters, 'paceClockRange', [])
+    let selectedHearingDateRangeFilters = _.get(req.session.data.taskListFilters, 'hearingDateRange', [])
 
     let selectedFilters = { categories: [] }
 
@@ -205,6 +207,7 @@ module.exports = router => {
     let selectedCustodyTimeLimitRangeItems = []
     let selectedStatutoryTimeLimitRangeItems = []
     let selectedPaceClockRangeItems = []
+    let selectedHearingDateRangeItems = []
 
     // Owner filter display
     if (selectedOwnerFilters?.length) {
@@ -407,6 +410,30 @@ module.exports = router => {
       selectedFilters.categories.push({
         heading: { text: 'Statutory time limit' },
         items: selectedStatutoryTimeLimitRangeItems
+      })
+    }
+
+    // Hearing date range filter display
+    if (selectedHearingDateRangeFilters?.length) {
+      const hearingDateRangeDisplayText = {
+        'overdue': 'Passed',
+        'today': 'Today',
+        'tomorrow': 'Tomorrow',
+        'thisWeek': 'This week',
+        'nextWeek': 'Next week',
+        'later': 'Later'
+      }
+
+      selectedHearingDateRangeItems = selectedHearingDateRangeFilters.map(function(range) {
+        return {
+          text: hearingDateRangeDisplayText[range] || range,
+          href: '/tasks/remove-hearing-date-range/' + encodeURIComponent(range)
+        }
+      })
+
+      selectedFilters.categories.push({
+        heading: { text: 'Hearing date' },
+        items: selectedHearingDateRangeItems
       })
     }
 
@@ -677,6 +704,16 @@ module.exports = router => {
       { text: 'Ends in more than 3 hours', value: 'moreThan3Hours' }
     ]
 
+    // Hearing date range items
+    let hearingDateRangeItems = [
+      { text: 'Passed', value: 'overdue' },
+      { text: 'Today', value: 'today' },
+      { text: 'Tomorrow', value: 'tomorrow' },
+      { text: 'This week', value: 'thisWeek' },
+      { text: 'Next week', value: 'nextWeek' },
+      { text: 'Later', value: 'later' }
+    ]
+
     // Handle sorting
     const sortBy = _.get(req.session.data, 'taskSort', 'Due date')
 
@@ -738,6 +775,23 @@ module.exports = router => {
         }
 
         return selectedPaceClockRangeFilters.includes(paceClockGroupKey)
+      })
+    }
+
+    // Filter by hearing date range (works regardless of sort order)
+    if (selectedHearingDateRangeFilters?.length) {
+      tasks = tasks.filter(task => {
+        // Get the first hearing's start date
+        const hearingDate = task.case?.hearings?.[0]?.startDate || null
+        const hearingDateGroupKey = getDateGroup(hearingDate, today)
+
+        // Exclude tasks without hearings (groupKey === 'noDate')
+        if (hearingDateGroupKey === 'noDate') {
+          return false
+        }
+
+        // Include task if its hearing date groupKey matches any selected filter
+        return selectedHearingDateRangeFilters.includes(hearingDateGroupKey)
       })
     }
 
@@ -838,6 +892,9 @@ module.exports = router => {
       paceClockRangeItems,
       selectedPaceClockRangeFilters,
       selectedPaceClockRangeItems,
+      hearingDateRangeItems,
+      selectedHearingDateRangeFilters,
+      selectedHearingDateRangeItems,
       taskNameItems,
       selectedTaskNameFilters,
       selectedTaskNameItems,
@@ -920,6 +977,13 @@ module.exports = router => {
     const currentFilters = _.get(req, 'session.data.taskListFilters.paceClockRange', [])
     const range = decodeURIComponent(req.params.range)
     _.set(req, 'session.data.taskListFilters.paceClockRange', _.pull(currentFilters, range))
+    res.redirect('/tasks')
+  })
+
+  router.get('/tasks/remove-hearing-date-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.taskListFilters.hearingDateRange', [])
+    const range = decodeURIComponent(req.params.range)
+    _.set(req, 'session.data.taskListFilters.hearingDateRange', _.pull(currentFilters, range))
     res.redirect('/tasks')
   })
 
