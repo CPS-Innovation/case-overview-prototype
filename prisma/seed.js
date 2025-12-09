@@ -9,26 +9,13 @@ const types = require("../app/data/types.js");
 const taskNames = require("../app/data/task-names.js");
 const documentTypes = require("../app/data/document-types.js");
 const venues = require("../app/data/venues.js");
-const remandStatuses = require("../app/data/remand-statuses.js");
 const charges = require("../app/data/charges.js");
-const chargeStatuses = require("../app/data/charge-statuses.js");
 const pleas = require("../app/data/pleas.js");
 const ukCities = require("../app/data/uk-cities.js");
-const religions = require("../app/data/religions.js");
-const occupations = require("../app/data/occupations.js");
 const taskNoteDescriptions = require("../app/data/task-note-descriptions.js");
 const manualTaskNamesShort = require("../app/data/manual-task-names-short.js");
 const manualTaskNamesLong = require("../app/data/manual-task-names-long.js");
 const documentNames = require("../app/data/document-names.js");
-
-// Helpers
-const { generateCaseReference } = require("./seed-helpers/identifiers");
-const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require("./seed-helpers/phone-numbers");
-const { futureDateAt10am } = require("./seed-helpers/dates");
-const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates, generateEscalatedTaskDates } = require("./seed-helpers/task-dates");
-const { generateExpiredCTL, generateTodayCTL, generateTomorrowCTL, generateThisWeekCTL, generateNextWeekCTL, generateLaterCTL } = require("./seed-helpers/ctl-generators");
-const { generateExpiredSTL, generateTodaySTL, generateTomorrowSTL, generateThisWeekSTL, generateNextWeekSTL, generateLaterSTL } = require("./seed-helpers/stl-generators");
-const { generateExpiredPACE, generateLessThan1HourPACE, generateLessThan2HoursPACE, generateLessThan3HoursPACE, generateMoreThan3HoursPACE } = require("./seed-helpers/pace-generators");
 
 // Seeds
 const { seedUnits } = require("./seed-helpers/units");
@@ -46,6 +33,7 @@ const { seedGuaranteedTasks } = require("./seed-helpers/guaranteed-tasks");
 const { seedDGAAssignments } = require("./seed-helpers/dga-assignments");
 const { seedGeneralCases } = require("./seed-helpers/general-cases");
 const { seedCaseNotes } = require("./seed-helpers/case-notes");
+const { seedDirectionNotes } = require("./seed-helpers/direction-notes");
 
 const prisma = new PrismaClient();
 
@@ -137,37 +125,11 @@ async function main() {
     { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities }
   );
 
-  // -------------------- Seed Case Notes --------------------
+  // Seed: Case notes
   await seedCaseNotes(prisma, users);
 
-  // -------------------- Seed Direction Notes --------------------
-  // Fetch all directions and add notes to 30% of them
-  const allDirections = await prisma.direction.findMany();
-  let directionNotesCreated = 0;
-  let directionsWithNotes = 0;
-
-  for (const direction of allDirections) {
-    // 30% chance this direction gets notes
-    if (faker.datatype.boolean({ probability: 0.3 })) {
-      const numNotes = faker.number.int({ min: 1, max: 3 });
-
-      for (let n = 0; n < numNotes; n++) {
-        const randomUser = faker.helpers.arrayElement(users);
-        await prisma.directionNote.create({
-          data: {
-            description: faker.lorem.sentences(2),
-            directionId: direction.id,
-            userId: randomUser.id,
-            createdAt: faker.date.recent({ days: 30 })
-          }
-        });
-        directionNotesCreated++;
-      }
-      directionsWithNotes++;
-    }
-  }
-
-  console.log(`✅ Created ${directionNotesCreated} direction notes across ${directionsWithNotes} directions`);
+  // Seed: Direction notes
+  await seedDirectionNotes(prisma, users);
 
   // -------------------- Activity Logs --------------------
   const eventTypes = [
