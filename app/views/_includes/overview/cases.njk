@@ -1,11 +1,22 @@
-<div class="app-overview-section">
-  <h2 class="govuk-heading-m">Cases</h2>
-  <ul class="govuk-list govuk-list--bullet">
-    <li>
-      <a href="" class="govuk-link--no-visited-state">67 cases do not have an assigned prosecutor</a>
-    </li>
-  </ul>
-</div>
+
+{% if unassignedCaseCount > 0 %}
+  <div class="app-overview-section">
+    <h2 class="govuk-heading-m">Cases</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li>
+        <a href="/cases/shortcut/unassigned" class="govuk-link--no-visited-state">
+          {{unassignedCaseCount}}
+          {% if unassignedCaseCount == 1 %}
+            case does not
+          {% else %}
+            cases do not
+          {% endif %}
+          have a prosecutor assigned
+        </a>
+      </li>
+    </ul>
+  </div>
+{% endif %}
 
 
 
