@@ -45,6 +45,7 @@ const { seedPriorityTasks } = require("./seed-helpers/priority-tasks");
 const { seedGuaranteedTasks } = require("./seed-helpers/guaranteed-tasks");
 const { seedDGAAssignments } = require("./seed-helpers/dga-assignments");
 const { seedGeneralCases } = require("./seed-helpers/general-cases");
+const { seedCaseNotes } = require("./seed-helpers/case-notes");
 
 const prisma = new PrismaClient();
 
@@ -137,33 +138,7 @@ async function main() {
   );
 
   // -------------------- Seed Case Notes --------------------
-  // Fetch all cases and add notes to 30% of them
-  const allCases = await prisma.case.findMany();
-  let caseNotesCreated = 0;
-  let casesWithNotes = 0;
-
-  for (const _case of allCases) {
-    // 30% chance this case gets notes
-    if (faker.datatype.boolean({ probability: 0.3 })) {
-      const numNotes = faker.number.int({ min: 1, max: 3 });
-
-      for (let n = 0; n < numNotes; n++) {
-        const randomUser = faker.helpers.arrayElement(users);
-        await prisma.note.create({
-          data: {
-            content: faker.lorem.sentences(2),
-            caseId: _case.id,
-            userId: randomUser.id,
-            createdAt: faker.date.recent({ days: 30 })
-          }
-        });
-        caseNotesCreated++;
-      }
-      casesWithNotes++;
-    }
-  }
-
-  console.log(`✅ Created ${caseNotesCreated} case notes across ${casesWithNotes} cases`);
+  await seedCaseNotes(prisma, users);
 
   // -------------------- Seed Direction Notes --------------------
   // Fetch all directions and add notes to 30% of them

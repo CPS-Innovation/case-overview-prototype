@@ -1,65 +1,46 @@
-<div class="app-overview-section">
-  <h2 class="govuk-heading-m">Urgent directions that belong to your cases</h2>
-  <ul class="govuk-list govuk-list--bullet">
-    <li>
-      <a href="" class="govuk-link--no-visited-state">3 directions overdue</a>
-    </li>
-    <li>
-      <a href="" class="govuk-link--no-visited-state">6 directions due today</a>
-    </li>
-    <li>
-      <a href="" class="govuk-link--no-visited-state">3 directions due tomorrow</a>
-    </li>
-  </ul>
-</div>
-
-
-{# 
-{% if 1 == 2 and overdueDirectionCount > 0 or dueTodayDirectionCount > 0 or dueTomorrowDirectionCount > 0 %}
+{% if overdueDirectionCount > 0 or dueTodayDirectionCount > 0 or dueTomorrowDirectionCount > 0 %}
   <div class="app-overview-section">
     <h2 class="govuk-heading-m">Urgent directions that belong to your cases</h2>
-    <div class="app-overview-cards govuk-!-margin-bottom-9">
+    <ul class="govuk-list govuk-list--bullet">
       {% if overdueDirectionCount > 0 %}
-        <a href="/directions/shortcut/overdue" class="app-overview-card app-overview-card--red">
-          <span class="app-overview-card__count">{{overdueDirectionCount}}</span>
-          <span class="app-overview-card__status">
+        <li>
+          <a href="/directions/shortcut/overdue">
+            {{overdueDirectionCount}}
+              {% if overdueDirectionCount == 1 %}
+                direction
+              {% else %}
+                directions
+              {% endif %}
+              assigned to prosecution are overdue
+          </a>
+        </li>
+      {% endif %}
+      {% if dueTodayDirectionCount > 0 %}
+        <li>
+          <a href="/directions/shortcut/due-today">
+            {{overdueDirectionCount}}
             {% if overdueDirectionCount == 1 %}
               direction
             {% else %}
               directions
             {% endif %}
-            assigned to prosecution are overdue
-          </span>
-        </a>
-      {% endif %}
-
-      {% if dueTodayDirectionCount > 0 %}
-        <a href="/directions/shortcut/due-today" class="app-overview-card app-overview-card--blue">
-          <span class="app-overview-card__count">{{dueTodayDirectionCount}}</span>
-          <span class="app-overview-card__status">
-            {% if dueTodayDirectionCount == 1 %}
-              direction
-            {% else %}
-              directions
-            {% endif %}
             assigned to prosecution are due today
-          </span>
-        </a>
+          </a>
+        </li>
       {% endif %}
-
       {% if dueTomorrowDirectionCount > 0 %}
-        <a href="/directions/shortcut/due-tomorrow" class="app-overview-card app-overview-card--purple">
-          <span class="app-overview-card__count">{{dueTomorrowDirectionCount}}</span>
-          <span class="app-overview-card__status">
+        <li>
+          <a href="/directions/shortcut/due-tomorrow">
+            {{dueTomorrowDirectionCount}}
             {% if dueTomorrowDirectionCount == 1 %}
               direction
             {% else %}
               directions
             {% endif %}
             assigned to prosecution due tomorrow
-          </span>
-        </a>
+          </a>
+        </li>
       {% endif %}
-    </div>
+    </ul>
   </div>
-{% endif %} #}
+{% endif %}
