@@ -43,7 +43,7 @@
               {% for reason in data.rejectionReasons %}
                 <li>
                   {% if data.rejectionDetails and data.rejectionDetails[reason] and data.rejectionDetails[reason] | trim %}
-                    <p>{{ reason }}:</p>
+                    <p class="govuk-!-margin-bottom-0">{{ reason }}:</p>
                     <p>{{ data.rejectionDetails[reason] }}</p>
                   {% else %}
                     {{ reason }}
