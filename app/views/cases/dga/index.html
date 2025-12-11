@@ -3,21 +3,24 @@
 {% set secondaryNavId = 'dga' %}
 {% set pageName = 'DGA' %}
 
-{% block beforeContent %}
-  {% include "_includes/case-identity-bar.njk" %}
-{% endblock %}
-
 {% block content %}
   {% include "_includes/success-banner.njk" %}
-  {% include "_includes/case/navigation.njk" %}
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">{{pageName}}</h1>
       
-      {{ govukButton({
-        text: "Add outcome"
-      }) }}
+      <ul class="govuk-list govuk-list--bullet">
+        <li>
+          <a href="/cases/dga/october2025">October 2025</a>
+        </li>
+        <li>
+          <a href="#">September 2025</a>
+        </li>
+        <li>
+          <a href="#">August 2025</a>
+        </li>
+      </ul>
 
     </div>
   </div>

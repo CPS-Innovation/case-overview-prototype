@@ -28,6 +28,10 @@ module.exports = router => {
     res.redirect('/cases/?caseListFilters[dga][]=Needs review')
   })
 
+  router.get("/cases/dga", (req, res) => {
+    res.render('cases/dga/index', {})
+  })
+
   router.get("/cases", async (req, res) => {
     const currentUser = req.session.data.user
 

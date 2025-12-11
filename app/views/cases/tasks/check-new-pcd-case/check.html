@@ -1,0 +1,129 @@
+{% extends "layouts/main.html" %}
+
+{% set navId = 'cases' %}
+{% set pageName = "Check details and complete task" %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: 'Back',
+    href: 'javascript:history.back()'
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+
+      <span class="govuk-caption-l">{{_case.reference}}</span>
+      <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+      {% set summaryRows = [] %}
+
+      {# Task name (always shown) #}
+      {% set summaryRows = (summaryRows.push({
+        key: { text: "Task" },
+        value: { text: task.name }
+      }), summaryRows) %}
+
+      {# Decision (always shown) #}
+      {% set summaryRows = (summaryRows.push({
+        key: { text: "Decision" },
+        value: { text: data.decision },
+        actions: {
+          items: [{
+            href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case",
+            text: "Change",
+            visuallyHiddenText: "decision"
+          }]
+        }
+      }), summaryRows) %}
+
+      {# Rejection-specific fields (only if Reject) #}
+      {% if data.decision == "Reject" %}
+
+        {# Rejection reasons with optional details #}
+        {% if data.rejectionReasons and data.rejectionReasons.length %}
+          {% set reasonsHtml %}
+            <ul class="govuk-list govuk-list--spaced">
+              {% for reason in data.rejectionReasons %}
+                <li>
+                  {% if data.rejectionDetails and data.rejectionDetails[reason] and data.rejectionDetails[reason] | trim %}
+                    <p>{{ reason }}:</p>
+                    <p>{{ data.rejectionDetails[reason] }}</p>
+                  {% else %}
+                    {{ reason }}
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endset %}
+          {% set summaryRows = (summaryRows.push({
+            key: { text: "Reasons for rejection" },
+            value: { html: reasonsHtml },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/reasons",
+                text: "Change",
+                visuallyHiddenText: "reasons for rejection"
+              }]
+            }
+          }), summaryRows) %}
+        {% endif %}
+
+        {# Police response date #}
+        {% if data.policeResponseDate and data.policeResponseDate.day and data.policeResponseDate.month and data.policeResponseDate.year %}
+          {% set summaryRows = (summaryRows.push({
+            key: { text: "Date the police should respond" },
+            value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/police-response-date",
+                text: "Change",
+                visuallyHiddenText: "police response date"
+              }]
+            }
+          }), summaryRows) %}
+        {% endif %}
+
+        {# Create reminder task #}
+        {% set summaryRows = (summaryRows.push({
+          key: { text: "Create a reminder task" },
+          value: { text: "Yes" if data.createReminderTask == "yes" else "No" },
+          actions: {
+            items: [{
+              href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+              text: "Change",
+              visuallyHiddenText: "create reminder task"
+            }]
+          }
+        }), summaryRows) %}
+
+        {# Reminder due date (only if yes) #}
+        {% if data.createReminderTask == "yes" and data.reminderDueDate and data.reminderDueDate.day and data.reminderDueDate.month and data.reminderDueDate.year %}
+          {% set summaryRows = (summaryRows.push({
+            key: { text: "Reminder due date" },
+            value: { text: data.reminderDueDate | isoDateFromDateInput | govukDateTime },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+                text: "Change",
+                visuallyHiddenText: "reminder due date"
+              }]
+            }
+          }), summaryRows) %}
+        {% endif %}
+
+      {% endif %}
+
+      {{ govukSummaryList({
+        rows: summaryRows
+      }) }}
+
+      <form method="post">
+        {{ govukButton({
+          text: "Complete task"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -39,8 +39,16 @@
         {# {{govukTag({ text: task.severity, classes: (task.severity | severityTagClass) })}} #}
       </h1>
 
+      {% set completeTaskUrl %}
+        {% if task.name == "Check new PCD case" %}
+          /cases/{{_case.id}}/tasks/{{task.id}}/check-new-pcd-case
+        {% else %}
+          /cases/{{_case.id}}/tasks/{{task.id}}/complete
+        {% endif %}
+      {% endset %}
+
       <div class="govuk-button-group">
-        <a href="/cases/{{_case.id}}/tasks/{{task.id}}/complete" class="govuk-button">Complete task</a>
+        <a href="{{completeTaskUrl | trim}}" class="govuk-button">Complete task</a>
         {{ govukButton({
           text: "Defer",
           classes: 'govuk-button--secondary'

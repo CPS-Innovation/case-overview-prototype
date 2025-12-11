@@ -1,0 +1,196 @@
+{% extends "layouts/main.html" %}
+
+{% set navId = 'cases' %}
+{% set pageName = "Reasons for rejection" %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: 'Back',
+    href: 'javascript:history.back()'
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <span class="govuk-caption-l">{{_case.reference}}</span>
+      <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+      {% set taskHtml %}
+        <h2 class="govuk-heading-s govuk-!-margin-bottom-1">Task</h2>
+        <p>{{task.name}}</p>
+      {% endset %}
+      {{ govukInsetText({
+        html: taskHtml
+      }) }}
+
+      <form method="post">
+        {{ govukCheckboxes({
+          name: "completeCheckNewPcdCase[rejectionReasons]",
+          fieldset: {
+            legend: {
+              text: "Select all that apply",
+              isPageHeading: false,
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          hint: {
+            text: "Select all rejection reasons that apply to this case"
+          },
+          items: [
+            {
+              value: "Case Material not correctly reviewed",
+              text: "Case Material not correctly reviewed",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "Case Material not correctly reviewed No Disclosure schedule" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][Case Material not correctly reviewed No Disclosure schedule]",
+                  id: "rejection-details-case-material",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Case Material not correctly reviewed No Disclosure schedule"]
+                })
+              }
+            },
+            {
+              value: "No Disclosure schedule",
+              text: "No Disclosure schedule",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "No Disclosure schedule" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][No Disclosure schedule]",
+                  id: "rejection-details-case-material",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No Disclosure schedule"]
+                })
+              }
+            },
+            {
+              value: "No MG3",
+              text: "No MG3",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "No MG3" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][No MG3]",
+                  id: "rejection-details-no-mg3",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No MG3"]
+                })
+              }
+            },
+            {
+              value: "No summary of interview",
+              text: "No summary of interview",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "No summary of interview" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][No summary of interview]",
+                  id: "rejection-details-no-summary",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No summary of interview"]
+                })
+              }
+            },
+            {
+              value: "Missing Suspects previous convictions",
+              text: "Missing Suspects previous convictions",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "Missing Suspects previous convictions" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][Missing Suspects previous convictions]",
+                  id: "rejection-details-missing-suspects",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Missing Suspects previous convictions"]
+                })
+              }
+            },
+            {
+              value: "Missing Victim/Witness previous convictions",
+              text: "Missing Victim/Witness previous convictions",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "Missing Victim/Witness previous convictions" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][Missing Victim/Witness previous convictions]",
+                  id: "rejection-details-missing-victim",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Missing Victim/Witness previous convictions"]
+                })
+              }
+            },
+            {
+              value: "Hard media not provided",
+              text: "Hard media not provided",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "Hard media not provided" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][Hard media not provided]",
+                  id: "rejection-details-hard-media",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Hard media not provided"]
+                })
+              }
+            },
+            {
+              value: "Third party material not provided",
+              text: "Third party material not provided",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "Third party material not provided" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][Third party material not provided]",
+                  id: "rejection-details-third-party",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Third party material not provided"]
+                })
+              }
+            },
+            {
+              value: "Incompatible OIC contact details",
+              text: "Incompatible OIC contact details",
+              checked: data.completeCheckNewPcdCase.rejectionReasons and "Incompatible OIC contact details" in data.completeCheckNewPcdCase.rejectionReasons,
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][Incompatible OIC contact details]",
+                  id: "rejection-details-incompatible-oic",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Incompatible OIC contact details"]
+                })
+              }
+            }
+          ]
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </form>
+
+      <p><a href="/cases/{{_case.id}}/tasks/{{task.id}}">Cancel</a></p>
+    </div>
+  </div>
+{% endblock %}

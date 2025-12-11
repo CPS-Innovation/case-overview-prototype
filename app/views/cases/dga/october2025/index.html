@@ -1,0 +1,52 @@
+{% extends "layouts/main.html" %}
+{% set navId = 'cases' %}
+{% set secondaryNavId = 'dga' %}
+{% set pageName = 'October 2025' %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      {
+        text: "DGA",
+        href: "#"
+      },
+      {
+        text: "October 2025"
+      }
+    ]
+  }) }}
+{% endblock beforeContent %}
+
+{% block content %}
+  {% include "_includes/success-banner.njk" %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{pageName}}</h1>
+      
+      <p><a href="#" class="govuk-link--no-visited-state">Export non-compliant cases and send to police</a></p>
+
+      {# <p>Sent to the police on 11 December. See what you sent</p> #}
+
+      <h2 class="govuk-heading-m">Record outcomes</h2>
+
+      <ul class="govuk-list govuk-list--bullet">
+        <li>
+          <a href="#" class="govuk-link--no-visited-state">Record outcomes for X unit</a>
+        </li>
+        <li>
+          <a href="#" class="govuk-link--no-visited-state">Record outcomes for Y unit</a>
+        </li>
+        <li>
+          <a href="#" class="govuk-link--no-visited-state">Record outcomes for Z unit</a>
+        </li>
+      </ul>
+
+      <h2 class="govuk-heading-m">Export recorded outcomes</h2>
+
+      <p><a href="#" class="govuk-link--no-visited-state">Export outcomes</a></p>
+
+
+    </div>
+  </div>
+{% endblock %}
