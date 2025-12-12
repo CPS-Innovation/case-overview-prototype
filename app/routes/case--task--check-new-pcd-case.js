@@ -33,7 +33,7 @@ module.exports = router => {
       res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/review-task-type`)
     } else {
       // Start rejection flow with reasons page
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/reasons`)
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/reasons-for-rejection`)
     }
   })
 
@@ -83,7 +83,7 @@ module.exports = router => {
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
     if (data.transferCase === "Yes") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/change-area`)
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/area`)
     } else {
       // Not transferring
       if (data.reviewTaskType === "Early advice") {
@@ -94,8 +94,8 @@ module.exports = router => {
     }
   })
 
-  // Step 4A: Change area (only shown if transferring)
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/change-area", async (req, res) => {
+  // Step 4A: Area (only shown if transferring)
+  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/area", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
       include: {
@@ -116,10 +116,10 @@ module.exports = router => {
       area = "Yorkshire and Humberside"
     }
 
-    res.render("cases/tasks/check-new-pcd-case/change-area", { _case, task, area })
+    res.render("cases/tasks/check-new-pcd-case/area", { _case, task, area })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/change-area", (req, res) => {
+  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/area", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
     res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/unit`)
@@ -202,7 +202,7 @@ module.exports = router => {
     }
     // Accept flow - Early advice + RASSO
     else if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/assign-to`)
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/user-type`)
     }
     // Accept flow - Early advice + NOT RASSO
     else if (data.reviewTaskType === "Early advice") {
@@ -214,8 +214,8 @@ module.exports = router => {
     }
   })
 
-  // Step 7A: Assign to (only shown if transferring AND early advice AND RASSO)
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/assign-to", async (req, res) => {
+  // Step 7A: User type (only shown if transferring AND early advice AND RASSO)
+  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
       include: {
@@ -227,24 +227,24 @@ module.exports = router => {
       where: { id: parseInt(req.params.taskId) }
     })
 
-    res.render("cases/tasks/check-new-pcd-case/assign-to", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/user-type", { _case, task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/assign-to", (req, res) => {
+  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
     // assignTo is automatically stored in session via form name
     if (data.assignTo === "Individual") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/know-person-name`)
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/person-name`)
     } else {
       res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/task-owner`)
     }
   })
 
-  // Step 8A: Know person name (only shown if individual)
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/know-person-name", async (req, res) => {
+  // Step 8A: Person name (only shown if individual)
+  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/person-name", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
       include: {
@@ -263,35 +263,36 @@ module.exports = router => {
 
     // Build lastNameItems array for select box
     const lastNameItems = [
-      {
-        value: "",
-        text: "Select a last name",
-        selected: !data?.personLastName
-      }
+
     ]
+
+    //  {
+    //   value: "",
+    //   text: "Select a last name",
+    //   selected: !data?.personLastName
+    // }
 
     // Add all last names as options
     lastNames.forEach(lastName => {
       lastNameItems.push({
         value: lastName,
-        text: lastName,
-        selected: data?.personLastName == lastName
+        text: lastName
       })
     })
 
-    res.render("cases/tasks/check-new-pcd-case/know-person-name", { _case, task, lastNames, lastNameItems })
+    res.render("cases/tasks/check-new-pcd-case/person-name", { _case, task, lastNames, lastNameItems })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/know-person-name", (req, res) => {
+  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/person-name", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
 
     // knowPersonName and personLastName (if Yes) are automatically stored in session via form names
-    res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/choose-role`)
+    res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/role`)
   })
 
-  // Step 9A: Choose role (only shown if individual)
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/choose-role", async (req, res) => {
+  // Step 9A: Role (only shown if individual)
+  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/role", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
       include: {
@@ -303,10 +304,10 @@ module.exports = router => {
       where: { id: parseInt(req.params.taskId) }
     })
 
-    res.render("cases/tasks/check-new-pcd-case/choose-role", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/role", { _case, task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/choose-role", (req, res) => {
+  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/role", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
 
@@ -373,24 +374,11 @@ module.exports = router => {
       ]
     })
 
-    // Get selected prosecutorId from session
-    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
-
-    // Build prosecutorItems array for select box
-    const prosecutorItems = [
-      {
-        value: "",
-        text: "Select a prosecutor",
-        selected: !data?.prosecutorId
-      }
-    ]
-
-    // Add all prosecutors as options
+    const prosecutorItems = []
     prosecutors.forEach(prosecutor => {
       prosecutorItems.push({
         value: prosecutor.id,
-        text: `${prosecutor.firstName} ${prosecutor.lastName}`,
-        selected: data?.prosecutorId == prosecutor.id
+        text: `${prosecutor.firstName} ${prosecutor.lastName}`
       })
     })
 
@@ -437,15 +425,13 @@ module.exports = router => {
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/prosecutor", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
-
-    // prosecutorId is automatically stored in session via form name
     res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
   })
 
   // Reject flow steps
 
   // Step 2: Reasons for rejection (only shown if Reject)
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons", async (req, res) => {
+  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
       include: {
@@ -457,24 +443,11 @@ module.exports = router => {
       where: { id: parseInt(req.params.taskId) }
     })
 
-    res.render("cases/tasks/check-new-pcd-case/reasons", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/reasons-for-rejection", { _case, task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons", (req, res) => {
-    const caseId = req.params.caseId
-    const taskId = req.params.taskId
-
-    // GOV.UK checkboxes send "_unchecked" when no items selected
-    let rejectionReasons = req.body.completeCheckNewPcdCase?.rejectionReasons || []
-    if (Array.isArray(rejectionReasons)) {
-      rejectionReasons = rejectionReasons.filter(r => r !== '_unchecked')
-    }
-
-    // Store reasons in session (details are automatically stored via form names)
-    _.set(req, 'session.data.completeCheckNewPcdCase.rejectionReasons', rejectionReasons)
-
-    // Always go to police response date for reject flow
-    res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/police-response-date`)
+  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection", (req, res) => {
+    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/police-response-date`)
   })
 
   // Step 3: Police response date (always shown for reject flow)

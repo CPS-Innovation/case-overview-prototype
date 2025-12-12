@@ -17,14 +17,21 @@
       <span class="govuk-caption-l">{{caption}}</span>
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
+      {% set areaInset %}
+        <h2 class="govuk-heading-s govuk-!-margin-bottom-1">Area</h2>
+        <p>{{area}}</p>
+      {% endset %}
+
       {{ govukInsetText({
-        html: "<p class=\"govuk-body\"><strong>Area</strong></p><p class=\"govuk-body\">" + area + "</p>"
+        html: areaInset
       }) }}
 
       <form method="post">
         {% set areaSelectHtml %}
-          {{ govukSelect({
+          {{ xGovukAutocomplete({
+            id: "selectedArea",
             name: "completeCheckNewPcdCase[selectedArea]",
+            allowEmpty: false,
             label: {
               text: "Area"
             },
@@ -76,8 +83,6 @@
           text: "Continue"
         }) }}
       </form>
-
-      <p><a href="/cases/{{_case.id}}/tasks/{{task.id}}">Cancel</a></p>
     </div>
   </div>
 {% endblock %}

@@ -293,7 +293,6 @@
                   <li>
                     {% if params.event.meta.rejectionDetails and params.event.meta.rejectionDetails[reason] and params.event.meta.rejectionDetails[reason] | trim %}
                       {{ reason }}:
-                      <p class="govuk-!-margin-bottom-0">{{ reason }}</p>
                       <p>{{ params.event.meta.rejectionDetails[reason] }}</p>
                     {% else %}
                       {{ reason }}

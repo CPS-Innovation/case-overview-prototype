@@ -2,6 +2,7 @@
 
 {% set navId = 'cases' %}
 {% set caption %} {{_case.reference}} - Check new PCD case {% endset %}
+{% set pageName = 'Do you want to assign the ‘early advice manager triage’ task to an individual or team?' %}
 
 {% block beforeContent %}
   {{ govukBackLink({
@@ -15,37 +16,24 @@
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <span class="govuk-caption-l">{{caption}}</span>
       <form method="post">
-        {% set lastNameSelectHtml %}
-          {{ govukSelect({
-            name: "completeCheckNewPcdCase[personLastName]",
-            label: {
-              text: "Last name"
-            },
-            items: lastNameItems
-          }) }}
-        {% endset %}
-
         {{ govukRadios({
-          name: "completeCheckNewPcdCase[knowPersonName]",
-          value: data.completeCheckNewPcdCase.knowPersonName,
+          name: "completeCheckNewPcdCase[assignTo]",
+          value: data.completeCheckNewPcdCase.assignTo,
           fieldset: {
             legend: {
-              text: "Do you know the name of the person you want to assign the \"Early advice manager triage\" task to?",
+              text: pageName,
               isPageHeading: true,
               classes: "govuk-fieldset__legend--l"
             }
           },
           items: [
             {
-              value: "Yes",
-              text: "Yes",
-              conditional: {
-                html: lastNameSelectHtml
-              }
+              value: "Individual",
+              text: "Individual"
             },
             {
-              value: "No",
-              text: "No"
+              value: "Team",
+              text: "Team"
             }
           ]
         }) }}
@@ -54,8 +42,6 @@
           text: "Continue"
         }) }}
       </form>
-
-      <p><a href="/cases/{{_case.id}}/tasks/{{task.id}}">Cancel</a></p>
     </div>
   </div>
 {% endblock %}

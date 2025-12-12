@@ -16,41 +16,34 @@
       <span class="govuk-caption-l">{{caption}}</span>
       <form method="post">
         {% set roleSelectHtml %}
-          {{ govukSelect({
+          {{ xGovukAutocomplete({
+            id: "specificRole",
             name: "completeCheckNewPcdCase[specificRole]",
+            allowEmpty: false,
             label: {
               text: "Role"
             },
+            value: data.completeCheckNewPcdCase.specificRole,
             items: [
               {
-                value: "",
-                text: "Select a role",
-                selected: not data.completeCheckNewPcdCase.specificRole
-              },
-              {
                 value: "Prosecutor",
-                text: "Prosecutor",
-                selected: data.completeCheckNewPcdCase.specificRole == "Prosecutor"
+                text: "Prosecutor"
               },
               {
                 value: "Senior Prosecutor",
-                text: "Senior Prosecutor",
-                selected: data.completeCheckNewPcdCase.specificRole == "Senior Prosecutor"
+                text: "Senior Prosecutor"
               },
               {
                 value: "Chief Prosecutor",
-                text: "Chief Prosecutor",
-                selected: data.completeCheckNewPcdCase.specificRole == "Chief Prosecutor"
+                text: "Chief Prosecutor"
               },
               {
                 value: "Paralegal Officer",
-                text: "Paralegal Officer",
-                selected: data.completeCheckNewPcdCase.specificRole == "Paralegal Officer"
+                text: "Paralegal Officer"
               },
               {
                 value: "Case Manager",
-                text: "Case Manager",
-                selected: data.completeCheckNewPcdCase.specificRole == "Case Manager"
+                text: "Case Manager"
               }
             ]
           }) }}
@@ -85,8 +78,6 @@
           text: "Continue"
         }) }}
       </form>
-
-      <p><a href="/cases/{{_case.id}}/tasks/{{task.id}}">Cancel</a></p>
     </div>
   </div>
 {% endblock %}

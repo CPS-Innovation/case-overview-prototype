@@ -17,8 +17,13 @@
       <span class="govuk-caption-l">{{caption}}</span>
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
+      {% set unitInset %}
+        <h2 class="govuk-heading-s govuk-!-margin-bottom-1">Unit</h2>
+        <p>{{_case.unit.name}}</p>
+      {% endset %}
+
       {{ govukInsetText({
-        html: "<p class=\"govuk-body\"><strong>Unit</strong></p><p class=\"govuk-body\">" + _case.unit.name + "</p>"
+        html: unitInset
       }) }}
 
       <form method="post">
@@ -47,8 +52,6 @@
           text: "Continue"
         }) }}
       </form>
-
-      <p><a href="/cases/{{_case.id}}/tasks/{{task.id}}">Cancel</a></p>
     </div>
   </div>
 {% endblock %}
