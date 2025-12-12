@@ -21,47 +21,7 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/tasks/:taskId/mark-as-urgent", async (req, res) => {
-    const caseId = parseInt(req.params.caseId)
-    const taskId = parseInt(req.params.taskId)
-    const { urgentNote } = req.body
-
-    // Validate
-    const errors = []
-    if (!urgentNote || urgentNote.trim() === '') {
-      errors.push({
-        text: 'Enter a note',
-        href: '#urgentNote'
-      })
-    }
-
-    if (errors.length > 0) {
-      const _case = await prisma.case.findUnique({
-        where: { id: caseId },
-        include: {
-          defendants: true
-        }
-      })
-
-      const task = await prisma.task.findUnique({
-        where: { id: taskId }
-      })
-
-      return res.render("cases/tasks/mark-as-urgent/index", {
-        _case,
-        task,
-        errors,
-        errorList: errors,
-        urgentNote
-      })
-    }
-
-    // Store in session
-    if (!req.session.data.markAsUrgent) {
-      req.session.data.markAsUrgent = {}
-    }
-    req.session.data.markAsUrgent[taskId] = { urgentNote }
-
-    res.redirect(`/cases/${caseId}/tasks/${taskId}/mark-as-urgent/check`)
+    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/mark-as-urgent/check`)
   })
 
   router.get("/cases/:caseId/tasks/:taskId/mark-as-urgent/check", async (req, res) => {
@@ -79,9 +39,7 @@ module.exports = router => {
       where: { id: taskId }
     })
 
-    const urgentNote = req.session.data.markAsUrgent?.[taskId]?.urgentNote || ''
-
-    res.render("cases/tasks/mark-as-urgent/check", { _case, task, urgentNote })
+    res.render("cases/tasks/mark-as-urgent/check", { _case, task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/mark-as-urgent/check", async (req, res) => {
@@ -89,7 +47,7 @@ module.exports = router => {
     const taskId = parseInt(req.params.taskId)
     const userId = req.session.data.user.id
 
-    const urgentNote = req.session.data.markAsUrgent?.[taskId]?.urgentNote
+    const urgentNote = req.session.data.markAsUrgent.note
 
     // Update task
     const task = await prisma.task.update({
@@ -141,10 +99,9 @@ module.exports = router => {
       }
     })
 
-    // Clear session data
-    if (req.session.data.markAsUrgent) {
-      delete req.session.data.markAsUrgent[taskId]
-    }
+
+    delete req.session.data.markAsUrgent
+
 
     req.flash('success', 'Task marked as urgent')
     res.redirect(`/cases/${caseId}/tasks/${taskId}`)

@@ -27,14 +27,14 @@
       <form method="post">
 
         {{ govukCharacterCount({
-          name: "urgentNote",
-          id: "urgentNote",
+          name: "markAsUrgent[note]",
+          id: "markAsUrgent[note]",
           maxlength: 5000,
           label: {
             text: pageName,
             classes: "govuk-label--m"
           },
-          value: urgentNote
+          value: data.markAsUrgent.note
         }) }}
 
         {{ govukButton({
