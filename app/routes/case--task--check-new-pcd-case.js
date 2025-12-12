@@ -4,7 +4,7 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 module.exports = router => {
-  // Step 1: Decision form (Accept or Reject)
+  
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
@@ -17,19 +17,18 @@ module.exports = router => {
       where: { id: parseInt(req.params.taskId) }
     })
 
+    // Initialize session data for this flow
+    //_.set(req, 'session.data.completeCheckNewPcdCase', {})
+
     res.render("cases/tasks/check-new-pcd-case/index", { _case, task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
-    const decision = req.body.decision
-
-    // Store decision in session
-    _.set(req, 'session.data.completeCheckNewPcdCase.decision', decision)
-
+    
     // Conditional redirect based on decision
-    if (decision === "Accept") {
+    if (req.session.data.completeCheckNewPcdCase.decision === "Accept") {
       // Start accept flow with review task type
       res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/review-task-type`)
     } else {
@@ -40,7 +39,7 @@ module.exports = router => {
 
   // Accept flow steps
 
-  // Step 2A: Review task type (only shown if Accept)
+  // Review task type (only shown if Accept) CHECK ADAM?
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
@@ -59,12 +58,9 @@ module.exports = router => {
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
-
-    // reviewTaskType is automatically stored in session via form name
     res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/transfer-case`)
   })
 
-  // Step 3A: Transfer case (only shown if Accept)
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case", async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
@@ -86,7 +82,6 @@ module.exports = router => {
     const taskId = req.params.taskId
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
-    // transferCase is automatically stored in session via form name
     if (data.transferCase === "Yes") {
       res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/change-area`)
     } else {
@@ -127,8 +122,6 @@ module.exports = router => {
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/change-area", (req, res) => {
     const caseId = req.params.caseId
     const taskId = req.params.taskId
-
-    // changeArea is automatically stored in session via form name
     res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/unit`)
   })
 
@@ -157,8 +150,7 @@ module.exports = router => {
     const unitItems = [
       {
         value: "",
-        text: "Select a unit",
-        selected: !data?.unitId
+        text: "Select a unit"
       }
     ]
 
@@ -166,8 +158,7 @@ module.exports = router => {
     units.forEach(unit => {
       unitItems.push({
         value: unit.id,
-        text: unit.name,
-        selected: data?.unitId == unit.id
+        text: unit.name
       })
     })
 
@@ -204,10 +195,22 @@ module.exports = router => {
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
     // caseType is automatically stored in session via form name
-    if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
+
+    // If this is the reject flow, go to check answers
+    if (data.decision === "Reject") {
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
+    }
+    // Accept flow - Early advice + RASSO
+    else if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
       res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/assign-to`)
-    } else {
+    }
+    // Accept flow - Early advice + NOT RASSO
+    else if (data.reviewTaskType === "Early advice") {
       res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/know-prosecutor-name`)
+    }
+    // Accept flow - NOT Early advice (Within 5/28 calendar days)
+    else {
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
     }
   })
 
@@ -253,7 +256,7 @@ module.exports = router => {
       where: { id: parseInt(req.params.taskId) }
     })
 
-    const lastNames = require('../../data/last-names')
+    const lastNames = require('../data/last-names')
 
     // Get selected personLastName from session
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
@@ -520,8 +523,8 @@ module.exports = router => {
     const taskId = req.params.taskId
 
     // createReminderTask and reminderDueDate are automatically stored in session
-    // Navigate to check answers
-    res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
+    // Navigate to case type for reject flow
+    res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/case-type`)
   })
 
   // Step 5: Check answers
@@ -682,6 +685,11 @@ module.exports = router => {
           year: data.reminderDueDate.year
         }).toISO()
       }
+
+      // Add case type for reject flow
+      if (data.caseType) {
+        activityLogMeta.caseType = data.caseType
+      }
     }
 
     // Create activity log entry with decision
@@ -697,8 +705,7 @@ module.exports = router => {
       }
     })
 
-    // Clear session data
-    _.set(req, 'session.data.completeCheckNewPcdCase', null)
+    delete req.session.data.completeCheckNewPcdCase
 
     req.flash('success', 'Task completed')
     res.redirect(`/cases/${caseId}/tasks`)

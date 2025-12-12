@@ -13,7 +13,7 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-      <span class="govuk-caption-l">{{_case.reference}} - {{task.name}}</span>
+      <span class="govuk-caption-l">{{_case.reference}}</span>
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
       {% set taskHtml %}
@@ -27,14 +27,14 @@
       <form method="post">
 
         {{ govukCharacterCount({
-          name: "notUrgentNote",
-          id: "notUrgentNote",
+          name: "markAsNotUrgent[note]",
+          id: "markAsNotUrgent[note]",
           maxlength: 5000,
           label: {
             text: pageName,
             classes: "govuk-label--m"
           },
-          value: notUrgentNote
+          value: data.markAsNotUrgent.note
         }) }}
 
         {{ govukButton({

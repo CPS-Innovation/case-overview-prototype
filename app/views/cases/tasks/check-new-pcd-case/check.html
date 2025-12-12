@@ -333,6 +333,21 @@
           }), summaryRows) %}
         {% endif %}
 
+        {# Case type #}
+        {% if data.caseType %}
+          {% set summaryRows = (summaryRows.push({
+            key: { text: "Case type" },
+            value: { text: data.caseType },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
+                text: "Change",
+                visuallyHiddenText: "case type"
+              }]
+            }
+          }), summaryRows) %}
+        {% endif %}
+
       {% endif %}
 
       {{ govukSummaryList({

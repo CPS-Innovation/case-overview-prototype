@@ -12,12 +12,15 @@
 {% endblock %}
 
 {% block content %}
+
+  {{data | log}}
+
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <span class="govuk-caption-l">{{caption}}</span>
       <form method="post">
         {{ govukRadios({
-          name: "decision",
+          name: "completeCheckNewPcdCase[decision]",
           fieldset: {
             legend: {
               text: pageName,
@@ -25,16 +28,15 @@
               classes: "govuk-fieldset__legend--l"
             }
           },
+          value: data.completeCheckNewPcdCase.decision,
           items: [
             {
               value: "Accept",
-              text: "Accept",
-              checked: data.completeCheckNewPcdCase.decision == "Accept"
+              text: "Accept"
             },
             {
               value: "Reject",
-              text: "Reject",
-              checked: data.completeCheckNewPcdCase.decision == "Reject"
+              text: "Reject"
             }
           ]
         }) }}

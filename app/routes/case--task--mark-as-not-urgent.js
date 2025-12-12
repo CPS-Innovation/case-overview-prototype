@@ -23,11 +23,6 @@ module.exports = router => {
   router.post("/cases/:caseId/tasks/:taskId/mark-as-not-urgent", async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const taskId = parseInt(req.params.taskId)
-    const { notUrgentNote } = req.body
-
-    // Store in session
-    req.session.data.markAsNotUrgent = { notUrgentNote }
-
     res.redirect(`/cases/${caseId}/tasks/${taskId}/mark-as-not-urgent/check`)
   })
 
@@ -46,9 +41,7 @@ module.exports = router => {
       where: { id: taskId }
     })
 
-    const notUrgentNote = req.session.data.markAsNotUrgent?.notUrgentNote || ''
-
-    res.render("cases/tasks/mark-as-not-urgent/check", { _case, task, notUrgentNote })
+    res.render("cases/tasks/mark-as-not-urgent/check", { _case, task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/mark-as-not-urgent/check", async (req, res) => {
@@ -56,7 +49,7 @@ module.exports = router => {
     const taskId = parseInt(req.params.taskId)
     const userId = req.session.data.user.id
 
-    const notUrgentNote = req.session.data.markAsNotUrgent?.notUrgentNote
+    const notUrgentNote = req.session.data.markAsNotUrgent.note
 
     // Update task
     const task = await prisma.task.update({
