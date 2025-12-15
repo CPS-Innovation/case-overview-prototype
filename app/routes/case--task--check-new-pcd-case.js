@@ -37,7 +37,6 @@ module.exports = router => {
   //
   //
 
-  // TODO: should this be shown regardless?
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -54,7 +53,11 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/transfer-case`)
+    if(req.session.data.completeCheckNewPcdCase.decision == "Accept") {
+      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/transfer-case`)
+    } else {
+      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/police-response-date`)
+    }
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case", async (req, res) => {
@@ -391,7 +394,7 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/police-response-date`)
+    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/review-task-type`)
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/police-response-date", async (req, res) => {
