@@ -22,13 +22,10 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case", (req, res) => {
-    const caseId = req.params.caseId
-    const taskId = req.params.taskId
-    
     if (req.session.data.completeCheckNewPcdCase.decision === "Accept") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/review-task-type`)
+      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/review-task-type`)
     } else {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/reasons-for-rejection`)
+      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/reasons-for-rejection`)
     }
   })
 
@@ -344,7 +341,7 @@ module.exports = router => {
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/know-prosecutor-name", (req, res) => {
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
-    // TODO: check because this is filter, not actually selecting the user?
+    // TODO: check this.
     if (data.knowProsecutorName === "Yes") {
       res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/check`)
     } else {

@@ -18,27 +18,97 @@
       <span class="govuk-caption-l">{{caption}}</span>
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
-      {% set summaryRows = [] %}
+      {# Complex value lookups #}
 
-      {# Decision (always shown) #}
-      {% set summaryRows = (summaryRows.push({
-        key: { text: "Decision" },
-        value: { text: data.decision },
-        actions: {
-          items: [{
-            href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case",
-            text: "Change",
-            visuallyHiddenText: "decision"
-          }]
-        }
-      }), summaryRows) %}
+      {# Change area value (Accept + Transfer flow) #}
+      {% set changeAreaValue = data.changeArea %}
+      {% if data.changeArea == "Yes" and data.selectedArea %}
+        {% set changeAreaValue = "Yes - " + data.selectedArea %}
+      {% endif %}
 
-      {# Accept-specific fields (only if Accept) #}
-      {% if data.decision == "Accept" %}
+      {# Unit name lookup (Accept + Transfer flow) #}
+      {% set unitName = "" %}
+      {% if data.unitId %}
+        {% for unit in units %}
+          {% if unit.id == data.unitId %}
+            {% set unitName = unit.name %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
 
-        {# Review task type #}
-        {% if data.reviewTaskType %}
-          {% set summaryRows = (summaryRows.push({
+      {# Know person name value (Accept + Transfer + RASSO + Individual flow) #}
+      {% set knowPersonValue = data.knowPersonName %}
+      {% if data.knowPersonName == "Yes" and data.personLastName %}
+        {% set knowPersonValue = "Yes - " + data.personLastName %}
+      {% endif %}
+
+      {# Choose specific role value (Accept + Transfer + RASSO + Individual flow) #}
+      {% set chooseRoleValue = data.chooseSpecificRole %}
+      {% if data.chooseSpecificRole == "Yes" and data.specificRole %}
+        {% set chooseRoleValue = "Yes - " + data.specificRole %}
+      {% endif %}
+
+      {# Task owner name lookup (Accept + Transfer + RASSO flow) #}
+      {% set taskOwnerName = "" %}
+      {% if data.taskOwner %}
+        {% if data.taskOwner.startsWith("user-") %}
+          {% set userId = data.taskOwner | replace("user-", "") | int %}
+          {% for user in users %}
+            {% if user.id == userId %}
+              {% set taskOwnerName = user.firstName + " " + user.lastName %}
+            {% endif %}
+          {% endfor %}
+        {% elif data.taskOwner.startsWith("team-") %}
+          {% set teamId = data.taskOwner | replace("team-", "") | int %}
+          {% for team in teams %}
+            {% if team.id == teamId %}
+              {% set taskOwnerName = team.name %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endif %}
+
+      {# Know prosecutor value (Accept + Early advice flow) #}
+      {% set prosecutorValue = data.knowProsecutorName %}
+      
+      {% set prosecutorId = data.prosecutorId | int %}
+      {% for prosecutor in prosecutors %}
+        {% if prosecutor.id == prosecutorId %}
+          {% set prosecutorValue = prosecutor.firstName + " " + prosecutor.lastName %}
+        {% endif %}
+      {% endfor %}
+      
+
+      {# Rejection reasons HTML (Reject flow) #}
+      {% set reasonsHtml %}
+        <ul class="govuk-list govuk-list--spaced">
+          {% for reason in data.rejectionReasons %}
+            <li>
+              {% if data.rejectionDetails and data.rejectionDetails[reason] and data.rejectionDetails[reason] | trim %}
+                <p class="govuk-!-margin-bottom-0">{{ reason }}:</p>
+                <p>{{ data.rejectionDetails[reason] }}</p>
+              {% else %}
+                {{ reason }}
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endset %}
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "Decision" },
+            value: { text: data.decision },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case",
+                text: "Change",
+                visuallyHiddenText: "decision"
+              }]
+            }
+          },
+          {
             key: { text: "Review task type" },
             value: { text: data.reviewTaskType },
             actions: {
@@ -48,12 +118,9 @@
                 visuallyHiddenText: "review task type"
               }]
             }
-          }), summaryRows) %}
-        {% endif %}
+          } if data.decision == "Accept" and data.reviewTaskType,
 
-        {# Transfer case #}
-        {% if data.transferCase %}
-          {% set summaryRows = (summaryRows.push({
+          {
             key: { text: "Do you want to transfer the case?" },
             value: { text: data.transferCase },
             actions: {
@@ -63,279 +130,32 @@
                 visuallyHiddenText: "if you want to transfer the case"
               }]
             }
-          }), summaryRows) %}
-        {% endif %}
-
-        {# Transfer-specific fields (only if transferring) #}
-        {% if data.transferCase == "Yes" %}
-
-          {# Change area #}
-          {% if data.changeArea %}
-            {% set changeAreaValue = data.changeArea %}
-            {% if data.changeArea == "Yes" and data.selectedArea %}
-              {% set changeAreaValue = "Yes - " + data.selectedArea %}
-            {% endif %}
-            {% set summaryRows = (summaryRows.push({
-              key: { text: "Do you want to change the area?" },
-              value: { text: changeAreaValue },
-              actions: {
-                items: [{
-                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/change-area",
-                  text: "Change",
-                  visuallyHiddenText: "if you want to change the area"
-                }]
-              }
-            }), summaryRows) %}
-          {% endif %}
-
-          {# Unit #}
-          {% if data.unitId %}
-            {% set unitName = "" %}
-            {% for unit in units %}
-              {% if unit.id == data.unitId %}
-                {% set unitName = unit.name %}
-              {% endif %}
-            {% endfor %}
-            {% set summaryRows = (summaryRows.push({
-              key: { text: "Unit" },
-              value: { text: unitName },
-              actions: {
-                items: [{
-                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/unit",
-                  text: "Change",
-                  visuallyHiddenText: "unit"
-                }]
-              }
-            }), summaryRows) %}
-          {% endif %}
-
-          {# Case type #}
-          {% if data.caseType %}
-            {% set summaryRows = (summaryRows.push({
-              key: { text: "Case type" },
-              value: { text: data.caseType },
-              actions: {
-                items: [{
-                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
-                  text: "Change",
-                  visuallyHiddenText: "case type"
-                }]
-              }
-            }), summaryRows) %}
-          {% endif %}
-
-          {# RASSO-specific fields (only if early advice AND RASSO) #}
-          {% if data.reviewTaskType == "Early advice" and data.caseType == "RASSO" %}
-
-            {# Assign to #}
-            {% if data.assignTo %}
-              {% set summaryRows = (summaryRows.push({
-                key: { text: "Do you want to assign the \"Early advice manager triage\" task to an individual or team?" },
-                value: { text: data.assignTo },
-                actions: {
-                  items: [{
-                    href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/assign-to",
-                    text: "Change",
-                    visuallyHiddenText: "if you want to assign to an individual or team"
-                  }]
-                }
-              }), summaryRows) %}
-            {% endif %}
-
-            {# Individual-specific fields #}
-            {% if data.assignTo == "Individual" %}
-
-              {# Know person name #}
-              {% if data.knowPersonName %}
-                {% set knowPersonValue = data.knowPersonName %}
-                {% if data.knowPersonName == "Yes" and data.personLastName %}
-                  {% set knowPersonValue = "Yes - " + data.personLastName %}
-                {% endif %}
-                {% set summaryRows = (summaryRows.push({
-                  key: { text: "Do you know the name of the person you want to assign the \"Early advice manager triage\" task to?" },
-                  value: { text: knowPersonValue },
-                  actions: {
-                    items: [{
-                      href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-person-name",
-                      text: "Change",
-                      visuallyHiddenText: "if you know the name of the person"
-                    }]
-                  }
-                }), summaryRows) %}
-              {% endif %}
-
-              {# Choose specific role #}
-              {% if data.chooseSpecificRole %}
-                {% set chooseRoleValue = data.chooseSpecificRole %}
-                {% if data.chooseSpecificRole == "Yes" and data.specificRole %}
-                  {% set chooseRoleValue = "Yes - " + data.specificRole %}
-                {% endif %}
-                {% set summaryRows = (summaryRows.push({
-                  key: { text: "Do you want to choose a specific role?" },
-                  value: { text: chooseRoleValue },
-                  actions: {
-                    items: [{
-                      href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/choose-role",
-                      text: "Change",
-                      visuallyHiddenText: "if you want to choose a specific role"
-                    }]
-                  }
-                }), summaryRows) %}
-              {% endif %}
-
-            {% endif %}
-
-            {# Task owner (for both individual and team) #}
-            {% if data.taskOwner %}
-              {% set taskOwnerName = "" %}
-              {% if data.taskOwner.startsWith("user-") %}
-                {% set userId = data.taskOwner | replace("user-", "") | int %}
-                {% for user in users %}
-                  {% if user.id == userId %}
-                    {% set taskOwnerName = user.firstName + " " + user.lastName %}
-                  {% endif %}
-                {% endfor %}
-              {% elif data.taskOwner.startsWith("team-") %}
-                {% set teamId = data.taskOwner | replace("team-", "") | int %}
-                {% for team in teams %}
-                  {% if team.id == teamId %}
-                    {% set taskOwnerName = team.name %}
-                  {% endif %}
-                {% endfor %}
-              {% endif %}
-              {% set summaryRows = (summaryRows.push({
-                key: { text: "Task owner" },
-                value: { text: taskOwnerName },
-                actions: {
-                  items: [{
-                    href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/task-owner",
-                    text: "Change",
-                    visuallyHiddenText: "task owner"
-                  }]
-                }
-              }), summaryRows) %}
-            {% endif %}
-
-          {% endif %}
-
-        {% endif %}
-
-        {# Prosecutor fields (shown if early advice AND either not transferring OR transferring but not RASSO) #}
-        {% if data.reviewTaskType == "Early advice" and (data.transferCase == "No" or (data.transferCase == "Yes" and data.caseType != "RASSO")) %}
-
-          {# Know prosecutor name #}
-          {% if data.knowProsecutorName %}
-            {% set knowProsecutorValue = data.knowProsecutorName %}
-            {% if data.knowProsecutorName == "Yes" and data.prosecutorId %}
-              {% set prosecutorId = data.prosecutorId | int %}
-              {% for prosecutor in prosecutors %}
-                {% if prosecutor.id == prosecutorId %}
-                  {% set knowProsecutorValue = "Yes - " + prosecutor.firstName + " " + prosecutor.lastName %}
-                {% endif %}
-              {% endfor %}
-            {% elif data.knowProsecutorName == "No" and data.prosecutorId %}
-              {% set prosecutorId = data.prosecutorId | int %}
-              {% for prosecutor in prosecutors %}
-                {% if prosecutor.id == prosecutorId %}
-                  {% set knowProsecutorValue = prosecutor.firstName + " " + prosecutor.lastName %}
-                {% endif %}
-              {% endfor %}
-            {% endif %}
-            {% set summaryRows = (summaryRows.push({
-              key: { text: "Do you know the name of the prosecutor you want to allocate?" },
-              value: { text: knowProsecutorValue },
-              actions: {
-                items: [{
-                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-prosecutor-name",
-                  text: "Change",
-                  visuallyHiddenText: "if you know the name of the prosecutor"
-                }]
-              }
-            }), summaryRows) %}
-          {% endif %}
-
-        {% endif %}
-
-      {% endif %}
-
-      {# Rejection-specific fields (only if Reject) #}
-      {% if data.decision == "Reject" %}
-
-        {# Rejection reasons with optional details #}
-        {% if data.rejectionReasons and data.rejectionReasons.length %}
-          {% set reasonsHtml %}
-            <ul class="govuk-list govuk-list--spaced">
-              {% for reason in data.rejectionReasons %}
-                <li>
-                  {% if data.rejectionDetails and data.rejectionDetails[reason] and data.rejectionDetails[reason] | trim %}
-                    <p class="govuk-!-margin-bottom-0">{{ reason }}:</p>
-                    <p>{{ data.rejectionDetails[reason] }}</p>
-                  {% else %}
-                    {{ reason }}
-                  {% endif %}
-                </li>
-              {% endfor %}
-            </ul>
-          {% endset %}
-          {% set summaryRows = (summaryRows.push({
-            key: { text: "Reasons for rejection" },
-            value: { html: reasonsHtml },
+          } if data.decision == "Accept" and data.transferCase,
+          {
+            key: { text: "Do you want to change the area?" },
+            value: { text: changeAreaValue },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/reasons",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/area",
                 text: "Change",
-                visuallyHiddenText: "reasons for rejection"
+                visuallyHiddenText: "if you want to change the area"
               }]
             }
-          }), summaryRows) %}
-        {% endif %}
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.changeArea,
 
-        {# Police response date #}
-        {% if data.policeResponseDate and data.policeResponseDate.day and data.policeResponseDate.month and data.policeResponseDate.year %}
-          {% set summaryRows = (summaryRows.push({
-            key: { text: "Date the police should respond" },
-            value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },
+          {
+            key: { text: "Unit" },
+            value: { text: unitName },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/police-response-date",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/unit",
                 text: "Change",
-                visuallyHiddenText: "Date the police should respond"
+                visuallyHiddenText: "unit"
               }]
             }
-          }), summaryRows) %}
-        {% endif %}
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.unitId,
 
-        {# Create reminder task #}
-        {% set summaryRows = (summaryRows.push({
-          key: { text: "Do you want to create a task to remind you about when the police should respond back to you?" },
-          value: { text: "Yes" if data.createReminderTask == "yes" else "No" },
-          actions: {
-            items: [{
-              href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
-              text: "Change",
-              visuallyHiddenText: "if you want to create a task to remind you about when the police should respond back to you"
-            }]
-          }
-        }), summaryRows) %}
-
-        {# Reminder due date (only if yes) #}
-        {% if data.createReminderTask == "yes" and data.reminderDueDate and data.reminderDueDate.day and data.reminderDueDate.month and data.reminderDueDate.year %}
-          {% set summaryRows = (summaryRows.push({
-            key: { text: "Task due date" },
-            value: { text: data.reminderDueDate | isoDateFromDateInput | govukDateTime },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
-                text: "Change",
-                visuallyHiddenText: "Task due date"
-              }]
-            }
-          }), summaryRows) %}
-        {% endif %}
-
-        {# Case type #}
-        {% if data.caseType %}
-          {% set summaryRows = (summaryRows.push({
+          {
             key: { text: "Case type" },
             value: { text: data.caseType },
             actions: {
@@ -345,13 +165,151 @@
                 visuallyHiddenText: "case type"
               }]
             }
-          }), summaryRows) %}
-        {% endif %}
-
-      {% endif %}
-
-      {{ govukSummaryList({
-        rows: summaryRows
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.caseType,
+          {
+            key: { text: "Do you want to assign the \"Early advice manager triage\" task to an individual or team?" },
+            value: { text: data.assignTo },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/user-type",
+                text: "Change",
+                visuallyHiddenText: "if you want to assign to an individual or team"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo,
+          {
+            key: { text: "Do you know the name of the person you want to assign the \"Early advice manager triage\" task to?" },
+            value: { text: knowPersonValue },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/person-name",
+                text: "Change",
+                visuallyHiddenText: "if you know the name of the person"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.knowPersonName,
+          {
+            key: { text: "Prosecutor" },
+            value: { text: knowPersonValue },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/person-name",
+                text: "Change",
+                visuallyHiddenText: "if you know the name of the person"
+              }]
+            }
+          } if data.prosecutorId,
+          {
+            key: { text: "Do you want to choose a specific role?" },
+            value: { text: chooseRoleValue },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/role",
+                text: "Change",
+                visuallyHiddenText: "if you want to choose a specific role"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.chooseSpecificRole,
+          {
+            key: { text: "Task owner" },
+            value: { text: taskOwnerName },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/task-owner",
+                text: "Change",
+                visuallyHiddenText: "task owner"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.taskOwner,
+          {
+            key: { text: "Do you know the name of the prosecutor you want to allocate?" },
+            value: { text: data.knowProsecutorName },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-prosecutor-name",
+                text: "Change",
+                visuallyHiddenText: "if you know the name of the prosecutor"
+              }]
+            }
+          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and (data.transferCase == "No" or (data.transferCase == "Yes" and data.caseType != "RASSO")) and data.knowProsecutorName,
+          {
+            key: { text: "Prosecutor" },
+            value: { text: prosecutorValue },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-prosecutor-name",
+                text: "Change",
+                visuallyHiddenText: "prosecutor"
+              }]
+            }
+          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and (data.transferCase == "No" or (data.transferCase == "Yes" and data.caseType != "RASSO")) and data.knowProsecutorName,
+          {
+            key: { text: "Reasons for rejection" },
+            value: { html: reasonsHtml },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/reasons-for-rejection",
+                text: "Change",
+                visuallyHiddenText: "reasons for rejection"
+              }]
+            }
+          } if data.decision == "Reject" and data.rejectionReasons and data.rejectionReasons.length,
+          {
+            key: { text: "Review task type" },
+            value: { text: data.reviewTaskType },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/review-task-type",
+                text: "Change",
+                visuallyHiddenText: "review task type"
+              }]
+            }
+          } if data.decision == "Reject" and data.reviewTaskType,
+          {
+            key: { text: "Date the police should respond" },
+            value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/police-response-date",
+                text: "Change",
+                visuallyHiddenText: "Date the police should respond"
+              }]
+            }
+          } if data.decision == "Reject" and data.policeResponseDate and data.policeResponseDate.day and data.policeResponseDate.month and data.policeResponseDate.year,
+          {
+            key: { text: "Do you want to create a task to remind you about when the police should respond back to you?" },
+            value: { text: "Yes" if data.createReminderTask == "yes" else "No" },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+                text: "Change",
+                visuallyHiddenText: "if you want to create a task to remind you about when the police should respond back to you"
+              }]
+            }
+          } if data.decision == "Reject",
+          {
+            key: { text: "Task due date" },
+            value: { text: data.reminderDueDate | isoDateFromDateInput | govukDateTime },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+                text: "Change",
+                visuallyHiddenText: "Task due date"
+              }]
+            }
+          } if data.decision == "Reject" and data.createReminderTask == "yes" and data.reminderDueDate and data.reminderDueDate.day and data.reminderDueDate.month and data.reminderDueDate.year,
+          {
+            key: { text: "Case type" },
+            value: { text: data.caseType },
+            actions: {
+              items: [{
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
+                text: "Change",
+                visuallyHiddenText: "case type"
+              }]
+            }
+          } if data.decision == "Reject" and data.caseType
+        ]
       }) }}
 
       <form method="post">
