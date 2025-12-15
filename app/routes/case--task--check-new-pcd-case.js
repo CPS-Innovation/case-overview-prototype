@@ -423,7 +423,12 @@ module.exports = router => {
       ]
     })
 
-    res.render("cases/tasks/check-new-pcd-case/prosecutor", { task, prosecutors })
+    const prosecutorItems = prosecutors.map(prosecutor => ({
+      value: prosecutor.id,
+      text: `${prosecutor.firstName} ${prosecutor.lastName}`
+    }))
+
+    res.render("cases/tasks/check-new-pcd-case/prosecutor", { task, prosecutorItems })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/prosecutor", (req, res) => {

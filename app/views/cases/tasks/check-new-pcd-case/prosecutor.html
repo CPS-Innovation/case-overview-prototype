@@ -16,15 +16,6 @@
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <span class="govuk-caption-l">{{caption}}</span>
       <form method="post">
-        {% set prosecutorItems = [] %}
-        {% for prosecutor in prosecutors %}
-          {% set prosecutorItems = (prosecutorItems.push({
-            value: prosecutor.id,
-            text: prosecutor.firstName + " " + prosecutor.lastName,
-            checked: data.completeCheckNewPcdCase.prosecutorId == prosecutor.id
-          }), prosecutorItems) %}
-        {% endfor %}
-
         {{ govukRadios({
           name: "completeCheckNewPcdCase[prosecutorId]",
           fieldset: {
@@ -34,6 +25,7 @@
               classes: "govuk-fieldset__legend--l"
             }
           },
+          value: data.completeCheckNewPcdCase.prosecutorId,
           items: prosecutorItems
         }) }}
 
