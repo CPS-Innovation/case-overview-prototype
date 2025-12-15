@@ -351,9 +351,20 @@ module.exports = router => {
       }
     })
 
-    // TODO: only show prosecutors within the unit - either current unit or selected unit if transferring
+    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
+
+    // Determine unit ID to filter by
+    const unitId = data.transferCase === "Yes" && data.unitId
+      ? parseInt(data.unitId)
+      : task.case.unitId
+
     const prosecutors = await prisma.user.findMany({
-      where: { role: 'Prosecutor' },
+      where: {
+        role: 'Prosecutor',
+        units: {
+          some: { unitId: unitId }
+        }
+      },
       orderBy: [
         { firstName: 'asc' },
         { lastName: 'asc' }
@@ -392,10 +403,20 @@ module.exports = router => {
       }
     })
 
-    // TODO: only show prosecutors within the unit - either current unit or selected unit if transferring
+    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
+
+    // Determine unit ID to filter by
+    const unitId = data.transferCase === "Yes" && data.unitId
+      ? parseInt(data.unitId)
+      : task.case.unitId
 
     const prosecutors = await prisma.user.findMany({
-      where: { role: 'Prosecutor' },
+      where: {
+        role: 'Prosecutor',
+        units: {
+          some: { unitId: unitId }
+        }
+      },
       orderBy: [
         { firstName: 'asc' },
         { lastName: 'asc' }
