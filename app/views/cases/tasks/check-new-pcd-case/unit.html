@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set caption %} {{_case.reference}} - Check new PCD case {% endset %}
+{% set caption %} {{task.case.reference}} - Check new PCD case {% endset %}
 {% set pageName = "Unit" %}
 
 {% block beforeContent %}
@@ -19,7 +19,7 @@
 
       {% set unitInset %}
         <h2 class="govuk-heading-s govuk-!-margin-bottom-1">Unit</h2>
-        <p>{{_case.unit.name}}</p>
+        <p>{{task.case.unit.name}}</p>
       {% endset %}
 
       {{ govukInsetText({

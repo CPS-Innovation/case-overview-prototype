@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set caption %} {{_case.reference}} - Check new PCD case {% endset %}
+{% set caption %} {{task.case.reference}} - Check new PCD case {% endset %}
 {% set pageName = "Task owner" %}
 
 {% block beforeContent %}
@@ -52,8 +52,6 @@
           text: "Continue"
         }) }}
       </form>
-
-      <p><a href="/cases/{{_case.id}}/tasks/{{task.id}}">Cancel</a></p>
     </div>
   </div>
 {% endblock %}

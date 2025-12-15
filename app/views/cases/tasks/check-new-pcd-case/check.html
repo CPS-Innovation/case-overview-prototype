@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set caption %} {{_case.reference}} - Check new PCD case {% endset %}
+{% set caption %} {{task.case.reference}} - Check new PCD case {% endset %}
 {% set pageName = "Check details and complete task" %}
 
 {% block beforeContent %}
@@ -26,7 +26,7 @@
         value: { text: data.decision },
         actions: {
           items: [{
-            href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case",
+            href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case",
             text: "Change",
             visuallyHiddenText: "decision"
           }]
@@ -43,7 +43,7 @@
             value: { text: data.reviewTaskType },
             actions: {
               items: [{
-                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/review-task-type",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/review-task-type",
                 text: "Change",
                 visuallyHiddenText: "review task type"
               }]
@@ -58,7 +58,7 @@
             value: { text: data.transferCase },
             actions: {
               items: [{
-                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/transfer-case",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/transfer-case",
                 text: "Change",
                 visuallyHiddenText: "if you want to transfer the case"
               }]
@@ -80,7 +80,7 @@
               value: { text: changeAreaValue },
               actions: {
                 items: [{
-                  href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/change-area",
+                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/change-area",
                   text: "Change",
                   visuallyHiddenText: "if you want to change the area"
                 }]
@@ -101,7 +101,7 @@
               value: { text: unitName },
               actions: {
                 items: [{
-                  href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/unit",
+                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/unit",
                   text: "Change",
                   visuallyHiddenText: "unit"
                 }]
@@ -116,7 +116,7 @@
               value: { text: data.caseType },
               actions: {
                 items: [{
-                  href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
+                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
                   text: "Change",
                   visuallyHiddenText: "case type"
                 }]
@@ -134,7 +134,7 @@
                 value: { text: data.assignTo },
                 actions: {
                   items: [{
-                    href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/assign-to",
+                    href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/assign-to",
                     text: "Change",
                     visuallyHiddenText: "if you want to assign to an individual or team"
                   }]
@@ -156,7 +156,7 @@
                   value: { text: knowPersonValue },
                   actions: {
                     items: [{
-                      href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-person-name",
+                      href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-person-name",
                       text: "Change",
                       visuallyHiddenText: "if you know the name of the person"
                     }]
@@ -175,7 +175,7 @@
                   value: { text: chooseRoleValue },
                   actions: {
                     items: [{
-                      href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/choose-role",
+                      href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/choose-role",
                       text: "Change",
                       visuallyHiddenText: "if you want to choose a specific role"
                     }]
@@ -208,7 +208,7 @@
                 value: { text: taskOwnerName },
                 actions: {
                   items: [{
-                    href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/task-owner",
+                    href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/task-owner",
                     text: "Change",
                     visuallyHiddenText: "task owner"
                   }]
@@ -246,7 +246,7 @@
               value: { text: knowProsecutorValue },
               actions: {
                 items: [{
-                  href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-prosecutor-name",
+                  href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-prosecutor-name",
                   text: "Change",
                   visuallyHiddenText: "if you know the name of the prosecutor"
                 }]
@@ -282,7 +282,7 @@
             value: { html: reasonsHtml },
             actions: {
               items: [{
-                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/reasons",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/reasons",
                 text: "Change",
                 visuallyHiddenText: "reasons for rejection"
               }]
@@ -297,7 +297,7 @@
             value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },
             actions: {
               items: [{
-                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/police-response-date",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/police-response-date",
                 text: "Change",
                 visuallyHiddenText: "Date the police should respond"
               }]
@@ -311,7 +311,7 @@
           value: { text: "Yes" if data.createReminderTask == "yes" else "No" },
           actions: {
             items: [{
-              href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+              href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
               text: "Change",
               visuallyHiddenText: "if you want to create a task to remind you about when the police should respond back to you"
             }]
@@ -325,7 +325,7 @@
             value: { text: data.reminderDueDate | isoDateFromDateInput | govukDateTime },
             actions: {
               items: [{
-                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
                 text: "Change",
                 visuallyHiddenText: "Task due date"
               }]
@@ -340,7 +340,7 @@
             value: { text: data.caseType },
             actions: {
               items: [{
-                href: "/cases/" + _case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
+                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
                 text: "Change",
                 visuallyHiddenText: "case type"
               }]

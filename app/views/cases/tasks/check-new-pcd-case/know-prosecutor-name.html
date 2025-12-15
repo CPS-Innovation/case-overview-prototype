@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set caption %} {{_case.reference}} - Check new PCD case {% endset %}
+{% set caption %} {{task.case.reference}} - Check new PCD case {% endset %}
 
 {% block beforeContent %}
   {{ govukBackLink({

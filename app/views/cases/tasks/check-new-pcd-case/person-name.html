@@ -1,8 +1,8 @@
 {% extends "layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set caption %} {{_case.reference}} - Check new PCD case {% endset %}
-{% set pageName = 'Do you know the name of the person you want to assign the ‘early advice manager triage’ task to?' %}
+{% set caption %} {{task.case.reference}} - Check new PCD case {% endset %}
+{% set pageName = 'Do you know the name of the person you want to assign the 'early advice manager triage' task to?' %}
 
 {% block beforeContent %}
   {{ govukBackLink({

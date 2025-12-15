@@ -6,18 +6,18 @@ const prisma = new PrismaClient()
 module.exports = router => {
   
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/index", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/index", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case", (req, res) => {
@@ -39,18 +39,18 @@ module.exports = router => {
 
   // TODO: should this be shown regardless?
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/review-task-type", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/review-task-type", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", (req, res) => {
@@ -58,19 +58,19 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true,
-        unit: true
+        case: {
+          include: {
+            defendants: true,
+            unit: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/transfer-case", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/transfer-case", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case", (req, res) => {
@@ -93,27 +93,27 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/area", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: {
-        defendants: true,
-        unit: true
-      }
-    })
-
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
+      where: { id: parseInt(req.params.taskId) },
+      include: {
+        case: {
+          include: {
+            defendants: true,
+            unit: true
+          }
+        }
+      }
     })
 
     // TODO: add areas to schema/seed data and then pull from that
     let area = "Unknown"
-    if (_case.unit.name.includes("Wessex")) {
+    if (task.case.unit.name.includes("Wessex")) {
       area = "Wessex"
-    } else if (_case.unit.name.includes("Yorkshire") || _case.unit.name.includes("Humberside")) {
+    } else if (task.case.unit.name.includes("Yorkshire") || task.case.unit.name.includes("Humberside")) {
       area = "Yorkshire and Humberside"
     }
 
-    res.render("cases/tasks/check-new-pcd-case/area", { _case, task, area })
+    res.render("cases/tasks/check-new-pcd-case/area", { task, area })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/area", (req, res) => {
@@ -121,16 +121,16 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/unit", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: {
-        defendants: true,
-        unit: true
-      }
-    })
-
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
+      where: { id: parseInt(req.params.taskId) },
+      include: {
+        case: {
+          include: {
+            defendants: true,
+            unit: true
+          }
+        }
+      }
     })
 
     const units = await prisma.unit.findMany({
@@ -148,7 +148,7 @@ module.exports = router => {
       }))
     ]
 
-    res.render("cases/tasks/check-new-pcd-case/unit", { _case, task, unitItems })
+    res.render("cases/tasks/check-new-pcd-case/unit", { task, unitItems })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/unit", (req, res) => {
@@ -156,18 +156,18 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/case-type", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/case-type", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/case-type", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/case-type", (req, res) => {
@@ -194,18 +194,18 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/user-type", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/user-type", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type", (req, res) => {
@@ -217,15 +217,15 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/person-name", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: {
-        defendants: true
-      }
-    })
-
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
+      where: { id: parseInt(req.params.taskId) },
+      include: {
+        case: {
+          include: {
+            defendants: true
+          }
+        }
+      }
     })
 
     const lastNames = require('../data/last-names')
@@ -235,7 +235,7 @@ module.exports = router => {
       text: lastName
     }))
 
-    res.render("cases/tasks/check-new-pcd-case/person-name", { _case, task, lastNameItems })
+    res.render("cases/tasks/check-new-pcd-case/person-name", { task, lastNameItems })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/person-name", (req, res) => {
@@ -244,18 +244,18 @@ module.exports = router => {
 
   // Role (only shown if individual)
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/role", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/role", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/role", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/role", (req, res) => {
@@ -264,15 +264,15 @@ module.exports = router => {
 
   // Task owner (shown for both individual and team in RASSO flow)
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/task-owner", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: {
-        defendants: true
-      }
-    })
-
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
+      where: { id: parseInt(req.params.taskId) },
+      include: {
+        case: {
+          include: {
+            defendants: true
+          }
+        }
+      }
     })
 
     // TODO: show only teams or only users
@@ -291,7 +291,7 @@ module.exports = router => {
       orderBy: { name: 'asc' }
     })
 
-    res.render("cases/tasks/check-new-pcd-case/task-owner", { _case, task, users, teams })
+    res.render("cases/tasks/check-new-pcd-case/task-owner", { task, users, teams })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/task-owner", (req, res) => {
@@ -300,15 +300,15 @@ module.exports = router => {
 
   // Know prosecutor name (shown for early advice if not transferring OR if transferring but not RASSO)
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/know-prosecutor-name", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: {
-        defendants: true
-      }
-    })
-
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
+      where: { id: parseInt(req.params.taskId) },
+      include: {
+        case: {
+          include: {
+            defendants: true
+          }
+        }
+      }
     })
 
     // TODO: only show prosecutors within the unit - either current unit or selected unit if transferring
@@ -325,7 +325,7 @@ module.exports = router => {
       text: `${prosecutor.firstName} ${prosecutor.lastName}`
     }))
 
-    res.render("cases/tasks/check-new-pcd-case/know-prosecutor-name", { _case, task, prosecutorItems })
+    res.render("cases/tasks/check-new-pcd-case/know-prosecutor-name", { task, prosecutorItems })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/know-prosecutor-name", (req, res) => {
@@ -341,15 +341,15 @@ module.exports = router => {
 
   // Prosecutor (only shown if they don't know the prosecutor name)
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/prosecutor", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: {
-        defendants: true
-      }
-    })
-
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
+      where: { id: parseInt(req.params.taskId) },
+      include: {
+        case: {
+          include: {
+            defendants: true
+          }
+        }
+      }
     })
 
     // TODO: only show prosecutors within the unit - either current unit or selected unit if transferring
@@ -362,7 +362,7 @@ module.exports = router => {
       ]
     })
 
-    res.render("cases/tasks/check-new-pcd-case/prosecutor", { _case, task, prosecutors })
+    res.render("cases/tasks/check-new-pcd-case/prosecutor", { task, prosecutors })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/prosecutor", (req, res) => {
@@ -376,18 +376,18 @@ module.exports = router => {
   //
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/reasons-for-rejection", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/reasons-for-rejection", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection", (req, res) => {
@@ -395,18 +395,18 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/police-response-date", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/police-response-date", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/police-response-date", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/police-response-date", (req, res) => {
@@ -414,18 +414,18 @@ module.exports = router => {
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const task = await prisma.task.findUnique({
+      where: { id: parseInt(req.params.taskId) },
       include: {
-        defendants: true
+        case: {
+          include: {
+            defendants: true
+          }
+        }
       }
     })
 
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/create-reminder-task", { _case, task })
+    res.render("cases/tasks/check-new-pcd-case/create-reminder-task", { task })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task", (req, res) => {
@@ -439,16 +439,16 @@ module.exports = router => {
   //
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/check", async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: {
-        defendants: true,
-        unit: true
-      }
-    })
-
     const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) }
+      where: { id: parseInt(req.params.taskId) },
+      include: {
+        case: {
+          include: {
+            defendants: true,
+            unit: true
+          }
+        }
+      }
     })
 
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
@@ -480,7 +480,7 @@ module.exports = router => {
       ]
     })
 
-    res.render("cases/tasks/check-new-pcd-case/check", { _case, task, data, units, users, teams, prosecutors })
+    res.render("cases/tasks/check-new-pcd-case/check", { task, data, units, users, teams, prosecutors })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/check", async (req, res) => {
