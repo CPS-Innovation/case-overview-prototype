@@ -29,13 +29,13 @@
       <form method="post">
         {% set areaSelectHtml %}
           {{ xGovukAutocomplete({
-            id: "selectedArea",
-            name: "completeCheckNewPcdCase[selectedArea]",
+            id: "area",
+            name: "completeCheckNewPcdCase[area]",
             allowEmpty: false,
             label: {
               text: "Area"
             },
-            value: data.completeCheckNewPcdCase.selectedArea,
+            value: data.completeCheckNewPcdCase.area,
             items: [
               {
                 value: "",

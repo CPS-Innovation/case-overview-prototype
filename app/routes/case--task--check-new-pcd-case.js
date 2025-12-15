@@ -132,9 +132,9 @@ module.exports = router => {
 
     // Determine which area to use for filtering
     let areaToFilterBy
-    if (data.changeArea === "Yes" && data.selectedArea) {
+    if (data.changeArea === "Yes" && data.area) {
       // User changed the area - use the selected area
-      areaToFilterBy = data.selectedArea
+      areaToFilterBy = data.area
     } else {
       // User didn't change the area - use the current case's unit's area
       areaToFilterBy = getAreaForUnit(task.case.unit.name)
@@ -602,8 +602,8 @@ module.exports = router => {
       if (data.changeArea) {
         activityLogMeta.changeArea = data.changeArea
       }
-      if (data.selectedArea) {
-        activityLogMeta.selectedArea = data.selectedArea
+      if (data.area) {
+        activityLogMeta.area = data.area
       }
       if (data.unitId) {
         activityLogMeta.unitId = data.unitId

@@ -22,8 +22,8 @@
 
       {# Change area value (Accept + Transfer flow) #}
       {% set changeAreaValue = data.changeArea %}
-      {% if data.changeArea == "Yes" and data.selectedArea %}
-        {% set changeAreaValue = "Yes - " + data.selectedArea %}
+      {% if data.changeArea == "Yes" and data.area %}
+        {% set changeAreaValue = "Yes - " + data.area %}
       {% endif %}
 
       {# Unit name lookup (Accept + Transfer flow) #}
@@ -109,18 +109,6 @@
             }
           },
           {
-            key: { text: "Review task type" },
-            value: { text: data.reviewTaskType },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/review-task-type",
-                text: "Change",
-                visuallyHiddenText: "review task type"
-              }]
-            }
-          } if data.decision == "Accept" and data.reviewTaskType,
-
-          {
             key: { text: "Do you want to transfer the case?" },
             value: { text: data.transferCase },
             actions: {
@@ -130,7 +118,7 @@
                 visuallyHiddenText: "if you want to transfer the case"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase,
+          } if data.transferCase,
           {
             key: { text: "Do you want to change the area?" },
             value: { text: changeAreaValue },
@@ -141,7 +129,7 @@
                 visuallyHiddenText: "if you want to change the area"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.changeArea,
+          } if data.transferCase == "Yes",
 
           {
             key: { text: "Unit" },
@@ -153,8 +141,7 @@
                 visuallyHiddenText: "unit"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.unitId,
-
+          } if data.transferCase == "Yes",
           {
             key: { text: "Case type" },
             value: { text: data.caseType },
@@ -165,7 +152,7 @@
                 visuallyHiddenText: "case type"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.caseType,
+          } if data.decision == "Accept" and data.caseType,
           {
             key: { text: "Do you want to assign the \"Early advice manager triage\" task to an individual or team?" },
             value: { text: data.assignTo },
@@ -253,7 +240,7 @@
                 visuallyHiddenText: "review task type"
               }]
             }
-          } if data.decision == "Reject" and data.reviewTaskType,
+          } if data.reviewTaskType,
           {
             key: { text: "Date the police should respond" },
             value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },
