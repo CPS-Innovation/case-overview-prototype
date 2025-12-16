@@ -28,32 +28,32 @@
           values: data.completeCheckNewPcdCase.rejectionReasons,
           items: [
             {
-              value: "Case Material not correctly reviewed",
-              text: "Case Material not correctly reviewed",
+              value: "Case Material not correctly received",
+              text: "Case Material not correctly received",
               conditional: {
                 html: govukCharacterCount({
-                  name: "completeCheckNewPcdCase[rejectionDetails][Case Material not correctly reviewed]",
+                  name: "completeCheckNewPcdCase[rejectionDetails][Case Material not correctly received]",
                   id: "rejection-details-case-material",
                   maxlength: 250,
                   label: {
                     text: "Details (optional)"
                   },
-                  value: data.completeCheckNewPcdCase.rejectionDetails["Case Material not correctly reviewed"]
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Case Material not correctly received"]
                 })
               }
             },
             {
-              value: "No Disclosure schedule",
-              text: "No Disclosure schedule",
+              value: "No/missing Disclosure Schedule",
+              text: "No/missing Disclosure Schedule",
               conditional: {
                 html: govukCharacterCount({
-                  name: "completeCheckNewPcdCase[rejectionDetails][No Disclosure schedule]",
+                  name: "completeCheckNewPcdCase[rejectionDetails][No/missing Disclosure Schedule]",
                   id: "rejection-details-case-material",
                   maxlength: 250,
                   label: {
                     text: "Details (optional)"
                   },
-                  value: data.completeCheckNewPcdCase.rejectionDetails["No Disclosure schedule"]
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No/missing Disclosure Schedule"]
                 })
               }
             },
@@ -73,6 +73,66 @@
               }
             },
             {
+              value: "No/Incomplete Supervisors comments",
+              text: "No/Incomplete Supervisors comments",
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][No/Incomplete Supervisors comments]",
+                  id: "rejection-details-supervisors",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No/Incomplete Supervisors comments"]
+                })
+              }
+            },
+            {
+              value: "No DV Checklist",
+              text: "No DV Checklist",
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][No DV Checklist]",
+                  id: "rejection-details-dv-checklist",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No DV Checklist"]
+                })
+              }
+            },
+            {
+              value: "No/missing MG11s",
+              text: "No/missing MG11s",
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][No/missing MG11s]",
+                  id: "rejection-details-mg11s",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No/missing MG11s"]
+                })
+              }
+            },
+            {
+              value: "No missing exhibits",
+              text: "No missing exhibits",
+              conditional: {
+                html: govukCharacterCount({
+                  name: "completeCheckNewPcdCase[rejectionDetails][No missing exhibits]",
+                  id: "rejection-details-exhibits",
+                  maxlength: 250,
+                  label: {
+                    text: "Details (optional)"
+                  },
+                  value: data.completeCheckNewPcdCase.rejectionDetails["No missing exhibits"]
+                })
+              }
+            },
+            {
               value: "No summary of interview",
               text: "No summary of interview",
               conditional: {
@@ -88,17 +148,17 @@
               }
             },
             {
-              value: "Missing Suspects previous convictions",
-              text: "Missing Suspects previous convictions",
+              value: "Missing Suspect’s previous convictions",
+              text: "Missing Suspect’s previous convictions",
               conditional: {
                 html: govukCharacterCount({
-                  name: "completeCheckNewPcdCase[rejectionDetails][Missing Suspects previous convictions]",
+                  name: "completeCheckNewPcdCase[rejectionDetails][Missing Suspect’s previous convictions]",
                   id: "rejection-details-missing-suspects",
                   maxlength: 250,
                   label: {
                     text: "Details (optional)"
                   },
-                  value: data.completeCheckNewPcdCase.rejectionDetails["Missing Suspects previous convictions"]
+                  value: data.completeCheckNewPcdCase.rejectionDetails["Missing Suspect’s previous convictions"]
                 })
               }
             },

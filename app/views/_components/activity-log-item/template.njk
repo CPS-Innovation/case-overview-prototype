@@ -361,7 +361,7 @@
               value: { text: "Yes" if params.event.meta.createReminderTask == "Yes" else "No" }
             } if params.event.meta.decision == "Reject",
             {
-              key: { text: 'Task due date' },
+              key: { text: 'Date you'll be reminded' },
               value: { text: params.event.meta.reminderDueDate | isoDateString | govukDateTime }
             } if params.event.meta.decision == "Reject" and params.event.meta.createReminderTask == "Yes" and params.event.meta.reminderDueDate
           ]
