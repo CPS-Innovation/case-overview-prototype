@@ -20,12 +20,6 @@
 
       {# Complex value lookups #}
 
-      {# Change area value (Accept + Transfer flow) #}
-      {% set changeAreaValue = data.changeArea %}
-      {% if data.changeArea == "Yes" and data.area %}
-        {% set changeAreaValue = "Yes - " + data.area %}
-      {% endif %}
-
       {# Unit name lookup (Accept + Transfer flow) #}
       {% set unitName = "" %}
       {% if data.unitId %}
@@ -34,18 +28,6 @@
             {% set unitName = unit.name %}
           {% endif %}
         {% endfor %}
-      {% endif %}
-
-      {# Know person name value (Accept + Transfer + RASSO + Individual flow) #}
-      {% set knowPersonValue = data.knowPersonName %}
-      {% if data.knowPersonName == "Yes" and data.personLastName %}
-        {% set knowPersonValue = "Yes - " + data.personLastName %}
-      {% endif %}
-
-      {# Choose specific role value (Accept + Transfer + RASSO + Individual flow) #}
-      {% set chooseRoleValue = data.chooseSpecificRole %}
-      {% if data.chooseSpecificRole == "Yes" and data.specificRole %}
-        {% set chooseRoleValue = "Yes - " + data.specificRole %}
       {% endif %}
 
       {# Task owner name lookup (Accept + Transfer + RASSO flow) #}
@@ -102,129 +84,18 @@
             value: { text: data.decision },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case",
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
                 visuallyHiddenText: "decision"
               }]
             }
           },
           {
-            key: { text: "Do you want to transfer the case?" },
-            value: { text: data.transferCase },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/transfer-case",
-                text: "Change",
-                visuallyHiddenText: "if you want to transfer the case"
-              }]
-            }
-          } if data.transferCase,
-          {
-            key: { text: "Do you want to change the area?" },
-            value: { text: changeAreaValue },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/area",
-                text: "Change",
-                visuallyHiddenText: "if you want to change the area"
-              }]
-            }
-          } if data.transferCase == "Yes",
-
-          {
-            key: { text: "Unit" },
-            value: { text: unitName },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/unit",
-                text: "Change",
-                visuallyHiddenText: "unit"
-              }]
-            }
-          } if data.transferCase == "Yes",
-          {
-            key: { text: "Case type" },
-            value: { text: data.caseType },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
-                text: "Change",
-                visuallyHiddenText: "case type"
-              }]
-            }
-          } if data.decision == "Accept" and data.caseType,
-          {
-            key: { text: "Do you want to assign the \"Early advice manager triage\" task to an individual or team?" },
-            value: { text: data.assignTo },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/user-type",
-                text: "Change",
-                visuallyHiddenText: "if you want to assign to an individual or team"
-              }]
-            }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo,
-          {
-            key: { text: "Do you know the name of the person you want to assign the \"Early advice manager triage\" task to?" },
-            value: { text: knowPersonValue },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/person-name",
-                text: "Change",
-                visuallyHiddenText: "if you know the name of the person"
-              }]
-            }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.knowPersonName,
-          {
-            key: { text: "Do you want to choose a specific role?" },
-            value: { text: chooseRoleValue },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/role",
-                text: "Change",
-                visuallyHiddenText: "if you want to choose a specific role"
-              }]
-            }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.chooseSpecificRole,
-          {
-            key: { text: "Task owner" },
-            value: { text: taskOwnerName },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/task-owner",
-                text: "Change",
-                visuallyHiddenText: "task owner"
-              }]
-            }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.taskOwner,
-          {
-            key: { text: "Do you know the name of the prosecutor you want to allocate?" },
-            value: { text: data.knowProsecutorName },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-prosecutor-name",
-                text: "Change",
-                visuallyHiddenText: "if you know the name of the prosecutor"
-              }]
-            }
-          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and (data.transferCase == "No" or (data.transferCase == "Yes" and data.caseType != "RASSO")) and data.knowProsecutorName,
-          {
-            key: { text: "Prosecutor" },
-            value: { text: prosecutorValue },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/know-prosecutor-name",
-                text: "Change",
-                visuallyHiddenText: "prosecutor"
-              }]
-            }
-          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and (data.transferCase == "No" or (data.transferCase == "Yes" and data.caseType != "RASSO")) and data.prosecutorId,
-          {
             key: { text: "Reasons for rejection" },
             value: { html: reasonsHtml },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/reasons-for-rejection",
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
                 visuallyHiddenText: "reasons for rejection"
               }]
@@ -235,18 +106,161 @@
             value: { text: data.reviewTaskType },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/review-task-type",
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
                 visuallyHiddenText: "review task type"
               }]
             }
           } if data.reviewTaskType,
           {
+            key: { text: "Case type" },
+            value: { text: data.caseType },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/case-type' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "case type"
+              }]
+            }
+          } if data.caseType,
+          {
+            key: { text: "Do you want to transfer the case?" },
+            value: { text: data.transferCase },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "if you want to transfer the case"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase,
+          {
+            key: { text: "Do you want to change the area?" },
+            value: { text: data.changeArea },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/area' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "if you want to change the area"
+              }]
+            }
+          } if data.transferCase == "Yes" and data.changeArea,
+          {
+            key: { text: "Area" },
+            value: { text: data.area },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/area' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "area"
+              }]
+            }
+          } if data.transferCase == "Yes" and data.changeArea == "Yes" and data.area,
+          {
+            key: { text: "Unit" },
+            value: { text: unitName },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/unit' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "unit"
+              }]
+            }
+          } if data.transferCase == "Yes",
+          {
+            key: { text: "Do you want to assign the ‘Early advice manager triage’ task to an individual or team?" },
+            value: { text: data.assignTo },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "if you want to assign to an individual or team"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo,
+          {
+            key: { text: "Do you know who you want to assign the ‘Early advice manager triage’ task to?" },
+            value: { text: data.knowPersonName },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/person-name' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "if you know the name of the person"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.knowPersonName,
+          {
+            key: { text: "Person's last name" },
+            value: { text: data.personLastName },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/person-name' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "person's last name"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.knowPersonName == "Yes" and data.personLastName,
+          {
+            key: { text: "Do you want to choose a specific role?" },
+            value: { text: data.chooseSpecificRole },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/role' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "if you want to choose a specific role"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.chooseSpecificRole,
+          {
+            key: { text: "Role" },
+            value: { text: data.specificRole },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/role' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "role"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo == "Individual" and data.chooseSpecificRole == "Yes" and data.specificRole,
+          {
+            key: { text: "Task owner" },
+            value: { text: taskOwnerName },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/task-owner' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "task owner"
+              }]
+            }
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.taskOwner,
+          {
+            key: { text: "Do you know the name of the prosecutor you want to allocate?" },
+            value: { text: data.knowProsecutorName },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/know-prosecutor-name' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "if you know the name of the prosecutor"
+              }]
+            }
+          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and (data.transferCase == "No" or (data.transferCase == "Yes" and data.caseType != "RASSO")) and data.knowProsecutorName,
+          {
+            key: { text: "Prosecutor" },
+            value: { text: prosecutorValue },
+            actions: {
+              items: [{
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/know-prosecutor-name' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
+                text: "Change",
+                visuallyHiddenText: "prosecutor"
+              }]
+            }
+          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and (data.transferCase == "No" or (data.transferCase == "Yes" and data.caseType != "RASSO")) and data.prosecutorId,
+          {
             key: { text: "Date the police should respond" },
             value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/police-response-date",
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/police-response-date' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
                 visuallyHiddenText: "Date the police should respond"
               }]
@@ -257,7 +271,7 @@
             value: { text: "Yes" if data.createReminderTask == "Yes" else "No" },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
                 visuallyHiddenText: "if you want to create a task to remind you about when the police should respond back to you"
               }]
@@ -268,23 +282,12 @@
             value: { text: data.reminderDueDate | isoDateFromDateInput | govukDateTime },
             actions: {
               items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/create-reminder-task",
+                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
                 visuallyHiddenText: "Task due date"
               }]
             }
-          } if data.decision == "Reject" and data.createReminderTask == "Yes" and data.reminderDueDate and data.reminderDueDate.day and data.reminderDueDate.month and data.reminderDueDate.year,
-          {
-            key: { text: "Case type" },
-            value: { text: data.caseType },
-            actions: {
-              items: [{
-                href: "/cases/" + task.case.id + "/tasks/" + task.id + "/check-new-pcd-case/case-type",
-                text: "Change",
-                visuallyHiddenText: "case type"
-              }]
-            }
-          } if data.decision == "Reject" and data.caseType
+          } if data.decision == "Reject" and data.createReminderTask == "Yes" and data.reminderDueDate and data.reminderDueDate.day and data.reminderDueDate.month and data.reminderDueDate.year
         ]
       }) }}
 

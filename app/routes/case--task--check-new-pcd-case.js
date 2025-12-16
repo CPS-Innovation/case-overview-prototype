@@ -51,11 +51,7 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", (req, res) => {
-    if(req.session.data.completeCheckNewPcdCase.decision == "Accept") {
-      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/transfer-case`)
-    } else {
-      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/police-response-date`)
-    }
+    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/case-type`)
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case", async (req, res) => {
@@ -162,7 +158,22 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/unit", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/case-type`)
+    const caseId = req.params.caseId
+    const taskId = req.params.taskId
+    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
+
+    // Accept + Early advice + RASSO => user type
+    if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/user-type`)
+    }
+    // Accept + Early advice + NOT RASSO => prosecutor
+    else if (data.reviewTaskType === "Early advice") {
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/know-prosecutor-name`)
+    }
+    // Accept + NOT Early advice (within 5/28 calendar days)
+    else {
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
+    }
   })
 
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/case-type", async (req, res) => {
@@ -185,21 +196,10 @@ module.exports = router => {
     const taskId = req.params.taskId
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
-    // Reject => check answers
     if (data.decision === "Reject") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
-    }
-    // Accept + Early advice + RASSO => user type
-    else if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/user-type`)
-    }
-    // Accept + Early advice + NOT RASSO => prosecutor
-    else if (data.reviewTaskType === "Early advice") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/know-prosecutor-name`)
-    }
-    // Accesspt + NOT Early advice (within 5/28 calendar days)
-    else {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/police-response-date`)
+    } else {
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/transfer-case`)
     }
   })
 
@@ -495,7 +495,7 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/case-type`)
+    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/check`)
   })
 
   //
@@ -606,7 +606,11 @@ module.exports = router => {
         activityLogMeta.area = data.area
       }
       if (data.unitId) {
-        activityLogMeta.unitId = data.unitId
+        // Resolve unit name
+        const unit = await prisma.unit.findUnique({
+          where: { id: parseInt(data.unitId) }
+        })
+        activityLogMeta.unit = unit ? { id: unit.id, name: unit.name } : null
       }
       if (data.caseType) {
         activityLogMeta.caseType = data.caseType
@@ -627,13 +631,42 @@ module.exports = router => {
         activityLogMeta.specificRole = data.specificRole
       }
       if (data.taskOwner) {
-        activityLogMeta.taskOwner = data.taskOwner
+        // Resolve task owner name (user or team)
+        if (data.taskOwner.startsWith('user-')) {
+          const userId = parseInt(data.taskOwner.replace('user-', ''))
+          const user = await prisma.user.findUnique({
+            where: { id: userId }
+          })
+          activityLogMeta.taskOwner = user ? {
+            type: 'user',
+            id: user.id,
+            name: `${user.firstName} ${user.lastName}`
+          } : null
+        } else if (data.taskOwner.startsWith('team-')) {
+          const teamId = parseInt(data.taskOwner.replace('team-', ''))
+          const team = await prisma.team.findUnique({
+            where: { id: teamId }
+          })
+          activityLogMeta.taskOwner = team ? {
+            type: 'team',
+            id: team.id,
+            name: team.name
+          } : null
+        }
       }
       if (data.knowProsecutorName) {
         activityLogMeta.knowProsecutorName = data.knowProsecutorName
       }
       if (data.prosecutorId) {
-        activityLogMeta.prosecutorId = data.prosecutorId
+        // Resolve prosecutor name
+        const prosecutor = await prisma.user.findUnique({
+          where: { id: parseInt(data.prosecutorId) }
+        })
+        activityLogMeta.prosecutor = prosecutor ? {
+          id: prosecutor.id,
+          firstName: prosecutor.firstName,
+          lastName: prosecutor.lastName
+        } : null
       }
     }
 
