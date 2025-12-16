@@ -79,11 +79,16 @@ module.exports = router => {
     if (data.transferCase === "Yes") {
       res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/area`)
     } else {
-      
-      // If task type is Early Advice go to prosecutor
-      if (data.reviewTaskType === "Early advice") {
+      // If Early Advice + RASSO => task owner flow
+      if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
+        res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/user-type`)
+      }
+      // If Early Advice + NOT RASSO => prosecutor flow
+      else if (data.reviewTaskType === "Early advice") {
         res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/know-prosecutor-name`)
-      } else {
+      }
+      // Otherwise => skip to check answers
+      else {
         res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
       }
     }
