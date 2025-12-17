@@ -2,7 +2,7 @@ const _ = require('lodash')
 const { DateTime } = require('luxon')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
-const { getAreaForUnit, filterUnitsByArea } = require('../helpers/unitAreaMapping')
+const { getAreaForUnit, getAllAreas, getUnitsForArea } = require('../helpers/unitAreaMapping')
 
 module.exports = router => {
   
@@ -81,7 +81,7 @@ module.exports = router => {
     } else {
       // If Early Advice + RASSO => task owner flow
       if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
-        res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/user-type`)
+        res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/task-owner`)
       }
       // If Early Advice + NOT RASSO => prosecutor flow
       else if (data.reviewTaskType === "Early advice") {
@@ -107,9 +107,22 @@ module.exports = router => {
       }
     })
 
-    const area = getAreaForUnit(task.case.unit.name)
+    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
-    res.render("cases/tasks/check-new-pcd-case/area", { task, area })
+    // Fetch all areas from database
+    const areas = await getAllAreas(prisma)
+
+    // Get current area for the case's unit
+    const currentAreaName = await getAreaForUnit(prisma, task.case.unitId)
+
+    // Format areas for select component
+    const areaItems = areas.map(area => ({
+      value: area.name,
+      text: area.name,
+      selected: area.name === data.area
+    }))
+
+    res.render("cases/tasks/check-new-pcd-case/area", { task, areaItems, area: currentAreaName })
   })
 
   router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/area", (req, res) => {
@@ -138,26 +151,16 @@ module.exports = router => {
       areaToFilterBy = data.area
     } else {
       // User didn't change the area - use the current case's unit's area
-      areaToFilterBy = getAreaForUnit(task.case.unit.name)
+      areaToFilterBy = await getAreaForUnit(prisma, task.case.unitId)
     }
 
-    // Get all units and filter by area
-    let units = await prisma.unit.findMany({
-      orderBy: { name: 'asc' }
-    })
+    // Get units filtered by area
+    const units = await getUnitsForArea(prisma, areaToFilterBy)
 
-    units = filterUnitsByArea(units, areaToFilterBy)
-
-    const unitItems = [
-      {
-        value: "",
-        text: "Select unit"
-      },
-      ...units.map(unit => ({
-        value: unit.id,
-        text: unit.name
-      }))
-    ]
+    const unitItems = units.map(unit => ({
+      value: unit.id,
+      text: unit.name
+    }))
 
     res.render("cases/tasks/check-new-pcd-case/unit", { task, unitItems })
   })
@@ -167,9 +170,9 @@ module.exports = router => {
     const taskId = req.params.taskId
     const data = _.get(req, 'session.data.completeCheckNewPcdCase')
 
-    // Accept + Early advice + RASSO => user type
+    // Accept + Early advice + RASSO => task owner
     if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/user-type`)
+      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/task-owner`)
     }
     // Accept + Early advice + NOT RASSO => prosecutor
     else if (data.reviewTaskType === "Early advice") {
@@ -208,26 +211,6 @@ module.exports = router => {
     }
   })
 
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type", async (req, res) => {
-    const task = await prisma.task.findUnique({
-      where: { id: parseInt(req.params.taskId) },
-      include: {
-        case: {
-          include: {
-            defendants: true
-          }
-        }
-      }
-    })
-
-    res.render("cases/tasks/check-new-pcd-case/user-type", { task })
-  })
-
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type", (req, res) => {
-    // Both Individual and Team go to task-owner
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/task-owner`)
-  })
-
   // Task owner (shown for both individual and team in RASSO flow)
   router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/task-owner", async (req, res) => {
     const task = await prisma.task.findUnique({
@@ -248,44 +231,47 @@ module.exports = router => {
       ? parseInt(data.unitId)
       : task.case.unitId
 
-    let ownerItems = []
+    // Fetch users
+    const users = await prisma.user.findMany({
+      where: {
+        units: {
+          some: { unitId: unitId }
+        }
+      },
+      include: {
+        units: {
+          include: { unit: true }
+        }
+      },
+      orderBy: [
+        { firstName: 'asc' },
+        { lastName: 'asc' }
+      ]
+    })
 
-    if (data.assignTo === "Individual") {
-      const users = await prisma.user.findMany({
-        where: {
-          units: {
-            some: { unitId: unitId }
-          }
-        },
-        include: {
-          units: {
-            include: { unit: true }
-          }
-        },
-        orderBy: [
-          { firstName: 'asc' },
-          { lastName: 'asc' }
-        ]
-      })
+    // Fetch teams
+    const teams = await prisma.team.findMany({
+      where: { unitId: unitId },
+      include: {
+        unit: true
+      },
+      orderBy: { name: 'asc' }
+    })
 
-      ownerItems = users.map(user => ({
-        value: `user-${user.id}`,
-        text: `${user.firstName} ${user.lastName} (${user.role})`
-      }))
-    } else {
-      const teams = await prisma.team.findMany({
-        where: { unitId: unitId },
-        include: {
-          unit: true
-        },
-        orderBy: { name: 'asc' }
-      })
+    // Transform users to items (includes role in parentheses)
+    const userItems = users.map(user => ({
+      value: `user-${user.id}`,
+      text: `${user.firstName} ${user.lastName} (${user.role})`
+    }))
 
-      ownerItems = teams.map(team => ({
-        value: `team-${team.id}`,
-        text: `${team.name}`
-      }))
-    }
+    // Transform teams to items
+    const teamItems = teams.map(team => ({
+      value: `team-${team.id}`,
+      text: `${team.name}`
+    }))
+
+    // Combine: individuals first, then teams
+    const ownerItems = [...userItems, ...teamItems]
 
     res.render("cases/tasks/check-new-pcd-case/task-owner", { task, ownerItems })
   })
@@ -518,9 +504,6 @@ module.exports = router => {
       }
       if (data.caseType) {
         activityLogMeta.caseType = data.caseType
-      }
-      if (data.assignTo) {
-        activityLogMeta.assignTo = data.assignTo
       }
       if (data.taskOwner) {
         // Resolve task owner name (user or team)

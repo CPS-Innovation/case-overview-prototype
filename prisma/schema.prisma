@@ -210,9 +210,17 @@ model Specialism {
   usersRestricted User[] @relation("UserRestrictedAreas")
 }
 
+model Area {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  units Unit[]
+}
+
 model Unit {
   id        Int        @id @default(autoincrement())
   name      String
+  areaId    Int?
+  area      Area?      @relation(fields: [areaId], references: [id])
   cases     Case[]
   teams     Team[]
   userUnits UserUnit[]

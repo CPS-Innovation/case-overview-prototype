@@ -18,6 +18,7 @@ const manualTaskNamesLong = require("../app/data/manual-task-names-long.js");
 const documentNames = require("../app/data/document-names.js");
 
 // Seeds
+const { seedAreas } = require("./seed-helpers/areas");
 const { seedUnits } = require("./seed-helpers/units");
 const { seedTeams } = require("./seed-helpers/teams");
 const { seedUsers } = require("./seed-helpers/users");
@@ -40,6 +41,9 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Starting seed...");
+
+  // Seed: Areas
+  await seedAreas(prisma);
 
   // Seed: Units
   await seedUnits(prisma);

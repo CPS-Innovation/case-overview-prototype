@@ -168,18 +168,7 @@
             }
           } if data.transferCase == "Yes",
           {
-            key: { text: "Do you want to assign the ‘Early advice manager triage’ task to an individual or team?" },
-            value: { text: data.assignTo },
-            actions: {
-              items: [{
-                href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/user-type' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
-                text: "Change",
-                visuallyHiddenText: "if you want to assign to an individual or team"
-              }]
-            }
-          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.assignTo,
-          {
-            key: { text: "Who do you want to assign the ’early advice manager triage’ task to?" },
+            key: { text: "Who do you want to assign the 'early advice manager triage' task to?" },
             value: { text: taskOwnerName },
             actions: {
               items: [{

@@ -1,96 +1,47 @@
 /**
- * Maps unit names to their CMS areas based on the area-unit relationships
+ * Gets the area for a unit by unit ID
+ * @param {PrismaClient} prisma - Prisma client instance
+ * @param {number} unitId - Unit ID
+ * @returns {Promise<string|null>} Area name or null if not found
  */
-function getAreaForUnit(unitName) {
-  if (!unitName) return "Unknown"
-
-  // Dorset
-  if (unitName.includes("Dorset Magistrates Court")) {
-    return "Dorset"
-  }
-
-  // Hampshire and Isle of White
-  if (
-    unitName.includes("Hampshire Magistrates Court") ||
-    unitName.includes("Wessex Crown Court") ||
-    unitName.includes("Wessex RASSO") ||
-    unitName.includes("Wessex CCU") ||
-    unitName.includes("Wessex Fraud")
-  ) {
-    return "Hampshire and Isle of White"
-  }
-
-  // Wiltshire
-  if (unitName.includes("Wiltshire Magistrates Court")) {
-    return "Wiltshire"
-  }
-
-  // North Yorkshire
-  if (
-    unitName.includes("North Yorkshire Crown Court") ||
-    unitName.includes("North Yorkshire Magistrates Court")
-  ) {
-    return "North Yorkshire"
-  }
-
-  // South Yorkshire
-  if (
-    unitName.includes("South Yorkshire Crown Court") ||
-    unitName.includes("South Yorkshire Magistrates Court")
-  ) {
-    return "South Yorkshire"
-  }
-
-  // West Yorkshire
-  if (
-    unitName.includes("West Yorkshire Crown Court") ||
-    unitName.includes("West Yorkshire Magistrates Court") ||
-    unitName.includes("Yorkshire and Humberside CCU") ||
-    unitName.includes("Yorkshire and Humberside RASSO")
-  ) {
-    return "West Yorkshire"
-  }
-
-  // Humberside
-  if (
-    unitName.includes("Humberside South Yorkshire RASSO") ||
-    unitName.includes("Humberside Crown Court") ||
-    unitName.includes("Humberside Magistrates Court")
-  ) {
-    return "Humberside"
-  }
-
-  return "Unknown"
+async function getAreaForUnit(prisma, unitId) {
+  const unit = await prisma.unit.findUnique({
+    where: { id: unitId },
+    include: { area: true }
+  });
+  return unit?.area?.name || null;
 }
 
 /**
- * Gets all available CMS areas
+ * Gets all available CMS areas from the database
+ * @param {PrismaClient} prisma - Prisma client instance
+ * @returns {Promise<Area[]>} Array of area objects
  */
-function getAllAreas() {
-  return [
-    "Dorset",
-    "Hampshire and Isle of White",
-    "Wiltshire",
-    "North Yorkshire",
-    "South Yorkshire",
-    "West Yorkshire",
-    "Humberside"
-  ]
+async function getAllAreas(prisma) {
+  return await prisma.area.findMany({
+    orderBy: { name: 'asc' }
+  });
 }
 
 /**
- * Filters units by CMS area
+ * Gets all units for a specific area
+ * @param {PrismaClient} prisma - Prisma client instance
+ * @param {string} areaName - Area name
+ * @returns {Promise<Unit[]>} Array of units in the area
  */
-function filterUnitsByArea(units, area) {
-  if (!area) return units
-
-  return units.filter(unit => {
-    return getAreaForUnit(unit.name) === area
-  })
+async function getUnitsForArea(prisma, areaName) {
+  return await prisma.unit.findMany({
+    where: {
+      area: {
+        name: areaName
+      }
+    },
+    orderBy: { name: 'asc' }
+  });
 }
 
 module.exports = {
   getAreaForUnit,
   getAllAreas,
-  filterUnitsByArea
-}
+  getUnitsForArea
+};
