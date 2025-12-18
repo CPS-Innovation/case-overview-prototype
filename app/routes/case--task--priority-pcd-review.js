@@ -98,7 +98,6 @@ module.exports = router => {
     res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/priority-pcd-review/cpsd`)
   })
 
-  // Step 4: Are you CPSD?
   router.get("/cases/:caseId/tasks/:taskId/priority-pcd-review/cpsd", async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
