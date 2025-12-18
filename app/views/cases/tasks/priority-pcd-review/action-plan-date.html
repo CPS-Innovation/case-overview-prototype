@@ -1,0 +1,59 @@
+{% extends "layouts/main.html" %}
+
+{% set navId = 'cases' %}
+{% set caption %} {{task.case.reference}} - Priority PCD review {% endset %}
+{% set pageName = "Action plan follow-up date" %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: 'Back',
+    href: 'javascript:history.back()'
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <span class="govuk-caption-l">{{caption}}</span>
+      <form method="post">
+        {{ govukDateInput({
+          id: "actionPlanDate",
+          fieldset: {
+            legend: {
+              text: pageName,
+              isPageHeading: true,
+              classes: "govuk-fieldset__legend--l"
+            }
+          },
+          hint: {
+            text: "For example, 31 3 2025. Date the police should get back to us responding to our reason for rejection."
+          },
+          items: [
+            {
+              name: "completePriorityPcdReview[actionPlanDate][day]",
+              label: "Day",
+              value: data.completePriorityPcdReview.actionPlanDate.day,
+              classes: "govuk-input--width-2"
+            },
+            {
+              name: "completePriorityPcdReview[actionPlanDate][month]",
+              label: "Month",
+              value: data.completePriorityPcdReview.actionPlanDate.month,
+              classes: "govuk-input--width-2"
+            },
+            {
+              name: "completePriorityPcdReview[actionPlanDate][year]",
+              label: "Year",
+              value: data.completePriorityPcdReview.actionPlanDate.year,
+              classes: "govuk-input--width-4"
+            }
+          ]
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

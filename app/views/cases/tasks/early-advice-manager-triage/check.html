@@ -105,13 +105,13 @@
             }
           } if data.decision == "Reject",
           {
-            key: { text: "Date you'll be reminded" },
+            key: { text: "Date you’ll be reminded" },
             value: { text: data.reminderDueDate | isoDateFromDateInput | govukDateTime },
             actions: {
               items: [{
                 href: '/cases/:caseId/tasks/:taskId/early-advice-manager-triage/create-reminder-task' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
-                visuallyHiddenText: "Date you'll be reminded"
+                visuallyHiddenText: "Date you’ll be reminded"
               }]
             }
           } if data.decision == "Reject" and data.createReminderTask == "Yes" and data.reminderDueDate and data.reminderDueDate.day and data.reminderDueDate.month and data.reminderDueDate.year

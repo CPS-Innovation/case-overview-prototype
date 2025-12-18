@@ -1,7 +1,8 @@
 {% extends "layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set caption %} {{task.case.reference}} - Check new PCD case {% endset %}
+{% set caption %} {{task.case.reference}} - Priority PCD review {% endset %}
+{% set pageName = "Unit" %}
 
 {% block beforeContent %}
   {{ govukBackLink({
@@ -14,19 +15,29 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <span class="govuk-caption-l">{{caption}}</span>
+      <h1 class="govuk-heading-l">{{pageName}}</h1>
+
+      {% set unitInset %}
+        <h2 class="govuk-heading-s govuk-!-margin-bottom-1">Unit</h2>
+        <p>{{task.case.unit.name}}</p>
+      {% endset %}
+
+      {{ govukInsetText({
+        html: unitInset
+      }) }}
+
       <form method="post">
         {{ xGovukAutocomplete({
-          id: "prosecutorId",
-          name: "completeCheckNewPcdCase[prosecutorId]",
+          id: "unitId",
+          name: "completePriorityPcdReview[unitId]",
           allowEmpty: false,
           showAllValues: true,
           label: {
-            text: "Prosecutor to assign the case to",
-            isPageHeading: true,
-            classes: "govuk-label--l"
+            text: "Unit",
+            classes: "govuk-label--m"
           },
-          value: data.completeCheckNewPcdCase.prosecutorId,
-          items: prosecutorItems
+          items: unitItems,
+          value: data.completePriorityPcdReview.unitId
         }) }}
 
         {{ govukButton({
