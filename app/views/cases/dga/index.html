@@ -10,15 +10,20 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">{{pageName}}</h1>
       
-      <ul class="govuk-list govuk-list--bullet">
+      <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
         <li>
-          <a href="/cases/dga/october2025">October 2025</a>
+          <a href="/cases/dga/october2025">October 2025</a> Sent to police / (10 cases still need update)
+          Freeze date: 11 December 2025 (2 months is after the date of the reporting month)
         </li>
         <li>
-          <a href="#">September 2025</a>
+          <a href="#">September 2025</a> {{ govukTag({
+            text: "Completed"
+          }) }}
         </li>
         <li>
-          <a href="#">August 2025</a>
+          <a href="#">August 2025</a> {{ govukTag({
+            text: "Completed"
+          }) }}
         </li>
       </ul>
 
