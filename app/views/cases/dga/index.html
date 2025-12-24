@@ -18,16 +18,16 @@
             <li>
               <a href="/cases/dga/{{ month.key }}">{{ month.name }}</a>
               {% if month.totalCases > 0 %}
-                ({{ month.totalCases - month.completedCases }} of {{ month.totalCases }} cases still need update)
+                <br>({{ month.totalCases - month.completedCases }} out of {{ month.totalCases }} cases still need to have their outcomes recorded)
               {% endif %}
-              {% if month.completedCases === month.totalCases and month.totalCases > 0 %}
+              <br>Deadline date: {{ month.deadline | isoDateString | govukDateTime }}
+              {# {% if month.completedCases === month.totalCases and month.totalCases > 0 %}
                 {{ govukTag({
                   text: "Completed"
                 }) }}
-              {% endif %}
-              {% if month.deadline %}
-                <br>Freeze date: {{ month.deadline | isoDateString | govukDateTime }}
-              {% endif %}
+              {% endif %} #}
+              
+              
             </li>
           {% endfor %}
         </ul>
