@@ -33,39 +33,31 @@
         <div class="app-list">
           {% for caseItem in cases %}
           <div class="app-list__item">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-              <h2 class="govuk-heading-s govuk-!-margin-bottom-0">
-                {{ caseItem.reference }}
-              </h2>
-              <div style="text-align: right;">
-                {% if caseItem.reportStatus == "Completed" %}
-                  {{ govukTag({
-                    text: "Completed",
-                    classes: "govuk-tag--blue"
-                  }) }}
-                  <p class="govuk-body">
-                    <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">View outcomes</a>
-                  </p>
-                {% elif caseItem.reportStatus == "In progress" %}
-                  {{ govukTag({
-                    text: "In progress",
-                    classes: "govuk-tag--yellow"
-                  }) }}
-                  <p class="govuk-body">
-                    <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">Finish recording outcomes</a>
-                  </p>
-                {% else %}
-                  {{ govukTag({
-                    text: "Not started",
-                    classes: "govuk-tag--red"
-                  }) }}
-                  <p class="govuk-body">
-                    <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">Record outcomes</a>
-                  </p>
-                {% endif %}
-                
+            <h2 class="govuk-heading-s govuk-!-margin-bottom-0">
+              <div>
+                <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state">
+                  {{ caseItem.reference }}
+                </a>
               </div>
+              <div class="app-list__tag">
+                {% if caseItem.reportStatus == "Completed" %}
+                {{ govukTag({
+                  text: "Completed",
+                  classes: "govuk-tag--blue"
+                }) }}
+              {% elif caseItem.reportStatus == "In progress" %}
+                {{ govukTag({
+                  text: "In progress",
+                  classes: "govuk-tag--yellow"
+                }) }}
+              {% else %}
+                {{ govukTag({
+                  text: "Not started",
+                  classes: "govuk-tag--red"
+                }) }}
+              {% endif %}
             </div>
+            </h2>
           </div>
           {% endfor %}
         </div>
