@@ -13,6 +13,9 @@ function calculateDeadline(nonCompliantDate) {
   const deadline = new Date(endOfMonth);
   deadline.setDate(deadline.getDate() + 42);
 
+  // Set time to 11:59pm
+  deadline.setHours(23, 59, 0, 0);
+
   return deadline;
 }
 
@@ -94,7 +97,7 @@ async function seedOctober2025DGAs(prisma) {
     const selectedCases = faker.helpers.arrayElements(casesWithPoliceUnit, Math.min(3, casesWithPoliceUnit.length));
 
     for (const caseItem of selectedCases) {
-      // Set non-compliant date to October 2025
+      // Set non-compliant date to October 2025 at 11:59pm
       const nonCompliantDate = new Date(2025, 9, faker.number.int({ min: 1, max: 31 })); // Month 9 = October
       const reportDeadline = calculateDeadline(nonCompliantDate);
 
