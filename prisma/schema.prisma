@@ -140,15 +140,8 @@ model Case {
   dga               DGA?
   notes             Note[]
   activityLogs      ActivityLog[]
-  reportStatus      String?                  // Can be: "In progress" or "Completed", null means "Not started"
   prosecutors       CaseProsecutor[]
   paralegalOfficers CaseParalegalOfficer[]
-}
-
-enum ReportStatus {
-  NotStarted
-  InProgress
-  Completed
 }
 
 model DGA {

@@ -44,7 +44,7 @@
                     classes: "govuk-tag--blue"
                   }) }}
                   <p class="govuk-body">
-                    <a href="/reports/{{ caseItem.id }}/dga-outcomes" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">View outcomes</a>
+                    <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">View outcomes</a>
                   </p>
                 {% elif caseItem.reportStatus == "In progress" %}
                   {{ govukTag({
@@ -52,7 +52,7 @@
                     classes: "govuk-tag--yellow"
                   }) }}
                   <p class="govuk-body">
-                    <a href="/reports/{{ caseItem.id }}/dga-outcomes" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">Finish recording outcomes</a>
+                    <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">Finish recording outcomes</a>
                   </p>
                 {% else %}
                   {{ govukTag({
@@ -60,7 +60,7 @@
                     classes: "govuk-tag--red"
                   }) }}
                   <p class="govuk-body">
-                    <a href="/reports/{{ caseItem.id }}/dga-outcomes" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">Change outcomes</a>
+                    <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state" style="display: block; margin-top: 8px;">Record outcomes</a>
                   </p>
                 {% endif %}
                 

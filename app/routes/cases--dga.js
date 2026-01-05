@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const { getDgaReportStatus } = require('../helpers/dgaReportStatus')
 
 module.exports = router => {
   router.get('/cases/dga', async (req, res) => {
@@ -257,6 +258,12 @@ module.exports = router => {
       return res.redirect(`/cases/dga/${monthKey}`)
     }
 
+    // Calculate report status for each case
+    const casesWithStatus = casesForPoliceUnit.map(caseItem => ({
+      ...caseItem,
+      reportStatus: getDgaReportStatus(caseItem)
+    }))
+
     // Get police unit name from first case
     const policeUnitName = casesForPoliceUnit[0].policeUnit || 'Not specified'
     const monthName = startDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
@@ -265,7 +272,7 @@ module.exports = router => {
       monthKey,
       monthName,
       policeUnitName,
-      cases: casesForPoliceUnit
+      cases: casesWithStatus
     })
   })
 

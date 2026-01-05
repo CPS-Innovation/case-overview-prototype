@@ -146,21 +146,7 @@ async function seedOctober2025DGAs(prisma) {
         createdFailureReasons.push(failureReason);
       }
 
-      // Update case reportStatus based on failure reason outcomes
-      const totalReasons = createdFailureReasons.length;
-      const completedReasons = createdFailureReasons.filter(fr => fr.outcome !== null).length;
-
-      let reportStatus = null;
-      if (completedReasons === totalReasons && totalReasons > 0) {
-        reportStatus = 'Completed';
-      } else if (completedReasons > 0) {
-        reportStatus = 'In progress';
-      }
-
-      await prisma.case.update({
-        where: { id: caseItem.id },
-        data: { reportStatus }
-      });
+      // Status is now calculated on-demand - no database update needed!
 
       october2025Cases.push(caseItem.id);
     }

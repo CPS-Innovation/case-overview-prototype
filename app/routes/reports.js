@@ -2,6 +2,7 @@ const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const Pagination = require('../helpers/pagination')
+const { getDgaReportStatus } = require('../helpers/dgaReportStatus')
 
 const reportStatuses = ['Not started', 'In progress', 'Completed']
 
@@ -75,19 +76,6 @@ module.exports = router => {
       where.AND.push({ unitId: { in: userUnitIds } })
     }
 
-    // Status filter - this filters based on reportStatus field
-    // Only apply if there are selected statuses
-    if (selectedStatusFilters?.length > 0) {
-      const statusConditions = selectedStatusFilters.map(status => {
-        if (status === 'Not started') {
-          return { reportStatus: null }
-        }
-        return { reportStatus: status }
-      })
-      
-      where.AND.push({ OR: statusConditions })
-    }
-
     let reports = await prisma.case.findMany({
       where: where,
       include: {
@@ -104,6 +92,25 @@ module.exports = router => {
         }
       }
     })
+
+    // Calculate report status for each case
+    reports = reports.map(caseItem => ({
+      ...caseItem,
+      reportStatus: getDgaReportStatus(caseItem)
+    }))
+
+    // Apply status filter in JavaScript if selected
+    if (selectedStatusFilters?.length > 0) {
+      reports = reports.filter(report => {
+        const status = report.reportStatus
+        // Handle 'Not started' which is represented as null
+        if (selectedStatusFilters.includes('Not started')) {
+          if (status === null) return true
+        }
+        // Handle other statuses
+        return status && selectedStatusFilters.includes(status)
+      })
+    }
 
     // Handle search by URN (reference number)
     let keywords = _.get(req.session.data.reportSearch, 'keywords')
@@ -208,18 +215,6 @@ module.exports = router => {
       where.AND.push({ unitId: { in: userUnitIds } })
     }
 
-    // Status filter
-    if (selectedStatusFilters?.length > 0) {
-      const statusConditions = selectedStatusFilters.map(status => {
-        if (status === 'Not started') {
-          return { reportStatus: null }
-        }
-        return { reportStatus: status }
-      })
-      
-      where.AND.push({ OR: statusConditions })
-    }
-
     let cases = await prisma.case.findMany({
       where: where,
       include: {
@@ -231,6 +226,25 @@ module.exports = router => {
         }
       }
     })
+
+    // Calculate report status for each case
+    cases = cases.map(caseItem => ({
+      ...caseItem,
+      reportStatus: getDgaReportStatus(caseItem)
+    }))
+
+    // Apply status filter in JavaScript if selected
+    if (selectedStatusFilters?.length > 0) {
+      cases = cases.filter(caseItem => {
+        const status = caseItem.reportStatus
+        // Handle 'Not started' which is represented as null
+        if (selectedStatusFilters.includes('Not started')) {
+          if (status === null) return true
+        }
+        // Handle other statuses
+        return status && selectedStatusFilters.includes(status)
+      })
+    }
 
     // Create workbook and worksheet
     const workbook = new ExcelJS.Workbook()
