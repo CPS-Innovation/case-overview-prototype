@@ -31,14 +31,14 @@
 
       {% for policeUnit in policeUnits %}
         <div class="app-dga-police-unit govuk-!-margin-top-7">
-          <h3 class="govuk-heading-s">
+          <h2 class="govuk-heading-m">
             {{ policeUnit.name }}
-            {% if policeUnit.completedCases === policeUnit.totalCases and policeUnit.hasSentToPolice %}
+            {% if policeUnit.completedCases === policeUnit.totalCases %}
               {{ govukTag({
                 text: "Completed",
                 classes: 'govuk-tag--green'
               }) }}
-            {% elif policeUnit.hasAnyProgress and policeUnit.hasSentToPolice %}
+            {% elif policeUnit.hasAnyProgress %}
               {{ govukTag({
                 text: "In progress",
                 classes: 'govuk-tag--yellow'
@@ -48,10 +48,10 @@
                 text: "Not started"
               }) }}
             {% endif %}
-          </h3>
+          </h2>
 
           {% if policeUnit.hasSentToPolice %}
-            <p>Last exported on {{ policeUnit.sentDate | isoDateString | govukDate }}.</p>
+            {# <p>Last exported on {{ policeUnit.sentDate | isoDateString | govukDate }}.</p> #}
           {% endif %}
 
           <div class="govuk-button-group">
