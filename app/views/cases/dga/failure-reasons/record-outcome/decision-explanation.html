@@ -6,7 +6,7 @@
 {% block beforeContent %}
   {{ govukBackLink({
     text: "Back",
-    href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/select"
+    href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/outcome"
   }) }}
 {% endblock %}
 
@@ -29,8 +29,8 @@
         text: "Explanation for this decision",
         classes: "govuk-label--m"
       },
-      name: "details",
-      id: "details",
+      name: "recordOutcome[explanation]",
+      id: "recordOutcome-explanation",
       maxlength: 200,
       value: details
     }) }}

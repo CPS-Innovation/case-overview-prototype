@@ -6,7 +6,7 @@
 {% block beforeContent %}
   {{ govukBackLink({
     text: "Back",
-    href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/select"
+    href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/outcome"
   }) }}
 {% endblock %}
 
@@ -48,7 +48,7 @@
       actions: {
         items: [
           {
-            href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/select",
+            href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/outcome",
             text: "Change",
             visuallyHiddenText: "outcome"
           }
@@ -64,7 +64,7 @@
       actions: {
         items: [
           {
-            href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/add-details",
+            href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/decision-explanation",
             text: "Change",
             visuallyHiddenText: "details"
           }
@@ -78,7 +78,7 @@
       actions: {
         items: [
           {
-            href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/select-methods",
+            href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/decision-method",
             text: "Change",
             visuallyHiddenText: "methods"
           }

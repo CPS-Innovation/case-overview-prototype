@@ -6,7 +6,7 @@
 {% block beforeContent %}
   {{ govukBackLink({
     text: "Back",
-    href: "/cases/dga/" + monthKey + "/" + policeUnitSlug + "/" + case.id
+    href: "/cases/dga/" + case.id + "/failure-reasons/" + failureReason.id + "/record-outcome/decision-explanation"
   }) }}
 {% endblock %}
 
@@ -15,37 +15,40 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
   <span class="govuk-caption-l">{{ case.reference }}</span>
-  <h1 class="govuk-heading-l">Decide outcome</h1>
+  <h1 class="govuk-heading-l">Tell us how the decision was made</h1>
 
   <div class="govuk-inset-text">
     <h3 class="govuk-heading-s">Failure reason</h3>
-{{ failureReason.reason }}
-</div>
+        {{ failureReason.reason }}
+  </div>
 
   <form method="post">
-    {{ govukRadios({
-      name: "outcome",
+    {{ govukCheckboxes({
+      name: "recordOutcome[methods]",
       fieldset: {
         legend: {
-          text: "Outcome",
+          text: "How was the decision made?",
           classes: "govuk-fieldset__legend--m"
         }
       },
+      hint: {
+        text: "Select all that apply"
+      },
       items: [
         {
-          value: "Disputed successfully",
-          text: "Disputed successfully",
-          checked: selectedOutcome == "Disputed successfully"
+          value: "Email",
+          text: "Email",
+          checked: selectedMethods and "Email" in selectedMethods
         },
         {
-          value: "Disputed unsuccessfully",
-          text: "Disputed unsuccessfully",
-          checked: selectedOutcome == "Disputed unsuccessfully"
+          value: "Meeting",
+          text: "Meeting",
+          checked: selectedMethods and "Meeting" in selectedMethods
         },
         {
-          value: "Not disputed",
-          text: "Not disputed",
-          checked: selectedOutcome == "Not disputed"
+          value: "Phone call",
+          text: "Phone call",
+          checked: selectedMethods and "Phone call" in selectedMethods
         }
       ]
     }) }}
@@ -54,8 +57,7 @@
       text: "Continue"
     }) }}
   </form>
-
   </div>
-  </div>
-  </div>
+    </div>
+    </div>
 {% endblock %}
