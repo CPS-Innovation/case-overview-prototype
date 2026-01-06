@@ -32,59 +32,91 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">{{ case.reference }}</span>
-        <h1 class="govuk-heading-l">Outcomes</h1>
-        <div class="app-list">
-          {% for reason in case.dga.failureReasons %}
-            <div class="app-list__item">
-              <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
-                <div>{{ reason.reason }}</div>
-                <div class="app-list__tag">
-                  {% if reason.outcome %}
-                    {{ govukTag({
-                      text: "Completed",
-                      classes: "govuk-tag--green"
-                    }) }}
-                  {% endif %}
-                </div>
-              </h2>
+        <h1 class="govuk-heading-l">
+          Outcomes
+          {% if reportStatus == "Completed" %}
+            {{ govukTag({
+              text: "Completed",
+              classes: "govuk-tag--green"
+            }) }}
+          {% elif reportStatus == "In progress" %}
+            {{ govukTag({
+              text: "In progress",
+              classes: "govuk-tag--yellow"
+            }) }}
+          {% else %}
+            {{ govukTag({
+              text: "Not started"
+            }) }}
+          {% endif %}
+        </h1>
 
-              {% set outcomeActions = [
-                {
-                  href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/select" | replace(':caseId', case.id) | replace(':reasonId', reason.id),
-                  text: "Record",
-                  visuallyHiddenText: "Outcome"
-                }
-              ] %}
-              {% if reason.outcome %}
-                {% set outcomeActions = [
-                {
-                  href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/select" | replace(':caseId', case.id) | replace(':reasonId', reason.id),
-                  text: "Change",
-                  visuallyHiddenText: "Outcome"
-                }
-              ] %}
-              {% endif %}
+        <p class="govuk-body">{{ outcomesCompleted }} of {{ outcomesTotal }} outcome{{ "s" if outcomesTotal != 1 }} recorded.</p>
 
+        {% for reason in case.dga.failureReasons %}
+      
+            <h2 class="govuk-heading-m govuk-!-margin-top-7">
+              {{ reason.reason }}
+            </h2>
 
+            {% if not reason.outcome %}
+              {{ govukButton({
+                text: "Record outcome",
+                href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/select" | replace(':caseId', case.id) | replace(':reasonId', reason.id)
+              }) }}
+            {% else %}
               {{ govukSummaryList({
-                classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
                 rows: [
                   {
                     key: {
                       text: "Outcome"
                     },
                     value: {
-                      text: reason.outcome if reason.outcome else 'Not provided'
+                      text: reason.outcome
                     },
                     actions: {
-                      items: outcomeActions
+                      items: [
+                        {
+                          href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/select" | replace(':caseId', case.id) | replace(':reasonId', reason.id),
+                          text: "Change",
+                          visuallyHiddenText: "outcome"
+                        }
+                      ]
                     }
-                  }
+                  },
+
+                  {
+                    key: { text: "Explanation for this decision" },
+                    value: { text: reason.details if reason.details else "-" },
+                    actions: {
+                      items: [
+                        {
+                          href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/add-details" | replace(':caseId', case.id) | replace(':reasonId', reason.id),
+                          text: "Change",
+                          visuallyHiddenText: "explanation"
+                        }
+                      ]
+                    }
+                  } if reason.outcome != "Not disputed",
+
+                  {
+                    key: { text: "How was the decision made?" },
+                    value: { text: reason.methods if reason.methods else "-" },
+                    actions: {
+                      items: [
+                        {
+                          href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/select-methods" | replace(':caseId', case.id) | replace(':reasonId', reason.id),
+                          text: "Change",
+                          visuallyHiddenText: "methods"
+                        }
+                      ]
+                    }
+                  } if reason.outcome != "Not disputed"
                 ]
               }) }}
-            </div>
-          {% endfor %}
-        </div>
+            {% endif %}
+          
+        {% endfor %}
       </div>
     </div>
   </div>

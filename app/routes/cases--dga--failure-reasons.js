@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const { getDgaReportStatus } = require('../helpers/dgaReportStatus')
 
 // Helper: Slugify text for URLs
 function slugify(text) {
@@ -47,12 +48,22 @@ module.exports = router => {
     // Get police unit name from case
     const policeUnitName = caseData.policeUnit || 'Not specified'
 
+    // Calculate report status
+    const reportStatus = getDgaReportStatus(caseData)
+
+    // Calculate outcomes progress
+    const outcomesTotal = caseData.dga.failureReasons.length
+    const outcomesCompleted = caseData.dga.failureReasons.filter(fr => fr.outcome !== null).length
+
     res.render('cases/dga/failure-reasons/index', {
       case: caseData,
       monthKey,
       monthName,
       policeUnitName,
-      policeUnitSlug
+      policeUnitSlug,
+      reportStatus,
+      outcomesTotal,
+      outcomesCompleted
     })
   })
 
