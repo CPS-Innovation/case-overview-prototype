@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'DGA' %}
+{% set pageName = 'Director General Assessment (DGA)' %}
 
 {% block content %}
   {% include "_includes/success-banner.njk" %}
@@ -18,16 +18,9 @@
             <li>
               <a href="/cases/dga/{{ month.key }}">{{ month.name }}</a>
               {% if month.totalCases > 0 %}
-                <br>({{ month.totalCases - month.completedCases }} out of {{ month.totalCases }} cases still need to have their outcomes recorded)
+                <br>{{ month.totalCases - month.completedCases }} out of {{ month.totalCases }} cases still need to have their outcomes recorded
               {% endif %}
               <br>Deadline date: {{ month.deadline | isoDateString | govukDateTime }}
-              {# {% if month.completedCases === month.totalCases and month.totalCases > 0 %}
-                {{ govukTag({
-                  text: "Completed"
-                }) }}
-              {% endif %} #}
-              
-              
             </li>
           {% endfor %}
         </ul>

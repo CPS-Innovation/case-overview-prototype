@@ -1,13 +1,13 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'DGA cases' %}
+{% set pageName = monthName %}
 
 {% block beforeContent %}
   {{ govukBreadcrumbs({
     items: [
       {
-        text: "DGA",
+        text: "Director General Assessment (DGA)",
         href: "/cases/dga"
       },
       {
@@ -22,7 +22,7 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <span class="govuk-caption-l">{{ monthName }}</span>
+      {# <span class="govuk-caption-l">Director General Assessment (DGA)</span> #}
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
       
@@ -35,7 +35,8 @@
             {{ policeUnit.name }}
             {% if policeUnit.completedCases === policeUnit.totalCases and policeUnit.hasSentToPolice %}
               {{ govukTag({
-                text: "Completed"
+                text: "Completed",
+                classes: 'govuk-tag--green'
               }) }}
             {% elif policeUnit.hasAnyProgress and policeUnit.hasSentToPolice %}
               {{ govukTag({
@@ -44,26 +45,25 @@
               }) }}
             {% else %}
               {{ govukTag({
-                text: "Not started",
-                classes: 'govuk-tag--red'
+                text: "Not started"
               }) }}
             {% endif %}
           </h3>
 
           {% if policeUnit.hasSentToPolice %}
-            <p>Sent to police on {{ policeUnit.sentDate | isoDateString | govukDate }}.</p>
+            <p>Last exported on {{ policeUnit.sentDate | isoDateString | govukDate }}.</p>
           {% endif %}
 
           <div class="govuk-button-group">
             {% if not policeUnit.hasSentToPolice %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export (CSV)</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/mark-as-sent" class="govuk-link govuk-link--no-visited-state">Mark as sent to police</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
             {% elif policeUnit.completedCases < policeUnit.totalCases %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export (CSV)</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">View non-compliant DGA cases</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
             {% else %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export (CSV)</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">View non-compliant DGA cases</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
             {% endif %}
           </div>
         </div>

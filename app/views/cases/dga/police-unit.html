@@ -1,13 +1,13 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'DGA cases' %}
+{% set pageName = 'Non-compliant DGA cases' %}
 
 {% block beforeContent %}
   {{ govukBreadcrumbs({
     items: [
       {
-        text: "DGA",
+        text: "Director General Assessment (DGA)",
         href: "/cases/dga"
       },
       {
@@ -15,7 +15,7 @@
         href: "/cases/dga/" + monthKey
       },
       {
-        text: policeUnitName
+        text: pageName
       }
     ]
   }) }}
@@ -26,7 +26,7 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <span class="govuk-caption-l">{{ policeUnitName }} - {{ monthName }}</span>
+      <span class="govuk-caption-l">{{ policeUnitName }}</span>
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
       {% if cases.length %}
@@ -43,7 +43,7 @@
                 {% if caseItem.reportStatus == "Completed" %}
                 {{ govukTag({
                   text: "Completed",
-                  classes: "govuk-tag--blue"
+                  classes: "govuk-tag--green"
                 }) }}
               {% elif caseItem.reportStatus == "In progress" %}
                 {{ govukTag({
@@ -52,8 +52,7 @@
                 }) }}
               {% else %}
                 {{ govukTag({
-                  text: "Not started",
-                  classes: "govuk-tag--red"
+                  text: "Not started"
                 }) }}
               {% endif %}
             </div>

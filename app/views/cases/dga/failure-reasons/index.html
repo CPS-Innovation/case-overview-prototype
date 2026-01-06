@@ -7,7 +7,7 @@
   {{ govukBreadcrumbs({
     items: [
       {
-        text: "DGA",
+        text: "Director General Assessment (DGA)",
         href: "/cases/dga"
       },
       {
@@ -19,7 +19,7 @@
         href: "/cases/dga/" + monthKey + "/" + policeUnitSlug
       },
       {
-        text: case.reference
+        text: 'Outcomes'
       }
     ]
   }) }}
@@ -31,52 +31,60 @@
   <div class="govuk-width-container">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
-
         <span class="govuk-caption-l">{{ case.reference }}</span>
-        <h1 class="govuk-heading-l">Failure reasons and recorded outcomes</h1>
-
-        {% if case.dga.failureReasons.length %}
-          <div class="app-list">
-            {% for reason in case.dga.failureReasons %}
-              <div class="app-list__item">
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                  <div style="flex: 1; min-width: 0;">
-                    <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
-                      {{ reason.reason }}
-                    </h2>
-                    {% if reason.outcome %}
-                      <p class="govuk-body-s govuk-!-margin-bottom-0" style="color: #505a5f;">
-                        {{ reason.outcome }}
-                      </p>
-                    {% endif %}
-                  </div>
-                  <div style="text-align: right; white-space: nowrap; margin-left: 16px;">
-                    {% if reason.outcome %}
-                      {{ govukTag({
-                        text: "Completed",
-                        classes: "govuk-tag--grey"
-                      }) }}
-                    {% else %}
-                      {{ govukTag({
-                        text: "Not started",
-                        classes: "govuk-tag--red"
-                      }) }}
-                    {% endif %}
-                    <p class="govuk-body" style="margin-top: 8px; margin-bottom: 0;">
-                      {% if reason.outcome %}
-                        <a href="/cases/dga/{{ case.id }}/failure-reasons/{{ reason.id }}/record-outcome/select" class="govuk-link--no-visited-state">Change outcome</a>
-                      {% else %}
-                        <a href="/cases/dga/{{ case.id }}/failure-reasons/{{ reason.id }}/record-outcome/select" class="govuk-link--no-visited-state">Record outcome</a>
-                      {% endif %}
-                    </p>
-                  </div>
+        <h1 class="govuk-heading-l">Outcomes</h1>
+        <div class="app-list">
+          {% for reason in case.dga.failureReasons %}
+            <div class="app-list__item">
+              <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
+                <div>{{ reason.reason }}</div>
+                <div class="app-list__tag">
+                  {% if reason.outcome %}
+                    {{ govukTag({
+                      text: "Completed",
+                      classes: "govuk-tag--green"
+                    }) }}
+                  {% endif %}
                 </div>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="govuk-body">No failure reasons found for this case.</p>
-        {% endif %}
+              </h2>
+
+              {% set outcomeActions = [
+                {
+                  href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/select" | replace(':caseId', case.id) | replace(':reasonId', reason.id),
+                  text: "Record",
+                  visuallyHiddenText: "Outcome"
+                }
+              ] %}
+              {% if reason.outcome %}
+                {% set outcomeActions = [
+                {
+                  href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/select" | replace(':caseId', case.id) | replace(':reasonId', reason.id),
+                  text: "Change",
+                  visuallyHiddenText: "Outcome"
+                }
+              ] %}
+              {% endif %}
+
+
+              {{ govukSummaryList({
+                classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
+                rows: [
+                  {
+                    key: {
+                      text: "Outcome"
+                    },
+                    value: {
+                      text: reason.outcome if reason.outcome else 'Not provided'
+                    },
+                    actions: {
+                      items: outcomeActions
+                    }
+                  }
+                ]
+              }) }}
+            </div>
+          {% endfor %}
+        </div>
       </div>
     </div>
   </div>
