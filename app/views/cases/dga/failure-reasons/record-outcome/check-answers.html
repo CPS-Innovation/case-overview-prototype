@@ -59,7 +59,7 @@
 
   {% if outcome != "Not disputed" %}
     {% set summaryRows = (summaryRows.push({
-      key: { text: "Details" },
+      key: { text: "Explanation for this decision" },
       value: { text: detailsText },
       actions: {
         items: [
@@ -73,7 +73,7 @@
     }), summaryRows) %}
 
     {% set summaryRows = (summaryRows.push({
-      key: { text: "Methods" },
+      key: { text: "How was the decision made?" },
       value: { text: methodsText },
       actions: {
         items: [

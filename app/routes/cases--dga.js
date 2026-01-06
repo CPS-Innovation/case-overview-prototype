@@ -259,10 +259,17 @@ module.exports = router => {
     }
 
     // Calculate report status for each case
-    const casesWithStatus = casesForPoliceUnit.map(caseItem => ({
-      ...caseItem,
-      reportStatus: getDgaReportStatus(caseItem)
-    }))
+    const casesWithStatus = casesForPoliceUnit.map(caseItem => {
+      const outcomesTotal = caseItem.dga.failureReasons.length
+      const outcomesCompleted = caseItem.dga.failureReasons.filter(fr => fr.outcome !== null).length
+
+      return {
+        ...caseItem,
+        reportStatus: getDgaReportStatus(caseItem),
+        outcomesTotal,
+        outcomesCompleted
+      }
+    })
 
     // Get police unit name from first case
     const policeUnitName = casesForPoliceUnit[0].policeUnit || 'Not specified'

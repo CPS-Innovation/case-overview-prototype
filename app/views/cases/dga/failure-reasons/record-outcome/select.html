@@ -15,7 +15,7 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
   <span class="govuk-caption-l">{{ case.reference }}</span>
-  <h1 class="govuk-heading-l">What is the outcome?</h1>
+  <h1 class="govuk-heading-l">Decide outcome</h1>
 
   <div class="govuk-inset-text">
     <h3 class="govuk-heading-s">Failure reason</h3>
@@ -24,7 +24,13 @@
 
   <form method="post">
     {{ govukRadios({
-    name: "outcome",
+      name: "outcome",
+      fieldset: {
+        legend: {
+          text: "Outcome",
+          classes: "govuk-fieldset__legend--m"
+        }
+      },
       items: [
         {
           value: "Disputed successfully",

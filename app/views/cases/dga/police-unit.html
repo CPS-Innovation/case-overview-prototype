@@ -29,40 +29,37 @@
       <span class="govuk-caption-l">{{ policeUnitName }}</span>
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      {% if cases.length %}
-        <div class="app-list">
-          {% for caseItem in cases %}
-          <div class="app-list__item">
-            <h2 class="govuk-heading-s govuk-!-margin-bottom-0">
-              <div>
-                <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state">
-                  {{ caseItem.reference }}
-                </a>
-              </div>
-              <div class="app-list__tag">
-                {% if caseItem.reportStatus == "Completed" %}
-                {{ govukTag({
-                  text: "Completed",
-                  classes: "govuk-tag--green"
-                }) }}
-              {% elif caseItem.reportStatus == "In progress" %}
-                {{ govukTag({
-                  text: "In progress",
-                  classes: "govuk-tag--yellow"
-                }) }}
-              {% else %}
-                {{ govukTag({
-                  text: "Not started"
-                }) }}
-              {% endif %}
+      <div class="app-list">
+        {% for caseItem in cases %}
+        <div class="app-list__item">
+          <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
+            <div>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnitName | slugify }}/{{ caseItem.id }}" class="govuk-link--no-visited-state">
+                {{ caseItem.reference }}
+              </a>
             </div>
-            </h2>
+            <div class="app-list__tag">
+              {% if caseItem.reportStatus == "Completed" %}
+              {{ govukTag({
+                text: "Completed",
+                classes: "govuk-tag--green"
+              }) }}
+            {% elif caseItem.reportStatus == "In progress" %}
+              {{ govukTag({
+                text: "In progress",
+                classes: "govuk-tag--yellow"
+              }) }}
+            {% else %}
+              {{ govukTag({
+                text: "Not started"
+              }) }}
+            {% endif %}
           </div>
-          {% endfor %}
+          </h2>
+          <p class="govuk-body">{{ caseItem.outcomesCompleted }} of {{ caseItem.outcomesTotal }} outcome{{ "s" if caseItem.outcomesTotal != 1 }} recorded</p>
         </div>
-      {% else %}
-        <p>There are no cases for this police unit.</p>
-      {% endif %}
+        {% endfor %}
+      </div>
 
     </div>
   </div>

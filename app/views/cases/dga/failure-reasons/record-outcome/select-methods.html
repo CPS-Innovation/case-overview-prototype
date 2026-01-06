@@ -15,7 +15,7 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
   <span class="govuk-caption-l">{{ case.reference }}</span>
-  <h1 class="govuk-heading-l">How was this decision made?</h1>
+  <h1 class="govuk-heading-l">Tell us how the decision was made</h1>
 
   <div class="govuk-inset-text">
     <h3 class="govuk-heading-s">Failure reason</h3>
@@ -26,6 +26,10 @@
     {{ govukCheckboxes({
       name: "methods",
       fieldset: {
+        legend: {
+          text: "How was the decision made?",
+          classes: "govuk-fieldset__legend--m"
+        }
       },
       hint: {
         text: "Select all that apply"

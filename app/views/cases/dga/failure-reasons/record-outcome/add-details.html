@@ -19,12 +19,16 @@
 
 
   <div class="govuk-inset-text">
-    <h3 class="govuk-heading-s">Failure reason</h3>
+    <h2 class="govuk-heading-s">Failure reason</h2>
         {{ failureReason.reason }}
   </div>
 
   <form method="post">
     {{ govukCharacterCount({
+      label: {
+        text: "Explanation for this decision",
+        classes: "govuk-label--m"
+      },
       name: "details",
       id: "details",
       maxlength: 200,
