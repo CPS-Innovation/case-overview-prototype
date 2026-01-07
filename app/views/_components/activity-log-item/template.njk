@@ -37,6 +37,51 @@
       </p>
     {% endif %}
 
+    {% if params.event.title == 'Non-compliant DGA outcome recorded' %}
+      {% set methodsHtml %}
+        {% if params.event.meta['How did you communicate with the police about this decision?'] %}
+          <ul class="govuk-list govuk-list--bullet">
+            {% for method in params.event.meta['How did you communicate with the police about this decision?'] %}
+              <li>{{ method }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endset %}
+      <div class="app-activity-log__box">
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Failure reason" },
+              value: { text: params.event.meta['Failure reason'] }
+            },
+            {
+              key: { text: "Police unit" },
+              value: { text: params.event.meta['Police unit'] }
+            },
+            {
+              key: { text: "Month" },
+              value: { text: params.event.meta['Month'] }
+            },
+            {
+              key: { text: "Outcome" },
+              value: { text: params.event.meta['Outcome'] }
+            },
+            {
+              key: { text: "Explanation for this decision" },
+              value: { text: params.event.meta['Explanation for this decision'] }
+            } if params.event.meta['Outcome'] != 'Not disputed' and params.event.meta['Explanation for this decision'],
+            {
+              key: { text: "How did you communicate with the police about this decision?" },
+              value: { html: methodsHtml }
+            } if params.event.meta['Outcome'] != 'Not disputed' and params.event.meta['How did you communicate with the police about this decision?']
+          ]
+        }) }}
+      </div>
+      <p class="app-log-card__note--link">
+        <a class="govuk-link" href="/cases/dga/{{ params.event.meta.monthKey }}/{{ params.event.meta.policeUnitId }}/{{ params.event.case.id }}">View failure reasons</a>
+      </p>
+    {% endif %}
+
     {% if params.event.title == 'Prosecutor assigned' %}
       <div class="app-activity-log__box">
         {{ govukSummaryList({

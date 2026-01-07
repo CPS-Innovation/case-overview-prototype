@@ -251,6 +251,7 @@ module.exports = router => {
     const caseData = await prisma.case.findUnique({
       where: { id: caseId },
       include: {
+        policeUnit: true,
         dga: {
           include: {
             failureReasons: true
@@ -269,13 +270,54 @@ module.exports = router => {
       }
     })
 
-    // Clear session data for this failure reason
-    delete req.session.data.recordOutcome
+    // Get the failure reason for activity log
+    const failureReason = caseData.dga.failureReasons.find(fr => fr.id === failureReasonId)
 
-    // Calculate redirect URL back to failure reasons list
+    // Calculate month name for activity log
     const monthKey = caseData.dga?.nonCompliantDate
       ? `${caseData.dga.nonCompliantDate.getFullYear()}-${String(caseData.dga.nonCompliantDate.getMonth() + 1).padStart(2, '0')}`
       : null
+    const [year, month] = monthKey.split('-').map(Number)
+    const date = new Date(year, month - 1, 1)
+    const monthName = date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+
+    // Build meta object for activity log
+    const meta = {
+      'Failure reason': failureReason.reason,
+      'Police unit': caseData.policeUnit?.name || 'Not specified',
+      'Month': monthName,
+      'Outcome': outcome,
+      monthKey: monthKey,
+      policeUnitId: caseData.policeUnitId
+    }
+
+    // Add explanation and methods only if outcome is not "Not disputed"
+    if (outcome !== 'Not disputed') {
+      if (details) {
+        meta['Explanation for this decision'] = details
+      }
+      if (methods && methods.length > 0) {
+        meta['How did you communicate with the police about this decision?'] = methods
+      }
+    }
+
+    // Create activity log entry
+    await prisma.activityLog.create({
+      data: {
+        userId: req.session.data.user.id,
+        model: 'DGAFailureReason',
+        recordId: failureReasonId,
+        action: 'UPDATE',
+        title: 'Non-compliant DGA outcome recorded',
+        caseId: caseId,
+        meta: meta
+      }
+    })
+
+    // Clear session data for this failure reason
+    delete req.session.data.recordOutcome
+
+    // Get policeUnitId for redirect URL
     const policeUnitId = caseData.policeUnitId
 
     // Set flash message

@@ -54,7 +54,7 @@
         <p class="govuk-body">{{ outcomesCompleted }} of {{ outcomesTotal }} outcome{{ "s" if outcomesTotal != 1 }} recorded.</p>
 
         {% for reason in case.dga.failureReasons %}
-      
+
             <h2 class="govuk-heading-m govuk-!-margin-top-7">
               {{ reason.reason }}
             </h2>
@@ -65,6 +65,18 @@
                 href: "/cases/dga/:caseId/failure-reasons/:reasonId/record-outcome/outcome" | replace(':caseId', case.id) | replace(':reasonId', reason.id)
               }) }}
             {% else %}
+              {% set methodsHtml %}
+                {% if reason.methods %}
+                  <ul class="govuk-list govuk-list--bullet">
+                    {% for method in reason.methods.split(', ') %}
+                      <li>{{ method }}</li>
+                    {% endfor %}
+                  </ul>
+                {% else %}
+                  -
+                {% endif %}
+              {% endset %}
+
               {{ govukSummaryList({
                 rows: [
                   {
@@ -101,7 +113,7 @@
 
                   {
                     key: { text: "How did you communicate with the police about this decision?" },
-                    value: { text: reason.methods if reason.methods else "-" },
+                    value: { html: methodsHtml },
                     actions: {
                       items: [
                         {

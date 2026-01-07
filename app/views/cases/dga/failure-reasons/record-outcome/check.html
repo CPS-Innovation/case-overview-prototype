@@ -25,9 +25,13 @@
 
   <h2 class="govuk-heading-m"></h2>
 
-  {% set methodsText %}
+  {% set methodsHtml %}
     {% if methods and methods.length > 0 %}
-      {{ methods.join(', ') }}
+      <ul class="govuk-list govuk-list--bullet">
+        {% for method in methods %}
+          <li>{{ method }}</li>
+        {% endfor %}
+      </ul>
     {% else %}
       -
     {% endif %}
@@ -74,7 +78,7 @@
 
     {% set summaryRows = (summaryRows.push({
       key: { text: "How did you communicate with the police about this decision?" },
-      value: { text: methodsText },
+      value: { html: methodsHtml },
       actions: {
         items: [
           {
