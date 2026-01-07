@@ -13,17 +13,18 @@
       {% if months.length === 0 %}
         <p class="govuk-body">No DGA cases found.</p>
       {% else %}
-        <ul class="govuk-list govuk-list--bullet govuk-list--spaced">
+        <div class="app-list">        
           {% for month in months %}
-            <li>
-              <a href="/cases/dga/{{ month.key }}">{{ month.name }}</a>
+            <div class="app-list__item">
+              <h2 class="govuk-heading-m govuk-!-margin-bottom-1"><a href="/cases/dga/{{ month.key }}">{{ month.name }}</a></h2>
+            
               {% if month.totalCases > 0 %}
-                <br>{{ month.totalCases - month.completedCases }} out of {{ month.totalCases }} cases still need to have their outcomes recorded
+                <p class="govuk-body govuk-!-margin-bottom-1">{{ month.totalCases - month.completedCases }} out of {{ month.totalCases }} cases have recorded outcomes.</p>
               {% endif %}
-              <br>Deadline date: {{ month.deadline | isoDateString | govukDateTime }}
-            </li>
+              <p class="govuk-body govuk-!-margin-bottom-0">Record outcomes by {{ month.deadline | isoDateString | govukDateTime }}.</p>
+            </div>
           {% endfor %}
-        </ul>
+        </div>
       {% endif %}
 
     </div>

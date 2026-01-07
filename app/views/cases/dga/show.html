@@ -56,14 +56,14 @@
 
           <div class="govuk-button-group">
             {% if not policeUnit.hasSentToPolice %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
             {% elif policeUnit.completedCases < policeUnit.totalCases %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
             {% else %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.name | slugify }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
+              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
             {% endif %}
           </div>
         </div>

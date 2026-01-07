@@ -27,6 +27,7 @@ const { seedProsecutors } = require("./seed-helpers/prosecutors");
 const { seedDefenceLawyers } = require("./seed-helpers/defence-lawyers");
 const { seedDefendants } = require("./seed-helpers/defendants");
 const { seedVictims } = require("./seed-helpers/victims");
+const { seedPoliceUnits } = require("./seed-helpers/police-units");
 const { getDefendantTimeLimitTypes } = require("./seed-helpers/defendant-time-limit-types");
 const { seedUserSpecificTestCases } = require("./seed-helpers/user-specific-test-cases");
 const { seedPriorityTasks } = require("./seed-helpers/priority-tasks");
@@ -70,6 +71,9 @@ async function main() {
   // Seed: Victims
   const victims = await seedVictims(prisma);
 
+  // Seed: Police units
+  const policeUnits = await seedPoliceUnits(prisma);
+
   // Determine defendant time limit types for case grouping
   const defendantTimeLimitTypes = await getDefendantTimeLimitTypes(defendants, prisma);
 
@@ -91,6 +95,7 @@ async function main() {
       prosecutors,
       defendants,
       victims,
+      policeUnits,
       ctlDefendants,
       stlDefendants,
       paceDefendants

@@ -104,6 +104,7 @@ module.exports = router => {
       },
       include: {
         unit: true,
+        policeUnit: true,
         defendants: {
           include: {
             charges: true
@@ -116,7 +117,9 @@ module.exports = router => {
         }
       },
       orderBy: {
-        policeUnit: 'asc'
+        policeUnit: {
+          name: 'asc'
+        }
       }
     })
 
@@ -128,11 +131,13 @@ module.exports = router => {
     const policeUnitsMap = new Map()
 
     dgaCases.forEach(caseItem => {
-      const policeUnit = caseItem.policeUnit || 'Not specified'
+      const policeUnitId = caseItem.policeUnitId || 0
+      const policeUnitName = caseItem.policeUnit?.name || 'Not specified'
 
-      if (!policeUnitsMap.has(policeUnit)) {
-        policeUnitsMap.set(policeUnit, {
-          name: policeUnit,
+      if (!policeUnitsMap.has(policeUnitId)) {
+        policeUnitsMap.set(policeUnitId, {
+          id: policeUnitId,
+          name: policeUnitName,
           cases: [],
           totalCases: 0,
           completedCases: 0,
@@ -142,7 +147,7 @@ module.exports = router => {
         })
       }
 
-      const unitData = policeUnitsMap.get(policeUnit)
+      const unitData = policeUnitsMap.get(policeUnitId)
       unitData.cases.push(caseItem)
       unitData.totalCases++
 
@@ -184,9 +189,9 @@ module.exports = router => {
   })
 
   // Show cases for a specific police unit within a month
-  router.get('/cases/dga/:month/:policeUnit', async (req, res) => {
+  router.get('/cases/dga/:month/:policeUnitId', async (req, res) => {
     const monthKey = req.params.month // Expected format: YYYY-MM (e.g., "2024-10")
-    const policeUnitSlug = req.params.policeUnit // Slugified police unit name
+    const policeUnitId = parseInt(req.params.policeUnitId)
     const currentUser = req.session.data.user
 
     // Get user's unit IDs for filtering
@@ -221,6 +226,7 @@ module.exports = router => {
       },
       include: {
         unit: true,
+        policeUnit: true,
         defendants: {
           include: {
             charges: true
@@ -241,17 +247,9 @@ module.exports = router => {
       return res.redirect('/cases/dga')
     }
 
-    // Filter cases by police unit (un-slugify for comparison)
+    // Filter cases by police unit ID
     const casesForPoliceUnit = dgaCases.filter(c => {
-      const casePoliceUnitSlug = (c.policeUnit || 'not-specified')
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^\w\-]+/g, '')
-        .replace(/\-\-+/g, '-')
-        .replace(/^-+/, '')
-        .replace(/-+$/, '')
-      return casePoliceUnitSlug === policeUnitSlug
+      return c.policeUnitId === policeUnitId
     })
 
     if (casesForPoliceUnit.length === 0) {
@@ -272,12 +270,13 @@ module.exports = router => {
     })
 
     // Get police unit name from first case
-    const policeUnitName = casesForPoliceUnit[0].policeUnit || 'Not specified'
+    const policeUnitName = casesForPoliceUnit[0].policeUnit?.name || 'Not specified'
     const monthName = startDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 
     res.render('cases/dga/police-unit', {
       monthKey,
       monthName,
+      policeUnitId,
       policeUnitName,
       cases: casesWithStatus
     })

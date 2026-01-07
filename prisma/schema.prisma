@@ -48,6 +48,12 @@ model Victim {
   cases     Case[]  @relation("CaseVictims")
 }
 
+model PoliceUnit {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  cases Case[]
+}
+
 model Witness {
   id                          Int                @id @default(autoincrement())
   title                       String?
@@ -128,7 +134,8 @@ model Case {
   type              String?
   unitId            Int
   unit              Unit                     @relation(fields: [unitId], references: [id])
-  policeUnit        String?                  // Police unit for DGA processing/grouping
+  policeUnitId      Int?
+  policeUnit        PoliceUnit?              @relation(fields: [policeUnitId], references: [id])
   defendants        Defendant[]              @relation("CaseDefendants")
   victims           Victim[]                 @relation("CaseVictims")
   witnesses         Witness[]

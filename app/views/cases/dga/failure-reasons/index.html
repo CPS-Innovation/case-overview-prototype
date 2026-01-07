@@ -16,7 +16,7 @@
       },
       {
         text: 'Non-compliant DGA cases',
-        href: "/cases/dga/" + monthKey + "/" + policeUnitSlug
+        href: "/cases/dga/" + monthKey + "/" + policeUnitId
       },
       {
         text: 'Outcomes'
@@ -100,7 +100,7 @@
                   } if reason.outcome != "Not disputed",
 
                   {
-                    key: { text: "How was the decision made?" },
+                    key: { text: "How did you communicate with the police about this decision?" },
                     value: { text: reason.methods if reason.methods else "-" },
                     actions: {
                       items: [

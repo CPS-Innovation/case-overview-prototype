@@ -76,6 +76,7 @@ async function seedOctober2025DGAs(prisma) {
     select: {
       id: true,
       unitId: true,
+      policeUnitId: true,
       policeUnit: true
     }
   });
@@ -92,7 +93,7 @@ async function seedOctober2025DGAs(prisma) {
     const sentToPoliceDate = policeUnitConfig.sentToPoliceDate;
 
     // Find cases with this police unit
-    const casesWithPoliceUnit = casesInTargetUnits.filter(c => c.policeUnit === policeUnitName);
+    const casesWithPoliceUnit = casesInTargetUnits.filter(c => c.policeUnit?.name === policeUnitName);
 
     const selectedCases = faker.helpers.arrayElements(casesWithPoliceUnit, Math.min(3, casesWithPoliceUnit.length));
 
