@@ -16,12 +16,32 @@
         <div class="app-list">        
           {% for month in months %}
             <div class="app-list__item">
-              <h2 class="govuk-heading-m govuk-!-margin-bottom-1"><a href="/cases/dga/{{ month.key }}">{{ month.name }}</a></h2>
-            
-              {% if month.totalCases > 0 %}
-                <p class="govuk-body govuk-!-margin-bottom-1">{{ month.totalCases - month.completedCases }} out of {{ month.totalCases }} cases have recorded outcomes.</p>
+              <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
+                <div>
+                  <a href="/cases/dga/{{ month.key }}">{{ month.name }}</a>
+                </div>
+                <div class="app-list__tag">
+                  {% if month.completedCases === month.totalCases and month.totalCases > 0 %}
+                    {{ govukTag({
+                      text: "Completed",
+                      classes: 'govuk-tag--green'
+                    }) }}
+                  {% elif month.completedCases > 0 %}
+                    {{ govukTag({
+                      text: "In progress",
+                      classes: 'govuk-tag--yellow'
+                    }) }}
+                  {% else %}
+                    {{ govukTag({
+                      text: "Not started"
+                    }) }}
+                  {% endif %}
+                </div>
+              </h2>
+              {% if month.completedCases < month.totalCases %}
+                <p class="govuk-body govuk-!-margin-bottom-0">{{ month.completedCases }} out of {{ month.totalCases }} cases have recorded outcomes.</p>
+                <p class="govuk-body govuk-!-margin-top-1 govuk-!-margin-bottom-0">Record outcomes by {{ month.deadline | isoDateString | govukDateTime }}.</p>
               {% endif %}
-              <p class="govuk-body govuk-!-margin-bottom-0">Record outcomes by {{ month.deadline | isoDateString | govukDateTime }}.</p>
             </div>
           {% endfor %}
         </div>

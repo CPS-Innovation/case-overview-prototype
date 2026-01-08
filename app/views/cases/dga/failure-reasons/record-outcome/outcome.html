@@ -15,10 +15,10 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
   <span class="govuk-caption-l">{{ case.reference }}</span>
-  <h1 class="govuk-heading-l">Decide outcome</h1>
+  <h1 class="govuk-heading-l">Make decision</h1>
 
   <div class="govuk-inset-text">
-    <h3 class="govuk-heading-s">Failure reason</h3>
+    <h2 class="govuk-heading-s">Failure reason</h2>
 {{ failureReason.reason }}
 </div>
 
@@ -27,25 +27,32 @@
       name: "recordOutcome[outcome]",
       fieldset: {
         legend: {
-          text: "Outcome",
+          text: "Decision",
           classes: "govuk-fieldset__legend--m"
         }
       },
+      value: selectedOutcome,
       items: [
         {
           value: "Disputed successfully",
           text: "Disputed successfully",
-          checked: selectedOutcome == "Disputed successfully"
+          hint: {
+            text: "The police disagreed with the failure reason and we agree too"
+          }
         },
         {
           value: "Disputed unsuccessfully",
           text: "Disputed unsuccessfully",
-          checked: selectedOutcome == "Disputed unsuccessfully"
+          hint: {
+            text: "The police disagreed with the failure reason, but we think the failure reason is correct"
+          }
         },
         {
           value: "Not disputed",
           text: "Not disputed",
-          checked: selectedOutcome == "Not disputed"
+          hint: {
+            text: "The police disagreed with the failure reason"
+          }
         }
       ]
     }) }}
