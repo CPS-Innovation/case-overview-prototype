@@ -21,26 +21,15 @@
                   <a href="/cases/dga/{{ month.key }}">{{ month.name }}</a>
                 </div>
                 <div class="app-list__tag">
-                  {% if month.completedCases === month.totalCases and month.totalCases > 0 %}
-                    {{ govukTag({
-                      text: "Completed",
-                      classes: 'govuk-tag--green'
-                    }) }}
-                  {% elif month.completedCases > 0 %}
-                    {{ govukTag({
-                      text: "In progress",
-                      classes: 'govuk-tag--yellow'
-                    }) }}
-                  {% else %}
-                    {{ govukTag({
-                      text: "Not started"
-                    }) }}
-                  {% endif %}
+                  {{ govukTag({
+                    text: month.status,
+                    classes: month.status | completionStatusTagClass
+                  }) }}
                 </div>
               </h2>
-              {% if month.completedCases < month.totalCases %}
-                <p class="govuk-body govuk-!-margin-bottom-0">{{ month.completedCases }} out of {{ month.totalCases }} cases have recorded outcomes.</p>
-                <p class="govuk-body govuk-!-margin-top-1 govuk-!-margin-bottom-0">Record outcomes by {{ month.deadline | isoDateString | govukDateTime }}.</p>
+              {% if month.status != "Completed" %}
+                <p class="govuk-body govuk-!-margin-bottom-0">{{ month.completedCases }} out of {{ month.totalCases }} cases have recorded decisions.</p>
+                <p class="govuk-body govuk-!-margin-top-1 govuk-!-margin-bottom-0">Record decisions by {{ month.deadline | isoDateString | govukDateTime }}.</p>
               {% endif %}
             </div>
           {% endfor %}

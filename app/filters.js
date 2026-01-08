@@ -100,3 +100,14 @@ addFilter('slugify', text => {
     .replace(/^-+/, '')         // Trim - from start of text
     .replace(/-+$/, '')         // Trim - from end of text
 })
+
+addFilter('completionStatusTagClass', status => {
+  switch(status) {
+    case 'Completed':
+      return 'govuk-tag--green'
+    case 'In progress':
+      return 'govuk-tag--yellow'
+    default:
+      return ''
+  }
+})

@@ -1,7 +1,8 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
-const { getDgaReportStatus } = require('../helpers/dgaReportStatus')
+const { getCompletionStatus, getDgaReportStatus } = require('../helpers/dgaReportStatus')
+const Pagination = require('../helpers/pagination')
 
 module.exports = router => {
   router.get('/cases/dga', async (req, res) => {
@@ -59,8 +60,13 @@ module.exports = router => {
       }
     })
 
-    // Convert to array and sort by date (most recent first)
-    const months = Array.from(monthsMap.values()).sort((a, b) => b.date - a.date)
+    // Convert to array, add status, and sort by date (most recent first)
+    const months = Array.from(monthsMap.values())
+      .map(month => ({
+        ...month,
+        status: getCompletionStatus(month.completedCases, month.totalCases)
+      }))
+      .sort((a, b) => b.date - a.date)
 
     res.render('cases/dga/index', {
       months
@@ -170,10 +176,20 @@ module.exports = router => {
       }
     })
 
-    // Convert to array for template, sorted alphabetically by police unit name
-    const policeUnits = Array.from(policeUnitsMap.values()).sort((a, b) =>
-      a.name.localeCompare(b.name)
-    )
+    // Convert to array, add status, and sort alphabetically by police unit name
+    const policeUnits = Array.from(policeUnitsMap.values())
+      .map(unit => {
+        let status
+        if (unit.completedCases === unit.totalCases) {
+          status = 'Completed'
+        } else if (unit.hasAnyProgress) {
+          status = 'In progress'
+        } else {
+          status = 'Not started'
+        }
+        return { ...unit, status }
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     // Get month details
     const monthName = startDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
@@ -273,12 +289,18 @@ module.exports = router => {
     const policeUnitName = casesForPoliceUnit[0].policeUnit?.name || 'Not specified'
     const monthName = startDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 
+    // Apply pagination
+    const pagination = new Pagination(casesWithStatus, req.query.page, 25)
+    const paginatedCases = pagination.getData()
+
     res.render('cases/dga/police-unit', {
       monthKey,
       monthName,
       policeUnitId,
       policeUnitName,
-      cases: casesWithStatus
+      cases: paginatedCases,
+      pagination,
+      totalCases: casesForPoliceUnit.length
     })
   })
 
@@ -419,6 +441,50 @@ module.exports = router => {
     // Write to response
     await workbook.xlsx.write(res)
     res.end()
+  })
+
+  // View the failure reasons list for a specific case
+  router.get('/cases/dga/:month/:policeUnitId/:caseId', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const monthKey = req.params.month // e.g., "2025-10"
+    const policeUnitId = parseInt(req.params.policeUnitId)
+
+    const caseData = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: {
+        dga: {
+          include: {
+            failureReasons: true
+          }
+        }
+      }
+    })
+
+    // Calculate month name from monthKey
+    const [year, month] = monthKey.split('-').map(Number)
+    const date = new Date(year, month - 1, 1)
+    const monthName = date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+
+    // Get police unit name from case
+    const policeUnitName = caseData.policeUnit?.name || 'Not specified'
+
+    // Calculate report status
+    const reportStatus = getDgaReportStatus(caseData)
+
+    // Calculate outcomes progress
+    const outcomesTotal = caseData.dga.failureReasons.length
+    const outcomesCompleted = caseData.dga.failureReasons.filter(fr => fr.outcome !== null).length
+
+    res.render('cases/dga/failure-reasons/index', {
+      case: caseData,
+      monthKey,
+      monthName,
+      policeUnitName,
+      policeUnitId,
+      reportStatus,
+      outcomesTotal,
+      outcomesCompleted
+    })
   })
 
 }

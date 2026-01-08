@@ -17,31 +17,11 @@
     </p>
   </div>
   <div class="app-activity-log__description">
-    {% if params.event.title == 'DGA recorded' %}
-      <div class="app-activity-log__box">
-        {{ govukSummaryList({
-          rows: [
-            {
-              key: {
-                text: "Outcome"
-              },
-              value: {
-                text: params.event.meta.outcome
-              }
-            }
-          ]
-        }) }}
-      </div>
-      <p class="app-log-card__note--link">
-        <a class="govuk-link" href="/cases/{{ params.event.case.id }}/dga">View DGA outcome</a>
-      </p>
-    {% endif %}
-
-    {% if params.event.title == 'Non-compliant DGA outcome recorded' %}
+    {% if params.event.title == 'Non-compliant DGA decision recorded' %}
       {% set methodsHtml %}
-        {% if params.event.meta['How did you communicate with the police about this decision?'] %}
+        {% if params.event.meta.methods %}
           <ul class="govuk-list govuk-list--bullet">
-            {% for method in params.event.meta['How did you communicate with the police about this decision?'] %}
+            {% for method in params.event.meta.methods %}
               <li>{{ method }}</li>
             {% endfor %}
           </ul>
@@ -52,33 +32,33 @@
           rows: [
             {
               key: { text: "Failure reason" },
-              value: { text: params.event.meta['Failure reason'] }
+              value: { text: params.event.meta.failureReason }
             },
             {
               key: { text: "Police unit" },
-              value: { text: params.event.meta['Police unit'] }
+              value: { text: params.event.meta.policeUnit }
             },
             {
               key: { text: "Month" },
-              value: { text: params.event.meta['Month'] }
+              value: { text: params.event.meta.monthName }
             },
             {
-              key: { text: "Outcome" },
-              value: { text: params.event.meta['Outcome'] }
+              key: { text: "Decision" },
+              value: { text: params.event.meta.outcome }
             },
             {
-              key: { text: "Explanation for this decision" },
-              value: { text: params.event.meta['Explanation for this decision'] }
-            } if params.event.meta['Outcome'] != 'Not disputed' and params.event.meta['Explanation for this decision'],
+              key: { text: "Reason for this decision" },
+              value: { text: params.event.meta.explanation }
+            } if params.event.meta.outcome != 'Not disputed' and params.event.meta.explanation,
             {
-              key: { text: "How did you communicate with the police about this decision?" },
+              key: { text: "How did you communicate with the police to make this decision?" },
               value: { html: methodsHtml }
-            } if params.event.meta['Outcome'] != 'Not disputed' and params.event.meta['How did you communicate with the police about this decision?']
+            } if params.event.meta.outcome != 'Not disputed' and params.event.meta.methods
           ]
         }) }}
       </div>
       <p class="app-log-card__note--link">
-        <a class="govuk-link" href="/cases/dga/{{ params.event.meta.monthKey }}/{{ params.event.meta.policeUnitId }}/{{ params.event.case.id }}">View failure reasons</a>
+        <a class="govuk-link" href="/cases/dga/{{ params.event.meta.monthKey }}/{{ params.event.meta.policeUnitId }}/{{ params.event.case.id }}">View decision</a>
       </p>
     {% endif %}
 

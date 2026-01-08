@@ -22,49 +22,25 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {# <span class="govuk-caption-l">Director General Assessment (DGA)</span> #}
-      <h1 class="govuk-heading-l">{{ pageName }}</h1>
-
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>     
+      <p>You must record decisions by {{ deadline | isoDateString | govukDateTime }}.</p>
       
-      <p>You must record outcomes by {{ deadline | isoDateString | govukDateTime }}.</p>
-      
-
       {% for policeUnit in policeUnits %}
         <div class="app-dga-police-unit govuk-!-margin-top-7">
           <h2 class="govuk-heading-m">
             {{ policeUnit.name }}
-            {% if policeUnit.completedCases === policeUnit.totalCases %}
-              {{ govukTag({
-                text: "Completed",
-                classes: 'govuk-tag--green'
-              }) }}
-            {% elif policeUnit.hasAnyProgress %}
-              {{ govukTag({
-                text: "In progress",
-                classes: 'govuk-tag--yellow'
-              }) }}
-            {% else %}
-              {{ govukTag({
-                text: "Not started"
-              }) }}
-            {% endif %}
+            {{ govukTag({
+              text: policeUnit.status,
+              classes: policeUnit.status | completionStatusTagClass
+            }) }}
           </h2>
 
-          {% if policeUnit.hasSentToPolice %}
-            {# <p>Last exported on {{ policeUnit.sentDate | isoDateString | govukDate }}.</p> #}
-          {% endif %}
+          <p>{{policeUnit.completedCases}} of {{policeUnit.totalCases}} cases have recorded decisions.</p>
 
           <div class="govuk-button-group">
-            {% if not policeUnit.hasSentToPolice %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
-            {% elif policeUnit.completedCases < policeUnit.totalCases %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
-            {% else %}
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
-              <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
-            {% endif %}
+            <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export</a>
+            <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
+            <a href="/cases/dga/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Mark cases as not disputed?</a>
           </div>
         </div>
       {% endfor %}

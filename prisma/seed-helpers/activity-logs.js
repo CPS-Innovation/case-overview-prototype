@@ -1,12 +1,6 @@
 const { faker } = require('@faker-js/faker');
 
 // Constants
-const dgaOutcomes = {
-  NOT_DISPUTED: "Not disputed",
-  DISPUTED_SUCCESSFULLY: "Disputed successfully",
-  DISPUTED_UNSUCCESSFULLY: "Disputed unsuccessfully"
-};
-
 const witnessNotAppearingReasons = [
   "Witness is ill and unable to attend",
   "Witness has moved abroad",
@@ -69,10 +63,6 @@ function getPossibleEvents(context) {
     possible.push('Prosecutor assigned');
   }
 
-  if (context.fullCase.dga) {
-    possible.push('DGA recorded');
-  }
-
   if (context.fullCase.witnesses && context.fullCase.witnesses.length > 0) {
     possible.push('Witness marked as appearing in court');
     possible.push('Witness marked as not attending court');
@@ -118,23 +108,6 @@ const eventGenerators = {
           firstName: prosecutor.firstName,
           lastName: prosecutor.lastName
         }
-      }
-    };
-  },
-
-  'DGA recorded': (context, randomUser, eventDate) => {
-    const outcomeKey = faker.helpers.arrayElement(['NOT_DISPUTED', 'DISPUTED_SUCCESSFULLY', 'DISPUTED_UNSUCCESSFULLY']);
-
-    return {
-      userId: randomUser.id,
-      caseId: context.fullCase.id,
-      action: 'UPDATE',
-      title: 'DGA recorded',
-      model: 'Case',
-      recordId: context.fullCase.id,
-      createdAt: eventDate,
-      meta: {
-        outcome: dgaOutcomes[outcomeKey]
       }
     };
   },

@@ -1,4 +1,5 @@
 const { faker } = require('@faker-js/faker');
+const { generateCaseReference } = require('./identifiers');
 
 // Helper: Calculate deadline as end of month + 6 weeks
 function calculateDeadline(nonCompliantDate) {
@@ -58,80 +59,74 @@ async function seedDGAMonths(prisma) {
   // September 2025: All completed (past month)
   // October 2025: All completed (past month)
   // November 2025: Mixed states (current month being worked on)
+  // casesPerUnit is now per police unit to allow different counts
   const monthConfigs = [
     {
       name: 'September 2025',
       year: 2025,
       month: 8, // 0-indexed, so 8 = September
       policeUnits: [
-        { name: 'Metropolitan Police', state: 'completed', sentToPoliceDate: new Date(2025, 9, 5) },
-        { name: 'Thames Valley Police', state: 'completed', sentToPoliceDate: new Date(2025, 9, 3) },
-        { name: 'West Midlands Police', state: 'completed', sentToPoliceDate: new Date(2025, 9, 1) }
-      ],
-      casesPerUnit: 2
+        { name: 'Metropolitan Police', state: 'completed', sentToPoliceDate: new Date(2025, 9, 5), casesPerUnit: 37 },
+        { name: 'Thames Valley Police', state: 'completed', sentToPoliceDate: new Date(2025, 9, 3), casesPerUnit: 37 },
+        { name: 'West Midlands Police', state: 'completed', sentToPoliceDate: new Date(2025, 9, 1), casesPerUnit: 3 }
+      ]
     },
     {
       name: 'October 2025',
       year: 2025,
       month: 9, // 0-indexed, so 9 = October
       policeUnits: [
-        { name: 'Metropolitan Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 5) },
-        { name: 'Thames Valley Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 3) },
-        { name: 'West Midlands Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 1) }
-      ],
-      casesPerUnit: 2
+        { name: 'Metropolitan Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 5), casesPerUnit: 37 },
+        { name: 'Thames Valley Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 3), casesPerUnit: 37 },
+        { name: 'West Midlands Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 1), casesPerUnit: 3 }
+      ]
     },
     {
       name: 'November 2025',
       year: 2025,
       month: 10, // 0-indexed, so 10 = November
       policeUnits: [
-        { name: 'Metropolitan Police', state: 'not-started', sentToPoliceDate: null },
-        { name: 'Thames Valley Police', state: 'in-progress', sentToPoliceDate: new Date(2025, 11, 1) },
-        { name: 'West Midlands Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 25) }
-      ],
-      casesPerUnit: 3
+        { name: 'Metropolitan Police', state: 'not-started', sentToPoliceDate: null, casesPerUnit: 37 },
+        { name: 'Thames Valley Police', state: 'not-started', sentToPoliceDate: null, casesPerUnit: 1 },
+        { name: 'Thames Valley Police', state: 'in-progress', sentToPoliceDate: new Date(2025, 11, 1), casesPerUnit: 1 },
+        { name: 'Thames Valley Police', state: 'completed', sentToPoliceDate: new Date(2025, 11, 1), casesPerUnit: 1 },
+        { name: 'West Midlands Police', state: 'completed', sentToPoliceDate: new Date(2025, 10, 25), casesPerUnit: 26 }
+      ]
     }
   ];
 
-  // Specific CPS units to ensure coverage (units 3 and 4 are commonly used by test users)
-  const targetCpsUnits = [3, 4];
+  // CPS unit to assign cases to (unit 3 is commonly used by test users)
+  const cpsUnitId = 3;
 
-  // Fetch cases from database with policeUnit field and in target CPS units
-  const casesInTargetUnits = await prisma.case.findMany({
-    where: {
-      unitId: { in: targetCpsUnits }
-    },
-    select: {
-      id: true,
-      unitId: true,
-      policeUnitId: true,
-      policeUnit: true
-    }
+  // Fetch police unit records by name to get their IDs
+  const policeUnitRecords = await prisma.policeUnit.findMany({
+    where: { name: { in: ['Metropolitan Police', 'Thames Valley Police', 'West Midlands Police'] } }
   });
+  const policeUnitMap = Object.fromEntries(policeUnitRecords.map(pu => [pu.name, pu.id]));
 
   let totalCreated = 0;
-  const usedCaseIds = new Set(); // Track cases already assigned a DGA
 
   for (const monthConfig of monthConfigs) {
-    const monthCases = [];
+    let monthCaseCount = 0;
 
     for (const policeUnitConfig of monthConfig.policeUnits) {
       const policeUnitName = policeUnitConfig.name;
+      const policeUnitId = policeUnitMap[policeUnitName];
       const state = policeUnitConfig.state;
       const sentToPoliceDate = policeUnitConfig.sentToPoliceDate;
+      const casesPerUnit = policeUnitConfig.casesPerUnit;
 
-      // Find cases with this police unit that haven't been used yet
-      const casesWithPoliceUnit = casesInTargetUnits.filter(
-        c => c.policeUnit?.name === policeUnitName && !usedCaseIds.has(c.id)
-      );
+      // Create dedicated cases for this police unit
+      for (let i = 0; i < casesPerUnit; i++) {
+        // Create a new case specifically for DGA
+        const newCase = await prisma.case.create({
+          data: {
+            reference: generateCaseReference(),
+            unitId: cpsUnitId,
+            policeUnitId: policeUnitId
+          }
+        });
 
-      const selectedCases = faker.helpers.arrayElements(
-        casesWithPoliceUnit,
-        Math.min(monthConfig.casesPerUnit, casesWithPoliceUnit.length)
-      );
-
-      for (const caseItem of selectedCases) {
         // Set non-compliant date to random day in the month
         const maxDay = getMaxDaysInMonth(monthConfig.year, monthConfig.month);
         const nonCompliantDate = new Date(
@@ -144,7 +139,7 @@ async function seedDGAMonths(prisma) {
         // Create DGA
         const dga = await prisma.dGA.create({
           data: {
-            caseId: caseItem.id,
+            caseId: newCase.id,
             reason: faker.lorem.sentence(),
             nonCompliantDate: nonCompliantDate,
             reportDeadline: reportDeadline,
@@ -183,13 +178,12 @@ async function seedDGAMonths(prisma) {
           });
         }
 
-        monthCases.push(caseItem.id);
-        usedCaseIds.add(caseItem.id); // Mark case as used
+        monthCaseCount++;
       }
     }
 
-    console.log(`✅ Created ${monthCases.length} ${monthConfig.name} DGA cases`);
-    totalCreated += monthCases.length;
+    console.log(`✅ Created ${monthCaseCount} ${monthConfig.name} DGA cases`);
+    totalCreated += monthCaseCount;
   }
 
   return totalCreated;

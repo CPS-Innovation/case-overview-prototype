@@ -32,7 +32,6 @@ const { getDefendantTimeLimitTypes } = require("./seed-helpers/defendant-time-li
 const { seedUserSpecificTestCases } = require("./seed-helpers/user-specific-test-cases");
 const { seedPriorityTasks } = require("./seed-helpers/priority-tasks");
 const { seedGuaranteedTasks } = require("./seed-helpers/guaranteed-tasks");
-const { seedDGAAssignments } = require("./seed-helpers/dga-assignments");
 const { seedDGAMonths } = require("./seed-helpers/dga-months");
 const { seedGeneralCases } = require("./seed-helpers/general-cases");
 const { seedCaseNotes } = require("./seed-helpers/case-notes");
@@ -80,7 +79,6 @@ async function main() {
   // -------------------- Cases --------------------
   const TOTAL_CASES = 1065;
   const UNASSIGNED_TARGET = 7;
-  const DGA_TARGET = 10;
 
   // Group defendants by their actual assigned time limit type
   const ctlDefendants = defendants.filter((_, index) => defendantTimeLimitTypes[index] === 'CTL');
@@ -117,11 +115,6 @@ async function main() {
       taskNoteDescriptions
     }
   );
-
-  // Seed: DGA assignments (original - for all users including Veronica)
-  await seedDGAAssignments(prisma, createdCases, {
-    dgaTarget: DGA_TARGET
-  });
 
   // Seed: DGA cases for September, October, November 2025 (specific for units 3 and 4)
   await seedDGAMonths(prisma);

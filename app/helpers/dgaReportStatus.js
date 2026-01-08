@@ -1,32 +1,37 @@
 /**
+ * Get completion status text based on completed/total counts
+ * @param {number} completedCount - Number of completed items
+ * @param {number} totalCount - Total number of items
+ * @returns {string} - 'Completed', 'In progress', or 'Not started'
+ */
+function getCompletionStatus(completedCount, totalCount) {
+  if (completedCount === totalCount && totalCount > 0) {
+    return 'Completed'
+  }
+  if (completedCount > 0) {
+    return 'In progress'
+  }
+  return 'Not started'
+}
+
+/**
  * Calculate the report status based on DGA failure reasons' outcomes
  * @param {Object} caseItem - Case object with dga.failureReasons array
- * @returns {string|null} - 'Completed', 'In progress', or null (meaning "Not started")
+ * @returns {string} - 'Completed', 'In progress', or 'Not started'
  */
 function getDgaReportStatus(caseItem) {
-  // If no DGA or no failure reasons, status is "Not started" (null)
   if (!caseItem?.dga?.failureReasons || caseItem.dga.failureReasons.length === 0) {
-    return null;
+    return getCompletionStatus(0, 0)
   }
 
-  const failureReasons = caseItem.dga.failureReasons;
-  const totalReasons = failureReasons.length;
-  const completedReasons = failureReasons.filter(fr => fr.outcome !== null).length;
+  const failureReasons = caseItem.dga.failureReasons
+  const totalReasons = failureReasons.length
+  const completedReasons = failureReasons.filter(fr => fr.outcome !== null).length
 
-  // All failure reasons have outcomes = Completed
-  if (completedReasons === totalReasons && totalReasons > 0) {
-    return 'Completed';
-  }
-
-  // Some (but not all) failure reasons have outcomes = In progress
-  if (completedReasons > 0) {
-    return 'In progress';
-  }
-
-  // No failure reasons have outcomes = Not started
-  return null;
+  return getCompletionStatus(completedReasons, totalReasons)
 }
 
 module.exports = {
+  getCompletionStatus,
   getDgaReportStatus
-};
+}

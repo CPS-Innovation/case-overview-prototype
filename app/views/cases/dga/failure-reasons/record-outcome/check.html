@@ -16,7 +16,7 @@
       <div class="govuk-grid-column-two-thirds">
 
   <span class="govuk-caption-l">{{ case.reference }}</span>
-  <h1 class="govuk-heading-l">Check details and record outcome</h1>
+  <h1 class="govuk-heading-l">Check details and record decision</h1>
 
     <div class="govuk-inset-text">
     <h3 class="govuk-heading-s">Failure reason</h3>
@@ -47,7 +47,7 @@
 
   {% set summaryRows = [
     {
-      key: { text: "Outcome" },
+      key: { text: "Decision" },
       value: { text: outcome },
       actions: {
         items: [
@@ -63,7 +63,7 @@
 
   {% if outcome != "Not disputed" %}
     {% set summaryRows = (summaryRows.push({
-      key: { text: "Explanation for this decision" },
+      key: { text: "Reason for this decision" },
       value: { text: detailsText },
       actions: {
         items: [
@@ -77,7 +77,7 @@
     }), summaryRows) %}
 
     {% set summaryRows = (summaryRows.push({
-      key: { text: "How did you communicate with the police about this decision?" },
+      key: { text: "How did you communicate with the police to make this decision?" },
       value: { html: methodsHtml },
       actions: {
         items: [
@@ -97,7 +97,7 @@
 
   <form method="post">
     {{ govukButton({
-      text: "Record outcome"
+      text: "Record decision"
     }) }}
   </form>
 

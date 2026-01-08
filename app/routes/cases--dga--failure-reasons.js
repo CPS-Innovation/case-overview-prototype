@@ -1,57 +1,8 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
-const { getDgaReportStatus } = require('../helpers/dgaReportStatus')
 
 module.exports = router => {
-
-  // View the failure reasons list for a specific case
-  router.get('/cases/dga/:month/:policeUnitId/:caseId', async (req, res) => {
-    const caseId = parseInt(req.params.caseId)
-    const monthKey = req.params.month // e.g., "2025-10"
-    const policeUnitId = parseInt(req.params.policeUnitId)
-
-    const caseData = await prisma.case.findUnique({
-      where: { id: caseId },
-      include: {
-        dga: {
-          include: {
-            failureReasons: true
-          }
-        }
-      }
-    })
-
-    if (!caseData || !caseData.dga) {
-      return res.redirect('/cases/dga')
-    }
-
-    // Calculate month name from monthKey
-    const [year, month] = monthKey.split('-').map(Number)
-    const date = new Date(year, month - 1, 1)
-    const monthName = date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-
-    // Get police unit name from case
-    const policeUnitName = caseData.policeUnit?.name || 'Not specified'
-
-    // Calculate report status
-    const reportStatus = getDgaReportStatus(caseData)
-
-    // Calculate outcomes progress
-    const outcomesTotal = caseData.dga.failureReasons.length
-    const outcomesCompleted = caseData.dga.failureReasons.filter(fr => fr.outcome !== null).length
-
-    res.render('cases/dga/failure-reasons/index', {
-      case: caseData,
-      monthKey,
-      monthName,
-      policeUnitName,
-      policeUnitId,
-      reportStatus,
-      outcomesTotal,
-      outcomesCompleted
-    })
-  })
 
   // Step 1: Select outcome
   router.get('/cases/dga/:caseId/failure-reasons/:failureReasonId/record-outcome/outcome', async (req, res) => {
@@ -70,10 +21,6 @@ module.exports = router => {
         }
       }
     })
-
-    if (!caseData || !caseData.dga || !caseData.dga.failureReasons[0]) {
-      return res.redirect('/cases/dga')
-    }
 
     const failureReason = caseData.dga.failureReasons[0]
 
@@ -129,10 +76,6 @@ module.exports = router => {
       }
     })
 
-    if (!caseData || !caseData.dga || !caseData.dga.failureReasons[0]) {
-      return res.redirect('/cases/dga')
-    }
-
     const failureReason = caseData.dga.failureReasons[0]
 
     res.render('cases/dga/failure-reasons/record-outcome/decision-explanation', {
@@ -169,10 +112,6 @@ module.exports = router => {
         }
       }
     })
-
-    if (!caseData || !caseData.dga || !caseData.dga.failureReasons[0]) {
-      return res.redirect('/cases/dga')
-    }
 
     const failureReason = caseData.dga.failureReasons[0]
 
@@ -220,10 +159,6 @@ module.exports = router => {
         }
       }
     })
-
-    if (!caseData || !caseData.dga || !caseData.dga.failureReasons[0]) {
-      return res.redirect('/cases/dga')
-    }
 
     const failureReason = caseData.dga.failureReasons[0]
     const outcome = req.session.data.recordOutcome?.outcome
@@ -283,47 +218,32 @@ module.exports = router => {
 
     // Build meta object for activity log
     const meta = {
-      'Failure reason': failureReason.reason,
-      'Police unit': caseData.policeUnit?.name || 'Not specified',
-      'Month': monthName,
-      'Outcome': outcome,
-      monthKey: monthKey,
-      policeUnitId: caseData.policeUnitId
+      failureReason: failureReason.reason,
+      policeUnit: caseData.policeUnit?.name || 'Not specified',
+      monthName,
+      monthKey,
+      policeUnitId: caseData.policeUnitId,
+      ...req.session.data.recordOutcome
     }
 
-    // Add explanation and methods only if outcome is not "Not disputed"
-    if (outcome !== 'Not disputed') {
-      if (details) {
-        meta['Explanation for this decision'] = details
-      }
-      if (methods && methods.length > 0) {
-        meta['How did you communicate with the police about this decision?'] = methods
-      }
-    }
-
-    // Create activity log entry
     await prisma.activityLog.create({
       data: {
         userId: req.session.data.user.id,
         model: 'DGAFailureReason',
         recordId: failureReasonId,
         action: 'UPDATE',
-        title: 'Non-compliant DGA outcome recorded',
+        title: 'Non-compliant DGA decision recorded',
         caseId: caseId,
         meta: meta
       }
     })
 
-    // Clear session data for this failure reason
     delete req.session.data.recordOutcome
 
-    // Get policeUnitId for redirect URL
     const policeUnitId = caseData.policeUnitId
 
-    // Set flash message
-    req.flash('success', 'Outcome recorded')
+    req.flash('success', 'Decision recorded')
 
-    // Redirect back to failure reasons list
     res.redirect(`/cases/dga/${monthKey}/${policeUnitId}/${caseId}`)
   })
 

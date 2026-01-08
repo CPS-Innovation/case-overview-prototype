@@ -27,7 +27,7 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l">{{ policeUnitName }}</span>
-      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+      <h1 class="govuk-heading-l">{{ pageName }} ({{ totalCases }})</h1>
 
       <div class="app-list">
         {% for caseItem in cases %}
@@ -39,27 +39,18 @@
               </a>
             </div>
             <div class="app-list__tag">
-              {% if caseItem.reportStatus == "Completed" %}
               {{ govukTag({
-                text: "Completed",
-                classes: "govuk-tag--green"
+                text: caseItem.reportStatus,
+                classes: caseItem.reportStatus | completionStatusTagClass
               }) }}
-            {% elif caseItem.reportStatus == "In progress" %}
-              {{ govukTag({
-                text: "In progress",
-                classes: "govuk-tag--yellow"
-              }) }}
-            {% else %}
-              {{ govukTag({
-                text: "Not started"
-              }) }}
-            {% endif %}
-          </div>
+            </div>
           </h2>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ caseItem.outcomesCompleted }} of {{ caseItem.outcomesTotal }} outcome{{ "s" if caseItem.outcomesTotal != 1 }} recorded</p>
+          <p class="govuk-body govuk-!-margin-bottom-0">{{ caseItem.outcomesCompleted }} of {{ caseItem.outcomesTotal }} decision{{ "s" if caseItem.outcomesTotal != 1 }} recorded</p>
         </div>
         {% endfor %}
       </div>
+
+      {% include "_includes/pagination.njk" %}
 
     </div>
   </div>
