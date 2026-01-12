@@ -21,11 +21,11 @@
           <a href="/dga-reviews/{{ latestDGAMonth.key }}" class="govuk-link--no-visited-state">
             {{ latestDGAMonth.count }}
             {% if latestDGAMonth.count == 1 %}
-              case needs
+              non-compliant DGA case needs
             {% else %}
-              cases need
+              non-compliant DGA cases need
             {% endif %}
-            DGA decisions recorded by {{ latestDGAMonth.deadline | isoDateString | govukDate }}
+            dispute outcomes recorded by {{ latestDGAMonth.deadline | isoDateString | govukDate }}
           </a>
         </li>
       {% endif %}

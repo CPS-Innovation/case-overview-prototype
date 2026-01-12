@@ -36,15 +36,24 @@
           </h2>
 
           <div class="govuk-button-group govuk-!-margin-bottom-1">
-            <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export all</a>
-            <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a>
+            {# <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export all</a> #}
+            {# <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a> #}
           </div>
           
           {{ govukSummaryList({
             rows: [
               {
                 key: { text: "Total cases" },
-                value: { text: policeUnit.totalCases }
+                value: { text: policeUnit.totalCases },
+                actions: {
+                  items: [
+                    {
+                      href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id),
+                      text: "Export",
+                      visuallyHiddenText: policeUnit.name
+                    }
+                  ]
+                }
               },
               {
                 key: { text: "Compliant cases" },
@@ -53,24 +62,24 @@
               {
                 key: { text: "Non-compliant cases" },
                 value: { text: policeUnit.nonCompliantCases }
-              },
-              {
-                key: { text: "Cases that have dispute outcomes recorded" },
-                value: { text: policeUnit.completedCases + " of " + policeUnit.nonCompliantCases },
-                actions: {
-                  items: [
-                    {
-                      href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id),
-                      text: "Record" if policeUnit.nonCompliantCases > policeUnit.completedCases else "Change",
-                      visuallyHiddenText: policeUnit.name
-                    }
-                  ]
-                } if 1==2
               }
             ]
           }) }}
 
-          
+          {% if policeUnit.status != "Completed" %}
+            <p>You need to record dispute outcomes for {{ policeUnit.casesNeedingOutcomes }} out of {{ policeUnit.nonCompliantCases }}  cases.</p>
+            {{ govukButton({
+              text: "Record dispute outcomes",
+              href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
+            }) }}
+          {% else %}
+            {{ govukButton({
+              classes: 'govuk-button--secondary',
+              text: "Update dispute outcomes",
+              href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
+            }) }}
+          {% endif %}
+        
         </div>
       {% endfor %}
 

@@ -204,7 +204,8 @@ module.exports = router => {
         } else {
           status = 'Not started'
         }
-        return { ...unit, status }
+        const casesNeedingOutcomes = unit.nonCompliantCases - unit.completedCases
+        return { ...unit, status, casesNeedingOutcomes }
       })
       .sort((a, b) => a.name.localeCompare(b.name))
 
