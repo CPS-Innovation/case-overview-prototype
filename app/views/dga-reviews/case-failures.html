@@ -33,14 +33,16 @@
       <div class="govuk-grid-column-two-thirds">
         <span class="govuk-caption-l">{{ case.reference }}</span>
         <h1 class="govuk-heading-l">
-          {{ pageName }}   
+          {{ pageName }}
           {{ govukTag({
             text: reportStatus,
             classes: reportStatus | completionStatusTagClass
-          }) }}
+          }) if reportStatus != "Completed" }}
         </h1>
 
-        <p class="govuk-body">{{ outcomesCompleted }} out of {{ outcomesTotal }} failure reasons have recorded outcome{{ "s" if outcomesTotal != 1 }}.</p>
+        {% if reportStatus != "Completed" %}
+          <p class="govuk-body">{{ outcomesRemaining }} failure {{ "reason" if outcomesRemaining == 1 else "reasons" }} still {{ "needs" if outcomesRemaining == 1 else "need" }} {{ "an outcome" if outcomesRemaining == 1 else "outcomes" }}.</p>
+        {% endif %}
 
         {% for reason in case.dga.failureReasons %}
 

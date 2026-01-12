@@ -511,6 +511,7 @@ module.exports = router => {
     // Calculate outcomes progress
     const outcomesTotal = caseData.dga.failureReasons.length
     const outcomesCompleted = caseData.dga.failureReasons.filter(fr => fr.outcome !== null).length
+    const outcomesRemaining = outcomesTotal - outcomesCompleted
 
     res.render('dga-reviews/case-failures', {
       case: caseData,
@@ -520,7 +521,8 @@ module.exports = router => {
       policeUnitId,
       reportStatus,
       outcomesTotal,
-      outcomesCompleted
+      outcomesCompleted,
+      outcomesRemaining
     })
   })
 
