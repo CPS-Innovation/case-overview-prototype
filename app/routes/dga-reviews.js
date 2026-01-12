@@ -32,10 +32,10 @@ module.exports = router => {
     // Group cases by month (YYYY-MM format)
     const monthsMap = new Map()
 
-    dgaCases.forEach(caseItem => {
-      if (!caseItem.dga?.reviewDate) return
+    dgaCases.forEach(_case => {
+      if (!_case.dga?.reviewDate) return
 
-      const date = new Date(caseItem.dga.reviewDate)
+      const date = new Date(_case.dga.reviewDate)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       const monthName = date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 
@@ -43,7 +43,7 @@ module.exports = router => {
         monthsMap.set(monthKey, {
           key: monthKey,
           name: monthName,
-          deadline: caseItem.dga.recordDisputeOutcomesDeadline,
+          deadline: _case.dga.recordDisputeOutcomesDeadline,
           totalCases: 0,
           nonCompliantCases: 0,
           completedCases: 0,
@@ -54,11 +54,11 @@ module.exports = router => {
       const monthData = monthsMap.get(monthKey)
       monthData.totalCases++
 
-      const isNonCompliant = caseItem.dga.failureReasons.length > 0
+      const isNonCompliant = _case.dga.failureReasons.length > 0
       if (isNonCompliant) {
         monthData.nonCompliantCases++
         // Check if all failure reasons have outcomes
-        const allCompleted = caseItem.dga.failureReasons.every(fr => fr.outcome !== null)
+        const allCompleted = _case.dga.failureReasons.every(fr => fr.outcome !== null)
         if (allCompleted) {
           monthData.completedCases++
         }
@@ -142,9 +142,9 @@ module.exports = router => {
     // Group cases by police unit
     const policeUnitsMap = new Map()
 
-    dgaCases.forEach(caseItem => {
-      const policeUnitId = caseItem.policeUnitId || 0
-      const policeUnitName = caseItem.policeUnit?.name || 'Not specified'
+    dgaCases.forEach(_case => {
+      const policeUnitId = _case.policeUnitId || 0
+      const policeUnitName = _case.policeUnit?.name || 'Not specified'
 
       if (!policeUnitsMap.has(policeUnitId)) {
         policeUnitsMap.set(policeUnitId, {
@@ -162,28 +162,28 @@ module.exports = router => {
       }
 
       const unitData = policeUnitsMap.get(policeUnitId)
-      unitData.cases.push(caseItem)
+      unitData.cases.push(_case)
       unitData.totalCases++
 
       // Check if this case has been sent to police (they all should have same date)
-      if (caseItem.dga.sentToPoliceDate && !unitData.hasSentToPolice) {
-        unitData.sentDate = caseItem.dga.sentToPoliceDate
+      if (_case.dga.sentToPoliceDate && !unitData.hasSentToPolice) {
+        unitData.sentDate = _case.dga.sentToPoliceDate
         unitData.hasSentToPolice = true
       }
 
       // Check compliance: non-compliant if has failure reasons
-      const isNonCompliant = caseItem.dga.failureReasons.length > 0
+      const isNonCompliant = _case.dga.failureReasons.length > 0
       if (isNonCompliant) {
         unitData.nonCompliantCases++
 
         // Check if all failure reasons have outcomes (case is fully complete)
-        const allCompleted = caseItem.dga.failureReasons.every(fr => fr.outcome !== null)
+        const allCompleted = _case.dga.failureReasons.every(fr => fr.outcome !== null)
         if (allCompleted) {
           unitData.completedCases++
         }
 
         // Check if any failure reason has an outcome (case has progress)
-        const hasAnyOutcome = caseItem.dga.failureReasons.some(fr => fr.outcome !== null)
+        const hasAnyOutcome = _case.dga.failureReasons.some(fr => fr.outcome !== null)
         if (hasAnyOutcome) {
           unitData.hasAnyProgress = true
         }
@@ -282,24 +282,34 @@ module.exports = router => {
     }
 
     // Filter cases by police unit ID and only include non-compliant cases (those with failure reasons)
-    const casesForPoliceUnit = dgaCases.filter(c => {
+    let casesForPoliceUnit = dgaCases.filter(c => {
       return c.policeUnitId === policeUnitId && c.dga.failureReasons.length > 0
     })
+
+    // Apply search filter if keywords provided
+    const searchKeywords = req.session.data.dgaReviewsSearch?.keywords
+    if (searchKeywords) {
+      const keywords = searchKeywords.toLowerCase().trim()
+      casesForPoliceUnit = casesForPoliceUnit.filter(c => {
+        return c.reference.toLowerCase().includes(keywords)
+      })
+    }
 
     if (casesForPoliceUnit.length === 0) {
       return res.redirect(`/dga-reviews/${monthKey}`)
     }
 
     // Calculate report status for each case
-    const casesWithStatus = casesForPoliceUnit.map(caseItem => {
-      const outcomesTotal = caseItem.dga.failureReasons.length
-      const outcomesCompleted = caseItem.dga.failureReasons.filter(fr => fr.outcome !== null).length
+    const casesWithStatus = casesForPoliceUnit.map(_case => {
+      const outcomesTotal = _case.dga.failureReasons.length
+      const outcomesCompleted = _case.dga.failureReasons.filter(fr => fr.outcome !== null).length
 
       return {
-        ...caseItem,
-        reportStatus: getDgaReportStatus(caseItem),
+        ..._case,
+        reportStatus: getDgaReportStatus(_case),
         outcomesTotal,
-        outcomesCompleted
+        outcomesCompleted,
+        outcomesNotRecorded: outcomesTotal - outcomesCompleted
       }
     })
 
@@ -320,6 +330,12 @@ module.exports = router => {
       pagination,
       totalCases: casesForPoliceUnit.length
     })
+  })
+
+  // Clear search
+  router.get('/dga-reviews/:month/:policeUnitId/clear-search', (req, res) => {
+    delete req.session.data.dgaReviewsSearch
+    res.redirect(`/dga-reviews/${req.params.month}/${req.params.policeUnitId}`)
   })
 
   // Export cases for a specific police unit within a month
@@ -414,17 +430,17 @@ module.exports = router => {
     }
 
     // Add data rows - one row per failure reason
-    cases.forEach(caseItem => {
-      if (caseItem.dga && caseItem.dga.failureReasons && caseItem.dga.failureReasons.length > 0) {
-        caseItem.dga.failureReasons.forEach(failureReason => {
+    cases.forEach(_case => {
+      if (_case.dga && _case.dga.failureReasons && _case.dga.failureReasons.length > 0) {
+        _case.dga.failureReasons.forEach(failureReason => {
           const outcomeText = failureReason.outcome || 'In progress'
 
           worksheet.addRow({
-            urn: caseItem.reference,
-            caseworkType: caseItem.type || '',
-            unit: caseItem.unit?.name || '',
-            policeUnitName: caseItem.policeUnit?.name || '',
-            policeUnit: caseItem.policeUnitId || '',
+            urn: _case.reference,
+            caseworkType: _case.type || '',
+            unit: _case.unit?.name || '',
+            policeUnitName: _case.policeUnit?.name || '',
+            policeUnit: _case.policeUnitId || '',
             reviewingGroup: '',
             reviewTypeAll: '',
             review: '',

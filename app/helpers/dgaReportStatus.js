@@ -16,15 +16,15 @@ function getCompletionStatus(completedCount, totalCount) {
 
 /**
  * Calculate the report status based on DGA failure reasons' outcomes
- * @param {Object} caseItem - Case object with dga.failureReasons array
+ * @param {Object} _case - Case object with dga.failureReasons array
  * @returns {string} - 'Completed', 'In progress', or 'Not started'
  */
-function getDgaReportStatus(caseItem) {
-  if (!caseItem?.dga?.failureReasons || caseItem.dga.failureReasons.length === 0) {
+function getDgaReportStatus(_case) {
+  if (!_case?.dga?.failureReasons || _case.dga.failureReasons.length === 0) {
     return getCompletionStatus(0, 0)
   }
 
-  const failureReasons = caseItem.dga.failureReasons
+  const failureReasons = _case.dga.failureReasons
   const totalReasons = failureReasons.length
   const completedReasons = failureReasons.filter(fr => fr.outcome !== null).length
 

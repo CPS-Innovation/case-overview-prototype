@@ -32,7 +32,7 @@
             {{ govukTag({
               text: policeUnit.status,
               classes: policeUnit.status | completionStatusTagClass
-            }) }}
+            }) if 1==2}}
           </h2>
 
           <div class="govuk-button-group govuk-!-margin-bottom-1">
@@ -67,7 +67,7 @@
           }) }}
 
           {% if policeUnit.status != "Completed" %}
-            <p>You need to record dispute outcomes for {{ policeUnit.casesNeedingOutcomes }} out of {{ policeUnit.nonCompliantCases }}  cases.</p>
+            <p>You need to record dispute outcomes for {{ policeUnit.casesNeedingOutcomes }} {{ "case" if policeUnit.casesNeedingOutcomes == 1 else "cases" }}.</p>
             {{ govukButton({
               text: "Record dispute outcomes",
               href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
@@ -77,7 +77,9 @@
               classes: 'govuk-button--secondary',
               text: "Update dispute outcomes",
               href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
-            }) }}
+            }) if 1==2}}
+
+            <p><a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link">Update dispute outcomes</a></p>
           {% endif %}
         
         </div>

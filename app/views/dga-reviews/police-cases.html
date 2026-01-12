@@ -29,23 +29,46 @@
       <span class="govuk-caption-l">{{ policeUnitName }}</span>
       <h1 class="govuk-heading-l">{{ pageName }} ({{ totalCases }})</h1>
 
+      {% include "_includes/dga-reviews/search-form.njk" %}
+
       <div class="app-list">
-        {% for caseItem in cases %}
+        {% for _case in cases %}
         <div class="app-list__item">
           <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
             <div>
-              <a href="/dga-reviews/{{ monthKey }}/{{ policeUnitId }}/{{ caseItem.id }}" class="govuk-link--no-visited-state">
-                {{ caseItem.reference }}
+              <a href="/dga-reviews/{{ monthKey }}/{{ policeUnitId }}/{{ _case.id }}" class="govuk-link--no-visited-state">
+                {{ _case.reference }}
               </a>
             </div>
             <div class="app-list__tag">
               {{ govukTag({
-                text: caseItem.reportStatus,
-                classes: caseItem.reportStatus | completionStatusTagClass
+                text: _case.reportStatus,
+                classes: _case.reportStatus | completionStatusTagClass
               }) }}
             </div>
           </h2>
-          <p class="govuk-body govuk-!-margin-bottom-0">{{ caseItem.outcomesCompleted }} of {{ caseItem.outcomesTotal }} dispute outcome{{ "s" if caseItem.outcomesTotal != 1 }} recorded</p>
+
+          {{ govukSummaryList({
+            classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
+            rows: [
+              {
+                key: {
+                  text: "Total disputes"
+                },
+                value: {
+                  text: _case.outcomesTotal
+                }
+              },
+              {
+                key: {
+                  text: "Disputes without outcomes"
+                },
+                value: {
+                  text: _case.outcomesNotRecorded
+                }
+              }
+            ]
+          }) }}
         </div>
         {% endfor %}
       </div>
