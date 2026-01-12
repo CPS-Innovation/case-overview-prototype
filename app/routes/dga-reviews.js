@@ -45,6 +45,7 @@ module.exports = router => {
           name: monthName,
           deadline: _case.dga.recordDisputeOutcomesDeadline,
           totalCases: 0,
+          compliantCases: 0,
           nonCompliantCases: 0,
           completedCases: 0,
           date: date
@@ -62,6 +63,8 @@ module.exports = router => {
         if (allCompleted) {
           monthData.completedCases++
         }
+      } else {
+        monthData.compliantCases++
       }
     })
 

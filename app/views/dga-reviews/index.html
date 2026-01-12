@@ -28,8 +28,43 @@
                 </div>
               </h2>
               {% if month.status != "Completed" %}
-                <p class="govuk-body govuk-!-margin-bottom-0">{{ month.completedCases }} out of {{ month.totalCases }} cases have recorded decisions.</p>
-                <p class="govuk-body govuk-!-margin-top-1 govuk-!-margin-bottom-0">Record decisions by {{ month.deadline | isoDateString | govukDateTime }}.</p>
+                {{ govukSummaryList({
+                  classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
+                  rows: [
+                    {
+                      key: {
+                        text: "Deadline"
+                      },
+                      value: {
+                        text: month.deadline | isoDateString | govukDateTime
+                      }
+                    },
+                    {
+                      key: {
+                        text: "Total cases"
+                      },
+                      value: {
+                        text: month.totalCases
+                      }
+                    }, 
+                    {
+                      key: {
+                        text: "Compliant cases"
+                      },
+                      value: {
+                        text: month.compliantCases
+                      }
+                    },
+                    {
+                      key: {
+                        text: "Non-compliant cases"
+                      },
+                      value: {
+                        text: month.nonCompliantCases
+                      }
+                    }                    
+                  ]
+                }) }}
               {% endif %}
             </div>
           {% endfor %}
