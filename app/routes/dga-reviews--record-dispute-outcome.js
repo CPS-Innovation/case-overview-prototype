@@ -239,7 +239,7 @@ module.exports = router => {
         model: 'DGAFailureReason',
         recordId: failureReasonId,
         action: 'UPDATE',
-        title: 'DGA dispute outcome recorded',
+        title: 'DGA outcome recorded',
         caseId: caseId,
         meta: meta
       }
@@ -247,7 +247,7 @@ module.exports = router => {
 
     delete req.session.data.recordOutcome
 
-    req.flash('success', 'Dispute outcome recorded')
+    req.flash('success', 'Outcome recorded')
 
     res.redirect(`/dga-reviews/${monthKey}/${policeUnitId}/${caseId}`)
   })

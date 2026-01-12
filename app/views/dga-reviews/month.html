@@ -23,7 +23,7 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">{{ pageName }}</h1>     
-      <p>You must record dispute outcomes by {{ deadline | isoDateString | govukDateTime }}.</p>
+      <p>You must record outcomes by {{ deadline | isoDateString | govukDateTime }}.</p>
       
       {% for policeUnit in policeUnits %}
         <div class="app-dga-police-unit govuk-!-margin-top-7 govuk-!-margin-bottom-9">
@@ -67,19 +67,19 @@
           }) }}
 
           {% if policeUnit.status != "Completed" %}
-            <p>You need to record dispute outcomes for {{ policeUnit.casesNeedingOutcomes }} {{ "case" if policeUnit.casesNeedingOutcomes == 1 else "cases" }}.</p>
+            <p>You need to record outcomes for {{ policeUnit.casesNeedingOutcomes }} {{ "case" if policeUnit.casesNeedingOutcomes == 1 else "cases" }}.</p>
             {{ govukButton({
-              text: "Record dispute outcomes",
+              text: "Record outcomes",
               href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
             }) }}
           {% else %}
             {{ govukButton({
               classes: 'govuk-button--secondary',
-              text: "Update dispute outcomes",
+              text: "Update outcomes",
               href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
             }) if 1==2}}
 
-            <p><a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link">Update dispute outcomes</a></p>
+            <p><a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link">Update outcomes</a></p>
           {% endif %}
         
         </div>

@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'Record dispute outcome' %}
+{% set pageName = 'Record outcome' %}
 
 {% block beforeContent %}
   {{ govukBackLink({
@@ -27,7 +27,7 @@
       name: "recordOutcome[outcome]",
       fieldset: {
         legend: {
-          text: "Dispute outcome",
+          text: "Outcome",
           classes: "govuk-fieldset__legend--m"
         }
       },

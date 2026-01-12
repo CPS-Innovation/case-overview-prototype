@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'Check details and record dispute outcome' %}
+{% set pageName = 'Check details and record outcome' %}
 
 {% set baseUrl = "/dga-reviews/" + monthKey + "/" + policeUnitId + "/" + case.id + "/" + failureReason.id + "/record-dispute-outcome" %}
 
@@ -38,24 +38,24 @@
         {{ govukSummaryList({
           rows: [
             {
-              key: { text: "Dispute outcome" },
+              key: { text: "Outcome" },
               value: { text: data.recordOutcome.outcome },
               actions: {
                 items: [{
                   href: baseUrl,
                   text: "Change",
-                  visuallyHiddenText: "dispute outcome"
+                  visuallyHiddenText: "outcome"
                 }]
               }
             },
             {
-              key: { text: "Reason for dispute outcome" },
+              key: { text: "Reason for outcome" },
               value: { text: data.recordOutcome.explanation },
               actions: {
                 items: [{
                   href: baseUrl + "/explanation",
                   text: "Change",
-                  visuallyHiddenText: "reason for dispute outcome"
+                  visuallyHiddenText: "reason for outcome"
                 }]
               }
             } if data.recordOutcome.outcome != "Not disputed",
@@ -75,7 +75,7 @@
 
         <form method="post">
           {{ govukButton({
-            text: "Record dispute outcome"
+            text: "Record outcome"
           }) }}
         </form>
 
