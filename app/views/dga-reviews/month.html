@@ -41,6 +41,7 @@
           </div>
           
           {{ govukSummaryList({
+            classes: 'app-summary-list--wide-actions',
             rows: [
               {
                 key: { text: "Total cases" },
@@ -61,17 +62,26 @@
               },
               {
                 key: { text: "Non-compliant cases" },
-                value: { text: policeUnit.nonCompliantCases }
+                value: { text: policeUnit.nonCompliantCases },
+                actions: {
+                  items: [
+                    {
+                      href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id),
+                      text: "Record outcomes" if policeUnit.status != "Completed" else "Update outcomes",
+                      visuallyHiddenText: policeUnit.name
+                    }
+                  ]
+                }
               }
             ]
           }) }}
 
           {% if policeUnit.status != "Completed" %}
             {# <p>You need to record outcomes for {{ policeUnit.casesNeedingOutcomes }} {{ "case" if policeUnit.casesNeedingOutcomes == 1 else "cases" }}.</p> #}
-            {{ govukButton({
+            {# {{ govukButton({
               text: "Record outcomes",
               href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
-            }) }}
+            }) }} #}
           {% else %}
             {{ govukButton({
               classes: 'govuk-button--secondary',
@@ -79,7 +89,7 @@
               href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id)
             }) if 1==2}}
 
-            <p><a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link">Update outcomes</a></p>
+            {# <p><a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link">Update outcomes</a></p> #}
           {% endif %}
         
         </div>

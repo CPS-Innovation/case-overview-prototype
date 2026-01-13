@@ -76,3 +76,9 @@
 		@include govuk-font(16);
 	}
 }
+
+.app-summary-list--wide-actions {
+	.govuk-summary-list__actions {
+		width: 25%;
+	}
+}
