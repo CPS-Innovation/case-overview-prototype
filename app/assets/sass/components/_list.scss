@@ -48,6 +48,27 @@
 	}
 }
 
+.app-list--with-checkboxes {
+	.app-list__item {
+		display: flex;
+		gap: govuk-spacing(2);
+		align-items: flex-start;
+	}
+}
+
+.app-list__checkbox {
+	// flex-shrink: 0;
+	margin-top: -5px;
+
+	.govuk-checkboxes__label {
+		padding: 0 !important;
+	}
+}
+
+.app-list__content {
+	flex: 1;
+	min-width: 0;
+}
 
 .govuk-tag {
 	white-space: nowrap;
