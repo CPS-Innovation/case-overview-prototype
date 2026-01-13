@@ -144,7 +144,7 @@
                 visuallyHiddenText: "if you want to change the area"
               }]
             }
-          } if data.transferCase == "Yes" and data.changeArea,
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.changeArea,
           {
             key: { text: "Area" },
             value: { text: data.area },
@@ -155,7 +155,7 @@
                 visuallyHiddenText: "area"
               }]
             }
-          } if data.transferCase == "Yes" and data.changeArea == "Yes" and data.area,
+          } if data.decision == "Accept" and data.transferCase == "Yes" and data.changeArea == "Yes" and data.area,
           {
             key: { text: "Unit" },
             value: { text: unitName },
@@ -166,7 +166,7 @@
                 visuallyHiddenText: "unit"
               }]
             }
-          } if data.transferCase == "Yes",
+          } if data.decision == "Accept" and data.transferCase == "Yes",
           {
             key: { text: "Who do you want to assign the 'early advice manager triage' task to?" },
             value: { text: taskOwnerName },
