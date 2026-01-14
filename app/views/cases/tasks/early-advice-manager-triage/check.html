@@ -22,10 +22,10 @@
 
       {# Prosecutor value lookup (Accept flow) #}
       {% set prosecutorValue = "" %}
-      {% if data.prosecutorId %}
-        {% set prosecutorId = data.prosecutorId | int %}
+      {% if data.prosecutor %}
+        {% set selectedProsecutorId = data.prosecutor | int %}
         {% for prosecutor in prosecutors %}
-          {% if prosecutor.id == prosecutorId %}
+          {% if prosecutor.id == selectedProsecutorId %}
             {% set prosecutorValue = prosecutor.firstName + " " + prosecutor.lastName %}
           {% endif %}
         {% endfor %}
@@ -70,7 +70,7 @@
                 visuallyHiddenText: "prosecutor"
               }]
             }
-          } if data.decision == "Accept" and data.prosecutorId,
+          } if data.decision == "Accept" and data.prosecutor,
           {
             key: { text: "Reasons for rejection" },
             value: { html: reasonsHtml },

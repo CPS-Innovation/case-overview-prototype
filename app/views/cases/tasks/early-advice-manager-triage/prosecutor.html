@@ -16,8 +16,8 @@
       <span class="govuk-caption-l">{{caption}}</span>
       <form method="post">
         {{ xGovukAutocomplete({
-          id: "prosecutorId",
-          name: "completeEarlyAdviceManagerTriage[prosecutorId]",
+          id: "prosecutor",
+          name: "completeEarlyAdviceManagerTriage[prosecutor]",
           allowEmpty: false,
           showAllValues: true,
           label: {
@@ -25,7 +25,7 @@
             isPageHeading: true,
             classes: "govuk-label--l"
           },
-          value: data.completeEarlyAdviceManagerTriage.prosecutorId,
+          value: data.completeEarlyAdviceManagerTriage.prosecutor,
           items: prosecutorItems
         }) }}
 

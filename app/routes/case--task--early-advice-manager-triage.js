@@ -2,11 +2,31 @@ const _ = require('lodash')
 const { DateTime } = require('luxon')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const { handlePost } = require('../helpers/form-flow')
+
+const FLOW = {
+  name: 'early-advice-manager-triage',
+  sessionKey: 'completeEarlyAdviceManagerTriage',
+  collects: {
+    '': ['decision'],
+    'prosecutor': ['prosecutor'],
+    'reasons-for-rejection': ['rejectionReasons', 'rejectionDetails'],
+    'police-response-date': ['policeResponseDate'],
+    'create-reminder-task': ['createReminderTask', 'reminderDueDate'],
+  },
+  requires: [
+    { field: 'decision' },
+    { field: 'prosecutor', when: { decision: 'Accept' } },
+    { field: 'rejectionReasons', when: { decision: 'Reject' } },
+    { field: 'policeResponseDate', when: { decision: 'Reject' } },
+    { field: 'createReminderTask', when: { decision: 'Reject' } },
+    { field: 'reminderDueDate', when: { decision: 'Reject', createReminderTask: 'Yes' } },
+  ]
+}
 
 module.exports = router => {
 
-  // Entry point - Decision page
-  router.get("/cases/:caseId/tasks/:taskId/early-advice-manager-triage", async (req, res) => {
+  router.get(`/cases/:caseId/tasks/:taskId/${FLOW.name}`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -18,25 +38,14 @@ module.exports = router => {
       }
     })
 
-    res.render("cases/tasks/early-advice-manager-triage/index", { task })
+    res.render(`cases/tasks/${FLOW.name}/index`, { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/early-advice-manager-triage", (req, res) => {
-    if (req.session.data.completeEarlyAdviceManagerTriage.decision === "Accept") {
-      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/early-advice-manager-triage/prosecutor`)
-    } else {
-      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/early-advice-manager-triage/reasons-for-rejection`)
-    }
+  router.post(`/cases/:caseId/tasks/:taskId/${FLOW.name}`, (req, res) => {
+    handlePost({ req, res, flow: FLOW })
   })
 
-  //
-  //
-  // Accept flow
-  //
-  //
-
-  // Prosecutor (shown for accept flow only)
-  router.get("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/prosecutor", async (req, res) => {
+  router.get(`/cases/:caseId/tasks/:taskId/${FLOW.name}/prosecutor`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -48,7 +57,6 @@ module.exports = router => {
       }
     })
 
-    // Filter prosecutors by case's current unit
     const prosecutors = await prisma.user.findMany({
       where: {
         role: 'Prosecutor',
@@ -67,20 +75,14 @@ module.exports = router => {
       text: `${prosecutor.firstName} ${prosecutor.lastName}`
     }))
 
-    res.render("cases/tasks/early-advice-manager-triage/prosecutor", { task, prosecutorItems })
+    res.render(`cases/tasks/${FLOW.name}/prosecutor`, { task, prosecutorItems })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/prosecutor", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/early-advice-manager-triage/check`)
+  router.post(`/cases/:caseId/tasks/:taskId/${FLOW.name}/prosecutor`, (req, res) => {
+    handlePost({ req, res, flow: FLOW })
   })
 
-  //
-  //
-  // Reject flow
-  //
-  //
-
-  router.get("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/reasons-for-rejection", async (req, res) => {
+  router.get(`/cases/:caseId/tasks/:taskId/${FLOW.name}/reasons-for-rejection`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -92,14 +94,14 @@ module.exports = router => {
       }
     })
 
-    res.render("cases/tasks/early-advice-manager-triage/reasons-for-rejection", { task })
+    res.render(`cases/tasks/${FLOW.name}/reasons-for-rejection`, { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/reasons-for-rejection", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/early-advice-manager-triage/police-response-date`)
+  router.post(`/cases/:caseId/tasks/:taskId/${FLOW.name}/reasons-for-rejection`, (req, res) => {
+    handlePost({ req, res, flow: FLOW })
   })
 
-  router.get("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/police-response-date", async (req, res) => {
+  router.get(`/cases/:caseId/tasks/:taskId/${FLOW.name}/police-response-date`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -111,14 +113,14 @@ module.exports = router => {
       }
     })
 
-    res.render("cases/tasks/early-advice-manager-triage/police-response-date", { task })
+    res.render(`cases/tasks/${FLOW.name}/police-response-date`, { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/police-response-date", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/early-advice-manager-triage/create-reminder-task`)
+  router.post(`/cases/:caseId/tasks/:taskId/${FLOW.name}/police-response-date`, (req, res) => {
+    handlePost({ req, res, flow: FLOW })
   })
 
-  router.get("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/create-reminder-task", async (req, res) => {
+  router.get(`/cases/:caseId/tasks/:taskId/${FLOW.name}/create-reminder-task`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -130,20 +132,14 @@ module.exports = router => {
       }
     })
 
-    res.render("cases/tasks/early-advice-manager-triage/create-reminder-task", { task })
+    res.render(`cases/tasks/${FLOW.name}/create-reminder-task`, { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/create-reminder-task", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/early-advice-manager-triage/check`)
+  router.post(`/cases/:caseId/tasks/:taskId/${FLOW.name}/create-reminder-task`, (req, res) => {
+    handlePost({ req, res, flow: FLOW })
   })
 
-  //
-  //
-  // All routes lead to here
-  //
-  //
-
-  router.get("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/check", async (req, res) => {
+  router.get(`/cases/:caseId/tasks/:taskId/${FLOW.name}/check`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -156,9 +152,8 @@ module.exports = router => {
       }
     })
 
-    const data = _.get(req, 'session.data.completeEarlyAdviceManagerTriage')
+    const data = _.get(req, `session.data.${FLOW.sessionKey}`)
 
-    // Load prosecutors for display on check answers page
     const prosecutors = await prisma.user.findMany({
       where: { role: 'Prosecutor' },
       orderBy: [
@@ -167,22 +162,20 @@ module.exports = router => {
       ]
     })
 
-    res.render("cases/tasks/early-advice-manager-triage/check", { task, data, prosecutors })
+    res.render(`cases/tasks/${FLOW.name}/check`, { task, data, prosecutors })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/early-advice-manager-triage/check", async (req, res) => {
+  router.post(`/cases/:caseId/tasks/:taskId/${FLOW.name}/check`, async (req, res) => {
     const taskId = parseInt(req.params.taskId)
     const caseId = parseInt(req.params.caseId)
 
-    const data = _.get(req, 'session.data.completeEarlyAdviceManagerTriage')
+    const data = _.get(req, `session.data.${FLOW.sessionKey}`)
 
-    // Update task as completed
     const task = await prisma.task.update({
       where: { id: taskId },
       data: { completedDate: new Date() }
     })
 
-    // Build activity log meta
     const activityLogMeta = {
       task: {
         id: task.id,
@@ -192,12 +185,10 @@ module.exports = router => {
       decision: data.decision
     }
 
-    // Add accept-specific data if decision was Accept
     if (data.decision === 'Accept') {
-      if (data.prosecutorId) {
-        // Resolve prosecutor name
+      if (data.prosecutor) {
         const prosecutor = await prisma.user.findUnique({
-          where: { id: parseInt(data.prosecutorId) }
+          where: { id: parseInt(data.prosecutor) }
         })
         activityLogMeta.prosecutor = prosecutor ? {
           id: prosecutor.id,
@@ -205,22 +196,19 @@ module.exports = router => {
           lastName: prosecutor.lastName
         } : null
 
-        // Create CaseProsecutor record to assign prosecutor to case
         await prisma.caseProsecutor.create({
           data: {
             caseId: caseId,
-            userId: parseInt(data.prosecutorId)
+            userId: parseInt(data.prosecutor)
           }
         })
       }
     }
 
-    // Add rejection-specific data if decision was Reject
     if (data.decision === 'Reject') {
       activityLogMeta.rejectionReasons = data.rejectionReasons || []
       activityLogMeta.rejectionDetails = data.rejectionDetails || {}
 
-      // Convert police response date to ISO string if exists
       if (data.policeResponseDate?.day && data.policeResponseDate?.month && data.policeResponseDate?.year) {
         activityLogMeta.policeResponseDate = DateTime.fromObject({
           day: parseInt(data.policeResponseDate.day),
@@ -231,7 +219,6 @@ module.exports = router => {
 
       activityLogMeta.createReminderTask = data.createReminderTask || 'No'
 
-      // Convert reminder due date to ISO string if exists
       if (data.createReminderTask === 'Yes' && data.reminderDueDate?.day && data.reminderDueDate?.month && data.reminderDueDate?.year) {
         activityLogMeta.reminderDueDate = DateTime.fromObject({
           day: parseInt(data.reminderDueDate.day),
@@ -241,7 +228,6 @@ module.exports = router => {
       }
     }
 
-    // Create activity log entry
     await prisma.activityLog.create({
       data: {
         userId: req.session.data.user.id,
@@ -254,7 +240,7 @@ module.exports = router => {
       }
     })
 
-    delete req.session.data.completeEarlyAdviceManagerTriage
+    delete req.session.data[FLOW.sessionKey]
 
     req.flash('success', 'Task completed')
     res.redirect(`/cases/${caseId}/tasks`)
