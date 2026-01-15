@@ -159,7 +159,7 @@
               items: [{
                 href: '/cases/:caseId/tasks/:taskId/priority-pcd-review/action-plan-date' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
-                visuallyHiddenText: "Date the police should respond by"
+                visuallyHiddenText: "date the police should respond by"
               }]
             }
           } if (data.decision == "NFS non-compliant" or data.decision == "Priority / Red rejection") and data.policeResponseDate and data.policeResponseDate.day and data.policeResponseDate.month and data.policeResponseDate.year

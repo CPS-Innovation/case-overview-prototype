@@ -196,7 +196,7 @@
               items: [{
                 href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/police-response-date' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
-                visuallyHiddenText: "Date the police should respond by"
+                visuallyHiddenText: "date the police should respond by"
               }]
             }
           } if data.decision == "Reject" and data.policeResponseDate and data.policeResponseDate.day and data.policeResponseDate.month and data.policeResponseDate.year,
@@ -218,7 +218,7 @@
               items: [{
                 href: '/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task' | replace(':caseId', task.case.id) | replace(':taskId', task.id),
                 text: "Change",
-                visuallyHiddenText: "Date you’ll be reminded"
+                visuallyHiddenText: "date you’ll be reminded"
               }]
             }
           } if data.decision == "Reject" and data.createReminderTask == "Yes" and data.reminderDueDate and data.reminderDueDate.day and data.reminderDueDate.month and data.reminderDueDate.year
