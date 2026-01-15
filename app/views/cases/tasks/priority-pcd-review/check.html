@@ -19,9 +19,9 @@
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
       {% set unitName = "" %}
-      {% if data.unitId %}
+      {% if data.unit %}
         {% for unit in units %}
-          {% if unit.id == data.unitId %}
+          {% if unit.id == data.unit %}
             {% set unitName = unit.name %}
           {% endif %}
         {% endfor %}
@@ -151,7 +151,7 @@
                 visuallyHiddenText: "unit"
               }]
             }
-          } if data.cpsd == "No" and data.transferCase == "Yes" and data.unitId,
+          } if data.cpsd == "No" and data.transferCase == "Yes" and data.unit,
           {
             key: { text: "Date the police should respond by" },
             value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },

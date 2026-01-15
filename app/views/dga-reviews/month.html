@@ -49,7 +49,7 @@
                 actions: {
                   items: [
                     {
-                      href: "/dga-reviews/:month/:policeUnitId" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id),
+                      href: "/dga-reviews/:month/:policeUnitId/export" | replace(":month", monthKey) | replace(":policeUnitId", policeUnit.id),
                       text: "Export",
                       visuallyHiddenText: policeUnit.name
                     }
@@ -75,6 +75,21 @@
               }
             ]
           }) }}
+
+          {# <p>First you need to export:</p>
+
+          {{ govukButton({
+            text: "Export all cases"
+          }) }}
+
+          <p>Once you have received the spreadsheet of outcomes, record them here:</p>
+
+          {{ govukButton({
+            text: "Record outcomes"
+          }) }} #}
+          
+
+
 
           {% if policeUnit.status != "Completed" %}
             {# <p>You need to record outcomes for {{ policeUnit.casesNeedingOutcomes }} {{ "case" if policeUnit.casesNeedingOutcomes == 1 else "cases" }}.</p> #}

@@ -16,7 +16,7 @@ const flow = {
     'cpsd': ['cpsd'],
     'transfer-case': ['transferCase'],
     'area': ['changeArea', 'area'],
-    'unit': ['unitId'],
+    'unit': ['unit'],
     'action-plan-date': ['policeResponseDate'],
   },
   requires: [
@@ -27,14 +27,13 @@ const flow = {
     { field: 'cpsd' },
     { field: 'transferCase', when: { decision: 'NFS compliant', cpsd: 'No' } },
     { field: 'changeArea', when: { decision: 'NFS compliant', cpsd: 'No', transferCase: 'Yes' } },
-    { field: 'unitId', when: { decision: 'NFS compliant', cpsd: 'No', transferCase: 'Yes' } },
+    { field: 'unit', when: { decision: 'NFS compliant', cpsd: 'No', transferCase: 'Yes' } },
     { field: 'policeResponseDate', when: { decision: { either: ['NFS non-compliant', 'Priority / Red rejection'] } } },
   ]
 }
 
 module.exports = router => {
 
-  // POST handlers for form steps
   router.post(`/cases/:caseId/tasks/:taskId/${flow.name}`, (req, res) => {
     handlePost({ req, res, flow })
   })
@@ -71,7 +70,6 @@ module.exports = router => {
     handlePost({ req, res, flow })
   })
 
-  // GET: Decision (index page)
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -87,7 +85,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/index", { task })
   })
 
-  // GET: Case type
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/case-type`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -103,7 +100,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/case-type", { task })
   })
 
-  // GET: NFS non-compliant reasons
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/nfs-reasons`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -119,7 +115,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/nfs-reasons", { task })
   })
 
-  // GET: Priority rejection reasons
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/priority-reasons`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -135,7 +130,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/priority-reasons", { task })
   })
 
-  // GET: CPSD
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/cpsd`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -151,7 +145,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/cpsd", { task })
   })
 
-  // GET: Transfer case
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/transfer-case`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -168,7 +161,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/transfer-case", { task })
   })
 
-  // GET: Area
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/area`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -200,7 +192,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/area", { task, areaItems, area: currentAreaName })
   })
 
-  // GET: Unit
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/unit`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -237,7 +228,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/unit", { task, unitItems })
   })
 
-  // GET: Action plan date
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/action-plan-date`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -253,7 +243,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/action-plan-date", { task })
   })
 
-  // GET: Check answers
   router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/check`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
@@ -277,7 +266,6 @@ module.exports = router => {
     res.render("cases/tasks/priority-pcd-review/check", { task, data, units })
   })
 
-  // POST: Check answers - completion handler
   router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/check`, async (req, res) => {
     const taskId = parseInt(req.params.taskId)
     const caseId = parseInt(req.params.caseId)
@@ -352,10 +340,10 @@ module.exports = router => {
         if (data.area) {
           activityLogMeta.area = data.area
         }
-        if (data.unitId) {
+        if (data.unit) {
           // Resolve unit name
           const unit = await prisma.unit.findUnique({
-            where: { id: parseInt(data.unitId) }
+            where: { id: parseInt(data.unit) }
           })
           activityLogMeta.unit = unit ? { id: unit.id, name: unit.name } : null
         }

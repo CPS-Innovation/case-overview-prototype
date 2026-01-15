@@ -28,8 +28,8 @@
 
       <form method="post">
         {{ xGovukAutocomplete({
-          id: "unitId",
-          name: "completePriorityPcdReview[unitId]",
+          id: "unit",
+          name: "completePriorityPcdReview[unit]",
           allowEmpty: false,
           showAllValues: true,
           label: {
@@ -37,7 +37,7 @@
             classes: "govuk-label--m"
           },
           items: unitItems,
-          value: data.completePriorityPcdReview.unitId
+          value: data.completePriorityPcdReview.unit
         }) }}
 
         {{ govukButton({

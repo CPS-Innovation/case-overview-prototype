@@ -3,10 +3,89 @@ const { DateTime } = require('luxon')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const { getAreaForUnit, getAllAreas, getUnitsForArea } = require('../helpers/unitAreaMapping')
+const { handlePost } = require('../helpers/form-flow')
+
+const flow = {
+  name: 'check-new-pcd-case',
+  sessionKey: 'completeCheckNewPcdCase',
+  collects: {
+    '': ['decision'],
+    'reasons-for-rejection': ['rejectionReasons', 'rejectionDetails'],
+    'review-task-type': ['reviewTaskType'],
+    'case-type': ['caseType'],
+    'transfer-case': ['transferCase'],
+    'area': ['changeArea', 'area'],
+    'unit': ['unitId'],
+    'task-owner': ['taskOwner'],
+    'prosecutor': ['prosecutorId'],
+    'police-response-date': ['policeResponseDate'],
+    'create-reminder-task': ['createReminderTask', 'reminderDueDate'],
+  },
+  requires: [
+    { field: 'decision' },
+    { field: 'rejectionReasons', when: { decision: 'Reject' } },
+    { field: 'reviewTaskType' },
+    { field: 'caseType' },
+    { field: 'transferCase', when: { decision: 'Accept' } },
+    { field: 'changeArea', when: { decision: 'Accept', transferCase: 'Yes' } },
+    { field: 'unitId', when: { decision: 'Accept', transferCase: 'Yes' } },
+    { field: 'taskOwner', when: { decision: 'Accept', reviewTaskType: 'Early advice', caseType: 'RASSO' } },
+    { field: 'prosecutorId', when: { decision: 'Accept', reviewTaskType: 'Early advice', caseType: { not: 'RASSO' } } },
+    { field: 'policeResponseDate', when: { decision: 'Reject' } },
+    { field: 'createReminderTask', when: { decision: 'Reject' } },
+    { field: 'reminderDueDate', when: { decision: 'Reject', createReminderTask: 'Yes' } },
+  ]
+}
 
 module.exports = router => {
-  
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case", async (req, res) => {
+
+  // POST handlers for form steps
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/reasons-for-rejection`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/review-task-type`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/case-type`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/transfer-case`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/area`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/unit`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/task-owner`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/prosecutor`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/police-response-date`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/create-reminder-task`, (req, res) => {
+    handlePost({ req, res, flow })
+  })
+
+  // GET: Decision (index page)
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -21,21 +100,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/index", { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case", (req, res) => {
-    if (req.session.data.completeCheckNewPcdCase.decision === "Accept") {
-      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/review-task-type`)
-    } else {
-      res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/reasons-for-rejection`)
-    }
-  })
-
-  // 
-  //
-  // Accept flow
-  //
-  //
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", async (req, res) => {
+  // GET: Review task type
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/review-task-type`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -50,11 +116,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/review-task-type", { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/review-task-type", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/case-type`)
-  })
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case", async (req, res) => {
+  // GET: Transfer case
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/transfer-case`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -70,31 +133,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/transfer-case", { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/transfer-case", (req, res) => {
-    const caseId = req.params.caseId
-    const taskId = req.params.taskId
-    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
-
-    // If transferring then go to area
-    if (data.transferCase === "Yes") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/area`)
-    } else {
-      // If Early Advice + RASSO => task owner flow
-      if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
-        res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/task-owner`)
-      }
-      // If Early Advice + NOT RASSO => prosecutor flow
-      else if (data.reviewTaskType === "Early advice") {
-        res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/prosecutor`)
-      }
-      // Otherwise => skip to check answers
-      else {
-        res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
-      }
-    }
-  })
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/area", async (req, res) => {
+  // GET: Area
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/area`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -125,11 +165,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/area", { task, areaItems, area: currentAreaName })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/area", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/unit`)
-  })
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/unit", async (req, res) => {
+  // GET: Unit
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/unit`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -165,26 +202,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/unit", { task, unitItems })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/unit", (req, res) => {
-    const caseId = req.params.caseId
-    const taskId = req.params.taskId
-    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
-
-    // Accept + Early advice + RASSO => task owner
-    if (data.reviewTaskType === "Early advice" && data.caseType === "RASSO") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/task-owner`)
-    }
-    // Accept + Early advice + NOT RASSO => prosecutor
-    else if (data.reviewTaskType === "Early advice") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/prosecutor`)
-    }
-    // Accept + NOT Early advice (within 5/28 calendar days)
-    else {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/check`)
-    }
-  })
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/case-type", async (req, res) => {
+  // GET: Case type
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/case-type`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -199,20 +218,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/case-type", { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/case-type", (req, res) => {
-    const caseId = req.params.caseId
-    const taskId = req.params.taskId
-    const data = _.get(req, 'session.data.completeCheckNewPcdCase')
-
-    if (data.decision === "Reject") {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/police-response-date`)
-    } else {
-      res.redirect(`/cases/${caseId}/tasks/${taskId}/check-new-pcd-case/transfer-case`)
-    }
-  })
-
-  // Task owner (shown for both individual and team in RASSO flow)
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/task-owner", async (req, res) => {
+  // GET: Task owner
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/task-owner`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -276,12 +283,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/task-owner", { task, ownerItems })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/task-owner", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/check`)
-  })
-
-  // Prosecutor (shown for early advice if not transferring OR if transferring but not RASSO)
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/prosecutor", async (req, res) => {
+  // GET: Prosecutor
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/prosecutor`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -321,17 +324,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/prosecutor", { task, prosecutorItems })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/prosecutor", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/check`)
-  })
-
-  //
-  // 
-  // Reject flow
-  //
-  //
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection", async (req, res) => {
+  // GET: Reasons for rejection
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/reasons-for-rejection`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -346,11 +340,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/reasons-for-rejection", { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/reasons-for-rejection", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/review-task-type`)
-  })
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/police-response-date", async (req, res) => {
+  // GET: Police response date
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/police-response-date`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -365,11 +356,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/police-response-date", { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/police-response-date", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/create-reminder-task`)
-  })
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task", async (req, res) => {
+  // GET: Create reminder task
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/create-reminder-task`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -384,17 +372,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/create-reminder-task", { task })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/create-reminder-task", (req, res) => {
-    res.redirect(`/cases/${req.params.caseId}/tasks/${req.params.taskId}/check-new-pcd-case/check`)
-  })
-
-  //
-  //
-  // All routes lead to here
-  //
-  //
-
-  router.get("/cases/:caseId/tasks/:taskId/check-new-pcd-case/check", async (req, res) => {
+  // GET: Check answers
+  router.get(`/cases/:caseId/tasks/:taskId/${flow.name}/check`, async (req, res) => {
     const task = await prisma.task.findUnique({
       where: { id: parseInt(req.params.taskId) },
       include: {
@@ -439,7 +418,8 @@ module.exports = router => {
     res.render("cases/tasks/check-new-pcd-case/check", { task, data, units, users, teams, prosecutors })
   })
 
-  router.post("/cases/:caseId/tasks/:taskId/check-new-pcd-case/check", async (req, res) => {
+  // POST: Check answers - completion handler
+  router.post(`/cases/:caseId/tasks/:taskId/${flow.name}/check`, async (req, res) => {
     const taskId = parseInt(req.params.taskId)
     const caseId = parseInt(req.params.caseId)
 
