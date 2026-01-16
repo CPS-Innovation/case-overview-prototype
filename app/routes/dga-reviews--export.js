@@ -62,18 +62,8 @@ module.exports = router => {
     // Parse the month key
     const [year, month] = monthKey.split('-').map(Number)
 
-    if (!year || !month || month < 1 || month > 12) {
-      return res.redirect('/dga-reviews')
-    }
-
     // Get selected weeks
-    const selectedWeeks = req.body.weeks
-      ? (Array.isArray(req.body.weeks) ? req.body.weeks : [req.body.weeks])
-      : []
-
-    if (selectedWeeks.length === 0) {
-      return res.redirect(`/dga-reviews/${monthKey}/${policeUnitId}/export`)
-    }
+    const selectedWeeks = req.body.export.weeks
 
     // Build date ranges from selected weeks
     const weeks = getWeeksForMonth(year, month)
@@ -112,10 +102,6 @@ module.exports = router => {
         reference: 'asc'
       }
     })
-
-    if (cases.length === 0) {
-      return res.redirect(`/dga-reviews/${monthKey}`)
-    }
 
     // Get police unit name for filename
     const policeUnitName = cases[0].policeUnit?.name || 'unknown'
