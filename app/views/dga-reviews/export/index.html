@@ -1,0 +1,38 @@
+{% extends "layouts/main.html" %}
+{% set navId = 'cases' %}
+{% set secondaryNavId = 'dga' %}
+{% set pageName = 'Weeks to export' %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: "Back",
+    href: "/dga-reviews/" + monthKey
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <form method="post">
+      <span class="govuk-caption-l">{{ policeUnit.name }}</span>
+      {{ govukCheckboxes({
+        name: "weeks",
+        fieldset: {
+          legend: {
+            text: pageName,
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--l"
+          }
+        },
+        items: weekItems
+      }) }}
+
+      {{ govukButton({
+        text: "Export"
+      }) }}
+    </form>
+
+    <p><a href="/dga-reviews/{{monthKey}}" class="govuk-link">Return to {{monthName}}</a></p>
+  </div>
+</div>
+{% endblock %}
