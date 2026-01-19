@@ -160,7 +160,6 @@ async function seedDefendants(prisma, defenceLawyers) {
   }
 
   await prisma.charge.createMany({ data: allChargesData });
-  console.log("✅ Defendants seeded");
 
   return defendants;
 }

@@ -32,7 +32,7 @@ const { getDefendantTimeLimitTypes } = require("./seed-helpers/defendant-time-li
 const { seedRachaelCases } = require("./seed-helpers/rachael-cases");
 const { seedSimonCases } = require("./seed-helpers/simon-cases");
 const { seedPriorityTasks } = require("./seed-helpers/priority-tasks");
-const { seedGuaranteedTasks } = require("./seed-helpers/guaranteed-tasks");
+const { seedOtherUsersTasks } = require("./seed-helpers/other-users-tasks");
 const { seedDGAMonths } = require("./seed-helpers/dga-months");
 const { seedGeneralCases } = require("./seed-helpers/general-cases");
 const { seedCaseNotes } = require("./seed-helpers/case-notes");
@@ -41,52 +41,90 @@ const { seedActivityLogs } = require("./seed-helpers/activity-logs");
 
 const prisma = new PrismaClient();
 
+let currentStep = '';
+
+function step(message) {
+  currentStep = message;
+  process.stdout.write(`  ${message}...`);
+}
+
+function done(count) {
+  const countSuffix = count !== undefined ? ` (${count})` : '';
+  process.stdout.write(`\r  ✅ ${currentStep}${countSuffix}\n`);
+}
+
 async function main() {
-  console.log("🌱 Starting seed...");
+  console.log("\n🌱 Seeding database\n");
 
-  // Seed: Areas
-  await seedAreas(prisma);
+  // ─────────────────────────────────────────────────────────────────
+  // Reference data
+  // ─────────────────────────────────────────────────────────────────
+  console.log("Reference data");
 
-  // Seed: Units
-  await seedUnits(prisma);
+  step("Areas");
+  const areasCount = await seedAreas(prisma);
+  done(areasCount);
 
-  // Seed: Teams
-  await seedTeams(prisma);
+  step("Units");
+  const unitsCount = await seedUnits(prisma);
+  done(unitsCount);
 
-  // Seed: Users
-  const users = await seedUsers(prisma);
+  step("Teams");
+  const teamsCount = await seedTeams(prisma);
+  done(teamsCount);
 
-  // Seed: Specialisms
-  await seedSpecialisms(prisma);
+  step("Specialisms");
+  const specialismsCount = await seedSpecialisms(prisma);
+  done(specialismsCount);
 
-  // Seed: Prosecutors (users with role="Prosecutor")
-  const prosecutors = await seedProsecutors(prisma);
-
-  // Seed: Defence lawyers
-  const defenceLawyers = await seedDefenceLawyers(prisma);
-
-  // Seed: Defendants
-  const defendants = await seedDefendants(prisma, defenceLawyers);
-
-  // Seed: Victims
-  const victims = await seedVictims(prisma);
-
-  // Seed: Police units
+  step("Police units");
   const policeUnits = await seedPoliceUnits(prisma);
+  done(policeUnits.length);
 
-  // Determine defendant time limit types for case grouping
+  step("Defence lawyers");
+  const defenceLawyers = await seedDefenceLawyers(prisma);
+  done(defenceLawyers.length);
+
+  // ─────────────────────────────────────────────────────────────────
+  // Users
+  // ─────────────────────────────────────────────────────────────────
+  console.log("\nUsers");
+
+  step("Users");
+  const users = await seedUsers(prisma);
+  done(users.length);
+
+  step("Prosecutors");
+  const prosecutors = await seedProsecutors(prisma);
+  done(prosecutors.length);
+
+  // ─────────────────────────────────────────────────────────────────
+  // People (defendants and victims)
+  // ─────────────────────────────────────────────────────────────────
+  console.log("\nPeople");
+
+  step("Defendants");
+  const defendants = await seedDefendants(prisma, defenceLawyers);
+  done(defendants.length);
+
+  step("Victims");
+  const victims = await seedVictims(prisma);
+  done(victims.length);
+
+  // ─────────────────────────────────────────────────────────────────
+  // Cases
+  // ─────────────────────────────────────────────────────────────────
+  console.log("\nCases");
+
   const defendantTimeLimitTypes = await getDefendantTimeLimitTypes(defendants, prisma);
-
-  // -------------------- Cases --------------------
-  const TOTAL_CASES = 1065;
-  const UNASSIGNED_TARGET = 7;
-
-  // Group defendants by their actual assigned time limit type
   const ctlDefendants = defendants.filter((_, index) => defendantTimeLimitTypes[index] === 'CTL');
   const stlDefendants = defendants.filter((_, index) => defendantTimeLimitTypes[index] === 'STL');
   const paceDefendants = defendants.filter((_, index) => defendantTimeLimitTypes[index] === 'PACE');
 
-  // Seed: General cases
+  const TOTAL_CASES = 1065;
+  const UNASSIGNED_TARGET = 7;
+
+  step("General cases");
   const createdCases = await seedGeneralCases(
     prisma,
     {
@@ -116,40 +154,59 @@ async function main() {
       taskNoteDescriptions
     }
   );
+  done(createdCases.length);
 
-  // Seed: DGA cases for September, October, November 2025 (specific for units 3 and 4)
-  await seedDGAMonths(prisma, defendants);
+  step("DGA cases");
+  const dgaCasesCount = await seedDGAMonths(prisma, defendants);
+  done(dgaCasesCount);
 
-  // Seed: guaranteed tasks
-  await seedGuaranteedTasks(prisma, users, taskNames);
-
-  // Seed: Priority tasks to make sure each user profile e.g. Rachael has priority tasks
-  await seedPriorityTasks(prisma, taskNames);
-
-  // Seed: Rachael Harvey's cases
-  await seedRachaelCases(
+  step("Rachael Harvey's cases");
+  const rachaelCasesCount = await seedRachaelCases(
     prisma,
     { defenceLawyers, victims },
     { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities }
   );
+  done(rachaelCasesCount);
 
-  // Seed: Simon Whatley's cases
-  await seedSimonCases(
+  step("Simon Whatley's cases");
+  const simonCasesCount = await seedSimonCases(
     prisma,
     { defenceLawyers, victims },
     { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities }
   );
+  done(simonCasesCount);
 
-  // Seed: Case notes
-  await seedCaseNotes(prisma, users);
+  // ─────────────────────────────────────────────────────────────────
+  // Tasks
+  // ─────────────────────────────────────────────────────────────────
+  console.log("\nTasks");
 
-  // Seed: Direction notes
-  await seedDirectionNotes(prisma, users);
+  step("Priority tasks");
+  const priorityTasksCount = await seedPriorityTasks(prisma, taskNames);
+  done(priorityTasksCount);
 
-  // Seed: Activity logs
-  await seedActivityLogs(prisma, createdCases, users);
+  step("Other users' tasks");
+  const { tasksCreated } = await seedOtherUsersTasks(prisma, users, taskNames);
+  done(tasksCreated);
 
-  console.log("🌱 Seed finished.");
+  // ─────────────────────────────────────────────────────────────────
+  // Activity
+  // ─────────────────────────────────────────────────────────────────
+  console.log("\nActivity");
+
+  step("Case notes");
+  const caseNotesCount = await seedCaseNotes(prisma, users);
+  done(caseNotesCount);
+
+  step("Direction notes");
+  const directionNotesCount = await seedDirectionNotes(prisma, users);
+  done(directionNotesCount);
+
+  step("Activity logs");
+  const activityLogsCount = await seedActivityLogs(prisma, createdCases, users);
+  done(activityLogsCount);
+
+  console.log("\n✅ Seed complete\n");
 }
 
 main()

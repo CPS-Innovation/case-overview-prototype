@@ -27,7 +27,7 @@ async function seedCaseNotes(prisma, users) {
     }
   }
 
-  console.log(`✅ Created ${caseNotesCreated} case notes across ${casesWithNotes} cases`);
+  return caseNotesCreated;
 }
 
 module.exports = {

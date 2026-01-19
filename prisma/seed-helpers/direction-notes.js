@@ -27,7 +27,7 @@ async function seedDirectionNotes(prisma, users) {
     }
   }
 
-  console.log(`✅ Created ${directionNotesCreated} direction notes across ${directionsWithNotes} directions`);
+  return directionNotesCreated;
 }
 
 module.exports = {

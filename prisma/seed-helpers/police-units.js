@@ -1,6 +1,4 @@
 async function seedPoliceUnits(prisma) {
-  console.log('Seeding police units...');
-
   const policeUnitNames = [
     'Metropolitan Police',
     'West Midlands Police',
@@ -25,7 +23,6 @@ async function seedPoliceUnits(prisma) {
     policeUnits.push(policeUnit);
   }
 
-  console.log(`✅ Created ${policeUnits.length} police units`);
   return policeUnits;
 }
 

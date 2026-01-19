@@ -41,11 +41,9 @@ async function seedUsers(prisma) {
     }))
   );
 
-  // Create all users in one batch
   const createdUsers = await prisma.user.createManyAndReturn({
     data: hashedUserData
   });
-  console.log(`✅ ${createdUsers.length} users seeded`);
 
   // Assign each user to 1-3 random units
   for (const user of createdUsers) {
@@ -75,7 +73,6 @@ async function seedUsers(prisma) {
       }))
     });
   }
-  console.log(`✅ Users assigned to units`);
 
   // Refetch users with their units included for later use
   const usersWithUnits = await prisma.user.findMany({

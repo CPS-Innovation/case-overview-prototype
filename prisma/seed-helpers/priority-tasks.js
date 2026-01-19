@@ -106,7 +106,7 @@ async function seedPriorityTasks(prisma, taskNames) {
     priorityTasksCreated++;
   }
 
-  console.log(`✅ Created ${priorityTasksCreated} priority PCD and urgent tasks for ${targetUsers.length} users`);
+  return priorityTasksCreated;
 }
 
 module.exports = {

@@ -1,60 +1,49 @@
 const { faker } = require('@faker-js/faker');
 const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates, generateEscalatedTaskDates } = require('./task-dates');
 
-// This seeds tasks for ALL users (~400), not just the main test users (Rachael, Simon, Tony).
-// This is needed because when signed in as Rachael/Simon, you can filter to see other users'
-// cases and tasks. Without this, those filters would return empty results.
+// Predefined users with their own dedicated seed files
+const USERS_WITH_DEDICATED_SEEDS = [
+  'rachael@cps.gov.uk',
+  'simon@cps.gov.uk'
+];
 
-async function seedGuaranteedTasks(prisma, users, taskNames) {
-  // Ensure each user (except Tony Stark) has tasks that are overdue, due today, and due tomorrow
-  const usersExcludingTony = users.filter(u => u.email !== 'tony@cps.gov.uk');
+// Seeds tasks for all users EXCEPT those with dedicated seed files (Rachael, Simon).
+// This ensures that when signed in as Rachael/Simon and filtering by other users,
+// those users have tasks to display (pending, due, overdue, escalated).
 
-  let guaranteedTasksCreated = 0;
+async function seedOtherUsersTasks(prisma, users, taskNames) {
+  const otherUsers = users.filter(u => !USERS_WITH_DEDICATED_SEEDS.includes(u.email));
 
-  for (const user of usersExcludingTony) {
-    // Get user's unit IDs
+  let tasksCreated = 0;
+  let usersProcessed = 0;
+
+  for (const user of otherUsers) {
     const userWithUnits = await prisma.user.findUnique({
       where: { id: user.id },
       include: { units: true }
     });
     const userUnitIds = userWithUnits.units.map(uu => uu.unitId);
 
-    // Find all cases where this user is a prosecutor or paralegal officer in their units
     const userCases = await prisma.case.findMany({
       where: {
         unitId: { in: userUnitIds },
         OR: [
-          {
-            prosecutors: {
-              some: {
-                userId: user.id
-              }
-            }
-          },
-          {
-            paralegalOfficers: {
-              some: {
-                userId: user.id
-              }
-            }
-          }
+          { prosecutors: { some: { userId: user.id } } },
+          { paralegalOfficers: { some: { userId: user.id } } }
         ]
       }
     });
 
-    // Skip if user has no cases in their units
     if (userCases.length === 0) continue;
 
-    // Pick a random case for these guaranteed tasks
     const targetCase = faker.helpers.arrayElement(userCases);
 
-    // Create 4 guaranteed tasks in each state: pending, due, overdue, escalated
     const pendingDates = generatePendingTaskDates();
     const dueDates = generateDueTaskDates();
     const overdueDates = generateOverdueTaskDates();
     const escalatedDates = generateEscalatedTaskDates();
 
-    const guaranteedTasks = [
+    const tasks = [
       {
         name: faker.helpers.arrayElement(taskNames),
         reminderType: null,
@@ -101,16 +90,15 @@ async function seedGuaranteedTasks(prisma, users, taskNames) {
       }
     ];
 
-    await prisma.task.createMany({
-      data: guaranteedTasks
-    });
+    await prisma.task.createMany({ data: tasks });
 
-    guaranteedTasksCreated += guaranteedTasks.length;
+    tasksCreated += tasks.length;
+    usersProcessed++;
   }
 
-  console.log(`✅ Created ${guaranteedTasksCreated} guaranteed tasks (pending, due, overdue, escalated) for ${usersExcludingTony.length} users`);
+  return { tasksCreated, usersProcessed };
 }
 
 module.exports = {
-  seedGuaranteedTasks
+  seedOtherUsersTasks
 };

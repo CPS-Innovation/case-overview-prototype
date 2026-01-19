@@ -341,7 +341,7 @@ async function seedSimonCases(prisma, dependencies, config) {
 
   if (!simonWhatley) {
     console.log('⚠️ Simon Whatley not found, skipping Simon cases');
-    return;
+    return 0;
   }
 
   const fullConfig = {
@@ -397,7 +397,7 @@ async function seedSimonCases(prisma, dependencies, config) {
   // Create the 10-statements case (5 witnesses, one with 10 statements)
   await createManyStatementsCase(prisma, simonWhatley, fullConfig);
 
-  console.log(`✅ Created 17 time limit test cases + 1 special case (10 statements) for Simon Whatley`);
+  return testCases.length + 1;
 }
 
 module.exports = {

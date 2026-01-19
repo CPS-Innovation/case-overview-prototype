@@ -66,13 +66,10 @@ function getAreaNameForUnit(unitName) {
 }
 
 async function seedUnits(prisma) {
-  // First, create all units
   await prisma.unit.createMany({
     data: units.map(name => ({ name }))
   });
-  console.log(`✅ ${units.length} units seeded`);
 
-  // Then, link each unit to its area
   const areas = await prisma.area.findMany();
   const areaMap = new Map(areas.map(area => [area.name, area.id]));
 
@@ -85,7 +82,7 @@ async function seedUnits(prisma) {
       });
     }
   }
-  console.log('✅ Units linked to areas');
+  return units.length;
 }
 
 module.exports = {

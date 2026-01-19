@@ -13,8 +13,7 @@ async function seedTeams(prisma) {
     });
   }
 
-  const totalTeams = units.length * standardTeamNames.length;
-  console.log(`✅ ${totalTeams} standard teams created (${standardTeamNames.length} per unit)`);
+  return units.length * standardTeamNames.length;
 }
 
 module.exports = {

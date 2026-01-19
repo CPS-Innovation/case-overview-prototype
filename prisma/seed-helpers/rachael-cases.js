@@ -340,7 +340,7 @@ async function seedRachaelCases(prisma, dependencies, config) {
 
   if (!rachaelHarvey) {
     console.log('⚠️ Rachael Harvey not found, skipping Rachael cases');
-    return;
+    return 0;
   }
 
   const fullConfig = {
@@ -391,7 +391,7 @@ async function seedRachaelCases(prisma, dependencies, config) {
   // Create the 25-witness case
   await createManyWitnessesCase(prisma, rachaelHarvey, fullConfig);
 
-  console.log(`✅ Created 17 time limit test cases + 1 special case (25 witnesses) for Rachael Harvey`);
+  return testCases.length + 1;
 }
 
 module.exports = {

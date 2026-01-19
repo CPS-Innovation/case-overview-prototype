@@ -84,7 +84,6 @@ async function seedProsecutors(prisma) {
     });
     prosecutors.push(prosecutor);
   }
-  console.log('✅ Prosecutors seeded');
 
   // Re-fetch all prosecutors with units included to ensure we have complete data
   const allProsecutors = await prisma.user.findMany({

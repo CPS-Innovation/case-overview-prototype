@@ -13,7 +13,6 @@ async function seedDefenceLawyers(prisma) {
   const defenceLawyers = await prisma.defenceLawyer.createManyAndReturn({
     data: defenceLawyerData
   });
-  console.log('✅ Defence lawyers seeded');
 
   return defenceLawyers;
 }

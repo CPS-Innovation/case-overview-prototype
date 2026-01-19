@@ -336,7 +336,7 @@ async function seedActivityLogs(prisma, cases, users) {
     }
   }
 
-  console.log(`✅ Created ${totalActivityLogs} activity log entries across ${casesForActivity.length} cases`);
+  return totalActivityLogs;
 }
 
 module.exports = {

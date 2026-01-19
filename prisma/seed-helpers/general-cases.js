@@ -629,8 +629,6 @@ async function seedGeneralCases(prisma, dependencies, config) {
     createdCases.push({ id: createdCase.id });
   }
 
-  console.log(`✅ Created ${createdCases.length} cases`);
-
   return createdCases;
 }
 

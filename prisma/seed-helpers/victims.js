@@ -11,7 +11,6 @@ async function seedVictims(prisma) {
   const victims = await prisma.victim.createManyAndReturn({
     data: victimData,
   });
-  console.log("✅ Victims seeded");
 
   return victims;
 }

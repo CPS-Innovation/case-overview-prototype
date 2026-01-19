@@ -4,7 +4,7 @@ async function seedAreas(prisma) {
   await prisma.area.createMany({
     data: areas.map((name) => ({ name }))
   });
-  console.log('✅ Areas seeded');
+  return areas.length;
 }
 
 module.exports = {

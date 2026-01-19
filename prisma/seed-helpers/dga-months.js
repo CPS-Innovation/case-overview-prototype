@@ -202,7 +202,6 @@ async function seedDGAMonths(prisma, defendants) {
       }
     }
 
-    console.log(`✅ Created ${monthCaseCount} ${monthConfig.name} DGA cases`);
     totalCreated += monthCaseCount;
   }
 
