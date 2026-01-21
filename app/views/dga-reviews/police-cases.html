@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'Cases with non-compliant DGA' %}
+{% set pageName = 'Cases with a non-compliant DGA' %}
 
 {% block beforeContent %}
   {{ govukBreadcrumbs({
@@ -53,7 +53,7 @@
                 ]
               }) }}
               <div class="app-list__content">
-                <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
+                <h2 class="govuk-heading-s govuk-!-margin-bottom-0">
                   <div>
                     <a href="/dga-reviews/{{ monthKey }}/{{ policeUnitId }}/{{ _case.id }}" class="govuk-link--no-visited-state">
                       {{ _case.reference }}
@@ -72,7 +72,7 @@
                   rows: [
                     {
                       key: {
-                        text: "Total failure reasons"
+                        text: "Total failures"
                       },
                       value: {
                         text: _case.outcomesTotal
@@ -80,7 +80,7 @@
                     },
                     {
                       key: {
-                        text: "Failure reasons without outcomes"
+                        text: "Failures without outcomes"
                       },
                       value: {
                         text: _case.outcomesNotRecorded

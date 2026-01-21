@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'Check details and record outcome' %}
+{% set pageName = 'Check details and record dispute outcome' %}
 
 {% set baseUrl = "/dga-reviews/" + monthKey + "/" + policeUnitId + "/" + case.id + "/" + failureReason.id + "/record-dispute-outcome" %}
 
@@ -73,9 +73,11 @@
           ]
         }) }}
 
+        {# <p>The outcome will be recorded as “Not disputed”.</p> #}
+
         <form method="post">
           {{ govukButton({
-            text: "Record outcome"
+            text: "Record dispute outcome"
           }) }}
         </form>
 

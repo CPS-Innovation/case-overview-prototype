@@ -298,9 +298,45 @@ async function createManyStatementsCase(prisma, user, config) {
     }
   });
 
-  // Create 5 witnesses: first one has 10 statements, others have 0-2
-  // For this special case: isAppearingInCourt = null, isMarkedAsSection9 = null (user will set these)
-  for (let w = 0; w < 5; w++) {
+  // Create first witness "Aaron Abbott" with 10 statements (sorts first alphabetically)
+  const aaronAbbott = await prisma.witness.create({
+    data: {
+      title: "Mr",
+      firstName: "Aaron",
+      lastName: "Abbott",
+      dateOfBirth: faker.date.birthdate({ min: 18, max: 90, mode: "age" }),
+      gender: "Male",
+      ethnicity: "White",
+      preferredLanguage: "English",
+      isCpsContactAllowed: true,
+      addressLine1: faker.location.streetAddress(),
+      addressTown: faker.helpers.arrayElement(ukCities),
+      addressPostcode: faker.location.zipCode("WD# #SF"),
+      mobileNumber: generateUKMobileNumber(),
+      emailAddress: faker.internet.email(),
+      preferredContactMethod: "Email",
+      isAppearingInCourt: null,
+      isRelevant: true,
+      dcf: false,
+      caseId: _case.id,
+    },
+  });
+
+  // Create 10 statements for Aaron Abbott
+  for (let s = 0; s < 10; s++) {
+    await prisma.witnessStatement.create({
+      data: {
+        witnessId: aaronAbbott.id,
+        number: s + 1,
+        receivedDate: faker.date.past(),
+        isUsedAsEvidence: faker.helpers.arrayElement([true, false, null]),
+        isMarkedAsSection9: null,
+      },
+    });
+  }
+
+  // Create 4 more witnesses with 0-2 statements each
+  for (let w = 0; w < 4; w++) {
     const { witness, isDcf } = await createWitness(prisma, _case.id, config);
 
     // Set isAppearingInCourt to null for user to decide
@@ -310,7 +346,7 @@ async function createManyStatementsCase(prisma, user, config) {
     });
 
     // Create statements with isMarkedAsSection9 = null for user to decide
-    const numStatements = w === 0 ? 10 : faker.number.int({ min: 0, max: 2 });
+    const numStatements = faker.number.int({ min: 0, max: 2 });
     for (let s = 0; s < numStatements; s++) {
       await prisma.witnessStatement.create({
         data: {

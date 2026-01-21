@@ -1,7 +1,7 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'Outcomes' %}
+{% set pageName = 'Failures' %}
 
 {% block beforeContent %}
   {{ govukBreadcrumbs({
@@ -45,12 +45,12 @@
           <p class="govuk-body">{{ outcomesRemaining }} failure {{ "reason" if outcomesRemaining == 1 else "reasons" }} {{ "needs" if outcomesRemaining == 1 else "need" }} {{ "an outcome" if outcomesRemaining == 1 else "outcomes" }}.</p>
         {% endif %}
 
-        <div class="govuk-button-group govuk-!-margin-top-7">
+        {# <div class="govuk-button-group govuk-!-margin-top-7">
           {{ govukButton({
             text: "Mark as not disputed",
             classes: "govuk-button--secondary"
           }) }}
-        </div>
+        </div> #}
 
 
         {% for reason in case.dga.failureReasons %}
@@ -61,7 +61,7 @@
 
             {% if not reason.outcome %}
               {{ govukButton({
-                text: "Record outcome",
+                text: "Record dispute outcome",
                 href: "/dga-reviews/" + monthKey + "/" + policeUnitId + "/" + case.id + "/" + reason.id + "/record-dispute-outcome"
               }) }}
             {% else %}
@@ -99,7 +99,7 @@
                   },
 
                   {
-                    key: { text: "Reason for this outcome" },
+                    key: { text: "Reason for outcome" },
                     value: { text: reason.details if reason.details else "-" },
                     actions: {
                       items: [
