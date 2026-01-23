@@ -7,10 +7,7 @@ const setLocals = require('./middleware/setLocals')
 router.use(flash())
 router.use(setLocals)
 
-router.get('/', (req, res) => {
-  res.render("index")
-})
-
+require('./routes/home')(router)
 require('./routes/static')(router)
 require('./routes/account')(router)
 require('./routes/clear-data')(router)
