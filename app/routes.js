@@ -1,84 +1,39 @@
 const govukPrototypeKit = require('govuk-prototype-kit')
 const router = govukPrototypeKit.requests.setupRouter()
-const fs = require('fs');
-const path = require('path');
-const exec = require('child_process').exec;
-const checkSignedIn = require('./middleware/checkSignedIn')
-
 const flash = require('connect-flash')
+const checkSignedIn = require('./middleware/checkSignedIn')
+const setLocals = require('./middleware/setLocals')
+
 router.use(flash())
+router.use(setLocals)
 
-router.all('*', (req, res, next) => {
-  res.locals.referrer = req.query.referrer
-  res.locals.path = req.path
-  res.locals.protocol = req.protocol
-  res.locals.hostname = req.hostname
-  res.locals.query = req.query
-  res.locals.flash = req.flash('success')[0]
-  next()
-})
-
-router.get('/clear-data', function (req, res) {
-  delete req.session.data;
-  const redirectUrl = req.query.returnUrl || '/';
-
-  // Determine the absolute path to the database folder
-  const dataFolder = path.join(__dirname, '../data');
-
-  try {
-    // Ensure the folder exists
-    if (!fs.existsSync(dataFolder)) {
-      fs.mkdirSync(dataFolder, { recursive: true });
-      console.log(`Created folder: ${dataFolder}`);
-    }
-  } catch (err) {
-    console.error('Error creating data folder:', err);
-    return res.status(500).json({ error: 'Failed to prepare database folder' });
-  }
-
-  // Run Prisma push and seed
-  exec("npx prisma db push --force-reset", (resetError, resetStdout, resetStderr) => {
-    if (resetError) {
-      console.error('Error resetting DB:', resetError);
-      console.error(resetStderr);
-      return res.status(500).json({ error: 'Failed to reset database' });
-    }
-    console.log('DB reset output:', resetStdout);
-
-    exec("npx prisma db seed", (seedError, seedStdout, seedStderr) => {
-      if (seedError) {
-        console.error('Error seeding DB:', seedError);
-        console.error(seedStderr);
-        return res.status(500).json({ error: 'Failed to seed database' });
-      }
-      console.log('DB seeded successfully:', seedStdout);
-      res.redirect(redirectUrl);
-    });
-  });
-});
-
-// Need this to make sure you can get there without being signed in
 router.get('/', (req, res) => {
   res.render("index")
 })
 
 require('./routes/static')(router)
-
 require('./routes/account')(router)
+require('./routes/clear-data')(router)
 
 router.use(checkSignedIn)
 
 require('./routes/overview')(router)
 require('./routes/activity')(router)
-
 require('./routes/tasks')(router)
 require('./routes/directions')(router)
-require('./routes/cases')(router)
+require('./routes/prosecutors')(router)
+require('./routes/prosecutors--add-specialist-area')(router)
+require('./routes/paralegal-officers')(router)
+
+// DGA reporting routes
 require('./routes/dga-reviews--export')(router)
 require('./routes/dga-reviews')(router)
 require('./routes/dga-reviews--record-dispute-outcome')(router)
-require('./routes/cases--add-prosecutor')(router)
-require('./routes/cases--add-paralegal-officer')(router)
+
+// Case routes
+require('./routes/cases')(router)
+require('./routes/case--add-prosecutor')(router)
+require('./routes/case--add-paralegal-officer')(router)
 require('./routes/case--overview')(router)
 require('./routes/case--notes')(router)
 require('./routes/case--activity')(router)
@@ -104,16 +59,3 @@ require('./routes/case--witness--mark-as-required-to-attend-court')(router)
 require('./routes/case--witness--mark-as-not-required-to-attend-court')(router)
 require('./routes/case--witness-statement--mark-as-section9')(router)
 require('./routes/case--witness-statement--unmark-as-section9')(router)
-
-require('./routes/prosecutors')(router)
-require('./routes/prosecutors--add-specialist-area')(router)
-require('./routes/paralegal-officers')(router)
-
-// router.use((err, req, res, next) => {
-//   // console.error(err.stack)
-//   res
-//     .status(500)
-//     .render('500', {
-//       err
-//     })
-// })
