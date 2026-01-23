@@ -7,7 +7,7 @@
   {{ govukBreadcrumbs({
     items: [
       {
-        text: "Director Guidance Assessment (DGA)",
+        text: "Director’s Guidance Assessment (DGA) reporting",
         href: "/dga-reviews"
       },
       {
@@ -52,9 +52,8 @@
           }) }}
         </div> #}
 
-
         {% for reason in case.dga.failureReasons %}
-
+          <div>
             <h2 class="govuk-heading-m govuk-!-margin-top-7">
               {{ reason.reason }}
             </h2>
@@ -128,8 +127,14 @@
                 ]
               }) }}
             {% endif %}
-          
+          </div>
         {% endfor %}
+
+          {# <h2 class="govuk-heading-m">Review and submit outcome to classic CMS</h2>
+
+        {{ govukButton({
+          text: "Record outcome to classic CMS"
+        }) }} #}
       </div>
     </div>
   </div>

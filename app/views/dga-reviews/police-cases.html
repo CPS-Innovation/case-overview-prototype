@@ -1,13 +1,13 @@
 {% extends "layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'Cases with a non-compliant DGA' %}
+{% set pageName = 'Cases that failed DGA' %}
 
 {% block beforeContent %}
   {{ govukBreadcrumbs({
     items: [
       {
-        text: "Director Guidance Assessment (DGA)",
+        text: "Director’s Guidance Assessment (DGA) reporting",
         href: "/dga-reviews"
       },
       {

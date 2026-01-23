@@ -7,7 +7,7 @@
   {{ govukBreadcrumbs({
     items: [
       {
-        text: "Director’s Guidance Assessment (DGA)",
+        text: "Director’s Guidance Assessment (DGA) reporting",
         href: "/dga-reviews"
       },
       {
@@ -26,7 +26,7 @@
       <p>You must record outcomes by {{ deadline | isoDateString | govukDateTime }}.</p>
       
       {% for policeUnit in policeUnits %}
-        <div class="app-dga-police-unit govuk-!-margin-top-7 govuk-!-margin-bottom-9">
+        <div class="app-dga-police-unit govuk-!-margin-top-7 govuk-!-margin-bottom-7">
           <h2 class="govuk-heading-m">
             {{ policeUnit.name }}
             {{ govukTag({
@@ -36,11 +36,11 @@
           </h2>
 
           <div class="govuk-button-group govuk-!-margin-bottom-1">
-            {# <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export all</a> #}
-            {# <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Non-compliant DGA cases</a> #}
+            <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}/export" class="govuk-link govuk-link--no-visited-state">Export cases that had a DGA</a>
+            <a href="/dga-reviews/{{ monthKey }}/{{ policeUnit.id }}" class="govuk-link govuk-link--no-visited-state">Record outcomes for cases that failed DGA</a>
           </div>
           
-          {{ govukSummaryList({
+          {# {{ govukSummaryList({
             classes: 'app-summary-list--wide-actions',
             rows: [
               {
@@ -57,11 +57,7 @@
                 }
               },
               {
-                key: { text: "Compliant cases" },
-                value: { text: policeUnit.compliantCases }
-              } if 1==2,
-              {
-                key: { text: "Cases with a non-compliant DGA" },
+                key: { text: "Cases that failed DGA" },
                 value: { text: policeUnit.nonCompliantCases },
                 actions: {
                   items: [
@@ -74,7 +70,7 @@
                 }
               }
             ]
-          }) }}
+          }) }} #}
 
           {# <p>First you need to export:</p>
 
