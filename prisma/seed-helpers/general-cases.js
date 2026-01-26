@@ -96,24 +96,16 @@ async function seedGeneralCases(prisma, dependencies, config) {
     const tasksData = allTasks.map((taskInfo) => {
       const { name, reminderType } = taskInfo;
 
-      // 75% assigned to users, 25% assigned to teams
-      const assignmentType = faker.helpers.weightedArrayElement([
-        { weight: 75, value: 'user' },
-        { weight: 25, value: 'team' }
-      ]);
-
-      let assignedToUserId = null;
-      let assignedToTeamId = null;
-
-      if (assignmentType === 'user') {
-        // Exclude Tony Stark (casework assistant) from task assignments
-        const usersExcludingTony = users.filter(u => u.email !== 'tony@cps.gov.uk');
-        assignedToUserId = faker.helpers.arrayElement(usersExcludingTony).id;
-      } else if (assignmentType === 'team') {
-        // Pick a random team from the case's unit (4 teams per unit)
-        const unitTeamOffset = (caseUnitId - 1) * 4;
-        assignedToTeamId = faker.number.int({ min: unitTeamOffset + 1, max: unitTeamOffset + 4 });
-      }
+      // Exclude users with dedicated seed files from random task assignments
+      const usersWithDedicatedSeeds = [
+        'rachael@cps.gov.uk',
+        'simon@cps.gov.uk',
+        'kirsty@cps.gov.uk',
+        'tony@cps.gov.uk',
+        'bruce@cps.gov.uk'
+      ];
+      const eligibleUsers = users.filter(u => !usersWithDedicatedSeeds.includes(u.email));
+      const assignedToUserId = faker.helpers.arrayElement(eligibleUsers).id;
 
       // Generate task dates based on random state
       // 40% pending, 30% due, 20% overdue, 10% escalated
@@ -164,7 +156,6 @@ async function seedGeneralCases(prisma, dependencies, config) {
         isUrgent,
         urgentNote,
         assignedToUserId,
-        assignedToTeamId,
       };
     });
 

@@ -4,7 +4,10 @@ const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates
 // Predefined users with their own dedicated seed files
 const USERS_WITH_DEDICATED_SEEDS = [
   'rachael@cps.gov.uk',
-  'simon@cps.gov.uk'
+  'simon@cps.gov.uk',
+  'kirsty@cps.gov.uk',
+  'tony@cps.gov.uk',
+  'bruce@cps.gov.uk'
 ];
 
 // Seeds tasks for all users EXCEPT those with dedicated seed files (Rachael, Simon).

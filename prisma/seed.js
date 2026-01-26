@@ -31,7 +31,9 @@ const { seedPoliceUnits } = require("./seed-helpers/police-units");
 const { getDefendantTimeLimitTypes } = require("./seed-helpers/defendant-time-limit-types");
 const { seedRachaelCases } = require("./seed-helpers/rachael-cases");
 const { seedSimonCases } = require("./seed-helpers/simon-cases");
-const { seedPriorityTasks } = require("./seed-helpers/priority-tasks");
+const { seedKirstyCases } = require("./seed-helpers/kirsty-cases");
+const { seedTonyCases } = require("./seed-helpers/tony-cases");
+const { seedBruceCases } = require("./seed-helpers/bruce-cases");
 const { seedOtherUsersTasks } = require("./seed-helpers/other-users-tasks");
 const { seedDGAMonths } = require("./seed-helpers/dga-months");
 const { seedGeneralCases } = require("./seed-helpers/general-cases");
@@ -176,14 +178,34 @@ async function main() {
   );
   done(simonCasesCount);
 
+  step("Kirsty Priest's cases");
+  const kirstyCasesCount = await seedKirstyCases(
+    prisma,
+    { defenceLawyers, victims },
+    { charges, firstNames, lastNames, pleas, types, complexities }
+  );
+  done(kirstyCasesCount);
+
+  step("Tony Stark's cases");
+  const tonyCasesCount = await seedTonyCases(
+    prisma,
+    { defenceLawyers, victims },
+    { charges, firstNames, lastNames, pleas, types, complexities }
+  );
+  done(tonyCasesCount);
+
+  step("Bruce Banner's cases");
+  const bruceCasesCount = await seedBruceCases(
+    prisma,
+    { defenceLawyers, victims },
+    { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities }
+  );
+  done(bruceCasesCount);
+
   // ─────────────────────────────────────────────────────────────────
   // Tasks
   // ─────────────────────────────────────────────────────────────────
   console.log("\nTasks");
-
-  step("Priority tasks");
-  const priorityTasksCount = await seedPriorityTasks(prisma, taskNames);
-  done(priorityTasksCount);
 
   step("Other users' tasks");
   const { tasksCreated } = await seedOtherUsersTasks(prisma, users, taskNames);

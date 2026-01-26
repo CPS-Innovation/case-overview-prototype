@@ -64,7 +64,7 @@
     },
     items: ctlItems,
     values: data.caseListFilters.isCTL
-  }) }}
+  }) if 1==2}}
 
   {{ govukCheckboxes({
     idPrefix: "caseListFilters[unit]",
@@ -78,7 +78,7 @@
     },
     items: unitItems,
     values: data.caseListFilters.unit
-  }) }}
+  }) if 1==2}}
 
   {{ govukCheckboxes({
     idPrefix: "caseListFilters[complexities]",
@@ -106,7 +106,7 @@
     },
     items: typeItems,
     values: data.caseListFilters.types
-  }) }}
+  }) if 1==2}}
 
 {% endset %}
 

@@ -33,5 +33,19 @@ module.exports = [
     role: 'Casework assistant',
     firstName: 'Tony',
     lastName: 'Stark'
+  },
+  {
+    email: 'kirsty@cps.gov.uk',
+    password: 'password123',
+    role: 'Prosecutor',
+    firstName: 'Kirsty',
+    lastName: 'Priest'
+  },
+  {
+    email: 'bruce@cps.gov.uk',
+    password: 'password123',
+    role: 'Paralegal officer',
+    firstName: 'Bruce',
+    lastName: 'Banner'
   }
 ]

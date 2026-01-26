@@ -2,28 +2,10 @@ const { faker } = require('@faker-js/faker');
 const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
 const {
-  generateExpiredCTL,
-  generateTodayCTL,
-  generateTomorrowCTL,
-  generateThisWeekCTL,
-  generateNextWeekCTL,
-  generateLaterCTL
-} = require('./ctl-generators');
-const {
-  generateExpiredSTL,
   generateTodaySTL,
   generateTomorrowSTL,
-  generateThisWeekSTL,
-  generateNextWeekSTL,
-  generateLaterSTL
+  generateThisWeekSTL
 } = require('./stl-generators');
-const {
-  generateExpiredPACE,
-  generateLessThan1HourPACE,
-  generateLessThan2HoursPACE,
-  generateLessThan3HoursPACE,
-  generateMoreThan3HoursPACE
-} = require('./pace-generators');
 
 const SIMON_UNITS = {
   NORTH_YORKSHIRE_MAGISTRATES_COURT: 9,
@@ -31,6 +13,25 @@ const SIMON_UNITS = {
   WEST_YORKSHIRE_MAGISTRATES_COURT: 13,
   HUMBERSIDE_MAGISTRATES_COURT: 18
 };
+
+const SIMON_UNITS_ARRAY = Object.values(SIMON_UNITS);
+
+// STL tasks (pre-charge, no hearing)
+const SIMON_STL_TASKS = [
+  { name: '5-day PCD review', stlGenerator: generateTodaySTL },
+  { name: '28-day PCD review', stlGenerator: generateTomorrowSTL },
+  { name: 'Further PCD review', stlGenerator: generateThisWeekSTL }
+];
+
+// CTL tasks (with hearing)
+const SIMON_CTL_TASKS = [
+  { name: 'Initial disclosure', hasCTL: true, hearingType: 'First Hearing' },
+  { name: 'Reminder - RL, please see police response', hasCTL: true, hearingType: 'First Hearing', isReminder: true },
+  { name: 'Electronic upgrade file review', hasCTL: true, hearingType: 'Trial' },
+  { name: 'Check new police info', hasCTL: true, hearingType: 'Mention' },
+  { name: 'Check new correspondence', hasCTL: true, hearingType: 'First Hearing' },
+  { name: 'CTL expiry imminent', hasCTL: true, hearingType: 'Trial' }
+];
 
 async function createWitness(prisma, caseId, config) {
   const { firstNames, lastNames, ukCities } = config;
@@ -109,20 +110,6 @@ async function createWitness(prisma, caseId, config) {
   return { witness, isDcf };
 }
 
-async function createWitnessStatements(prisma, witnessId, numStatements) {
-  for (let s = 0; s < numStatements; s++) {
-    await prisma.witnessStatement.create({
-      data: {
-        witnessId: witnessId,
-        number: s + 1,
-        receivedDate: faker.date.past(),
-        isUsedAsEvidence: faker.helpers.arrayElement([true, false, null]),
-        isMarkedAsSection9: faker.helpers.arrayElement([true, false, null]),
-      },
-    });
-  }
-}
-
 async function createSpecialMeasures(prisma, witnessId) {
   const numSpecialMeasures = faker.helpers.weightedArrayElement([
     { weight: 65, value: 1 },
@@ -160,28 +147,30 @@ async function createSpecialMeasures(prisma, witnessId) {
   }
 }
 
-async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, generateFn, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, taskNames, ukCities } = config;
+async function createSTLCase(prisma, user, taskConfig, config) {
+  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities } = config;
+  const { name, stlGenerator } = taskConfig;
+
+  const unitId = faker.helpers.arrayElement(SIMON_UNITS_ARRAY);
+  const statutoryTimeLimit = stlGenerator();
 
   const defendant = await prisma.defendant.create({
     data: {
       firstName: faker.helpers.arrayElement(firstNames),
       lastName: faker.helpers.arrayElement(lastNames),
-      gender: faker.helpers.arrayElement(["Male", "Female", "Unknown"]),
-      dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: "age" }),
-      remandStatus: "REMANDED_IN_CUSTODY",
-      paceClock: timeLimitType === 'PACE' ? generateFn() : null,
+      gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+      dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+      remandStatus: null,
       defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
       charges: {
         create: {
           chargeCode: faker.helpers.arrayElement(charges).code,
           description: faker.helpers.arrayElement(charges).description,
-          status: "Charged",
+          status: 'Pre-charge',
           offenceDate: faker.date.past(),
-          plea: faker.helpers.arrayElement(pleas),
+          plea: null,
           particulars: faker.lorem.sentence(),
-          custodyTimeLimit: timeLimitType === 'CTL' ? generateFn() : null,
-          statutoryTimeLimit: timeLimitType === 'STL' ? generateFn() : null,
+          statutoryTimeLimit,
           isCount: false
         }
       }
@@ -208,30 +197,101 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
     }
   });
 
-  const timeLimit = generateFn();
+  // Create task (no hearing for STL/pre-charge tasks)
+  const dueDate = statutoryTimeLimit;
   await prisma.task.create({
     data: {
-      name: faker.helpers.arrayElement(taskNames),
+      name,
       reminderType: null,
-      reminderDate: new Date(timeLimit.getTime() - 3 * 24 * 60 * 60 * 1000),
-      dueDate: timeLimit,
-      escalationDate: new Date(timeLimit.getTime() + 2 * 24 * 60 * 60 * 1000),
+      reminderDate: new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000),
+      dueDate,
+      escalationDate: new Date(dueDate.getTime() + 2 * 24 * 60 * 60 * 1000),
       completedDate: null,
       caseId: _case.id,
       assignedToUserId: user.id
     }
   });
 
-  // Create 1-7 witnesses with 1-5 statements each
-  const numWitnesses = faker.number.int({ min: 1, max: 7 });
-  for (let w = 0; w < numWitnesses; w++) {
-    const { witness, isDcf } = await createWitness(prisma, _case.id, config);
-    const numStatements = faker.number.int({ min: 1, max: 5 });
-    await createWitnessStatements(prisma, witness.id, numStatements);
-    if (isDcf) {
-      await createSpecialMeasures(prisma, witness.id);
+  return _case;
+}
+
+async function createCTLCase(prisma, user, taskConfig, config) {
+  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities } = config;
+  const { name, hearingType, isReminder } = taskConfig;
+
+  const unitId = faker.helpers.arrayElement(SIMON_UNITS_ARRAY);
+  const custodyTimeLimit = faker.date.soon({ days: 14 });
+
+  const defendant = await prisma.defendant.create({
+    data: {
+      firstName: faker.helpers.arrayElement(firstNames),
+      lastName: faker.helpers.arrayElement(lastNames),
+      gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+      dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+      remandStatus: 'REMANDED_IN_CUSTODY',
+      defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
+      charges: {
+        create: {
+          chargeCode: faker.helpers.arrayElement(charges).code,
+          description: faker.helpers.arrayElement(charges).description,
+          status: 'Charged',
+          offenceDate: faker.date.past(),
+          plea: faker.helpers.arrayElement(pleas),
+          particulars: faker.lorem.sentence(),
+          custodyTimeLimit,
+          isCount: false
+        }
+      }
     }
-  }
+  });
+
+  const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
+
+  const _case = await prisma.case.create({
+    data: {
+      reference: generateCaseReference(),
+      type: faker.helpers.arrayElement(types),
+      complexity: faker.helpers.arrayElement(complexities),
+      unit: { connect: { id: unitId } },
+      defendants: { connect: { id: defendant.id } },
+      victims: { connect: victimIds }
+    }
+  });
+
+  await prisma.caseProsecutor.create({
+    data: {
+      caseId: _case.id,
+      userId: user.id
+    }
+  });
+
+  // Create hearing
+  const hearingDate = faker.date.soon({ days: 30 });
+  await prisma.hearing.create({
+    data: {
+      startDate: hearingDate,
+      endDate: null,
+      status: 'Scheduled',
+      type: hearingType,
+      venue: 'Magistrates Court',
+      caseId: _case.id
+    }
+  });
+
+  // Create task
+  const dueDate = faker.date.soon({ days: 14 });
+  await prisma.task.create({
+    data: {
+      name,
+      reminderType: isReminder ? 'Manual' : null,
+      reminderDate: new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000),
+      dueDate,
+      escalationDate: new Date(dueDate.getTime() + 2 * 24 * 60 * 60 * 1000),
+      completedDate: null,
+      caseId: _case.id,
+      assignedToUserId: user.id
+    }
+  });
 
   return _case;
 }
@@ -339,13 +399,11 @@ async function createManyStatementsCase(prisma, user, config) {
   for (let w = 0; w < 4; w++) {
     const { witness, isDcf } = await createWitness(prisma, _case.id, config);
 
-    // Set isAppearingInCourt to null for user to decide
     await prisma.witness.update({
       where: { id: witness.id },
       data: { isAppearingInCourt: null }
     });
 
-    // Create statements with isMarkedAsSection9 = null for user to decide
     const numStatements = faker.number.int({ min: 0, max: 2 });
     for (let s = 0; s < numStatements; s++) {
       await prisma.witnessStatement.create({
@@ -372,7 +430,7 @@ async function seedSimonCases(prisma, dependencies, config) {
   const { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities } = config;
 
   const simonWhatley = await prisma.user.findFirst({
-    where: { firstName: "Simon", lastName: "Whatley" }
+    where: { firstName: 'Simon', lastName: 'Whatley' }
   });
 
   if (!simonWhatley) {
@@ -393,47 +451,20 @@ async function seedSimonCases(prisma, dependencies, config) {
     ukCities
   };
 
-  const testCases = [
-    // CTL
-    { type: 'CTL', fn: generateExpiredCTL },
-    { type: 'CTL', fn: generateTodayCTL },
-    { type: 'CTL', fn: generateTomorrowCTL },
-    { type: 'CTL', fn: generateThisWeekCTL },
-    { type: 'CTL', fn: generateNextWeekCTL },
-    { type: 'CTL', fn: generateLaterCTL },
-    // STL
-    { type: 'STL', fn: generateExpiredSTL },
-    { type: 'STL', fn: generateTodaySTL },
-    { type: 'STL', fn: generateTomorrowSTL },
-    { type: 'STL', fn: generateThisWeekSTL },
-    { type: 'STL', fn: generateNextWeekSTL },
-    { type: 'STL', fn: generateLaterSTL },
-    // PACE
-    { type: 'PACE', fn: generateExpiredPACE },
-    { type: 'PACE', fn: generateLessThan1HourPACE },
-    { type: 'PACE', fn: generateLessThan2HoursPACE },
-    { type: 'PACE', fn: generateLessThan3HoursPACE },
-    { type: 'PACE', fn: generateMoreThan3HoursPACE }
-  ];
+  // Create STL cases (pre-charge, no hearing)
+  for (const taskConfig of SIMON_STL_TASKS) {
+    await createSTLCase(prisma, simonWhatley, taskConfig, fullConfig);
+  }
 
-  const units = [
-    SIMON_UNITS.NORTH_YORKSHIRE_MAGISTRATES_COURT,
-    SIMON_UNITS.SOUTH_YORKSHIRE_MAGISTRATES_COURT,
-    SIMON_UNITS.WEST_YORKSHIRE_MAGISTRATES_COURT,
-    SIMON_UNITS.HUMBERSIDE_MAGISTRATES_COURT
-  ];
-
-  // Create 17 time limit test cases
-  for (let i = 0; i < testCases.length; i++) {
-    const { type, fn } = testCases[i];
-    const unitId = units[i % units.length];
-    await createTimeLimitTestCase(prisma, simonWhatley, unitId, type, fn, fullConfig);
+  // Create CTL cases (with hearing)
+  for (const taskConfig of SIMON_CTL_TASKS) {
+    await createCTLCase(prisma, simonWhatley, taskConfig, fullConfig);
   }
 
   // Create the 10-statements case (5 witnesses, one with 10 statements)
   await createManyStatementsCase(prisma, simonWhatley, fullConfig);
 
-  return testCases.length + 1;
+  return SIMON_STL_TASKS.length + SIMON_CTL_TASKS.length + 1;
 }
 
 module.exports = {
