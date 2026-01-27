@@ -1,19 +1,5 @@
 {% set filterOptionsHtml %}
 
-  {# {{ govukCheckboxes({
-    idPrefix: "caseListFilters[dga]",
-    name: "caseListFilters[dga]",
-    classes: "govuk-checkboxes--small",
-    fieldset: {
-      legend: {
-        text: "DGA",
-        classes: "govuk-fieldset__legend--s"
-      }
-    },
-    items: dgaItems,
-    values: data.caseListFilters.dga
-  }) }} #}
-
   {{ appCheckboxFilter({
     idPrefix: "caseListFilters[prosecutors]",
     name: "caseListFilters[prosecutors]",
@@ -53,20 +39,6 @@
   }) }}
 
   {{ govukCheckboxes({
-    idPrefix: "caseListFilters[isCTL]",
-    name: "caseListFilters[isCTL]",
-    classes: "govuk-checkboxes--small",
-    fieldset: {
-      legend: {
-        text: "Custody time limit",
-        classes: "govuk-fieldset__legend--s"
-      }
-    },
-    items: ctlItems,
-    values: data.caseListFilters.isCTL
-  }) if 1==2}}
-
-  {{ govukCheckboxes({
     idPrefix: "caseListFilters[unit]",
     name: "caseListFilters[unit]",
     classes: "govuk-checkboxes--small",
@@ -93,20 +65,6 @@
     items: complexityItems,
     values: data.caseListFilters.complexities
   }) }}
-
-  {{ govukCheckboxes({
-    idPrefix: "caseListFilters[types]",
-    name: "caseListFilters[types]",
-    classes: "govuk-checkboxes--small",
-    fieldset: {
-      legend: {
-        text: "Hearing type",
-        classes: "govuk-fieldset__legend--s"
-      }
-    },
-    items: typeItems,
-    values: data.caseListFilters.types
-  }) if 1==2}}
 
 {% endset %}
 

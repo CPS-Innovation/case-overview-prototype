@@ -3,7 +3,20 @@
 {% set navId = 'cases' %}
 {% set pageName = "Cases (:total)" | replace(':total', totalCases | formatNumber) %}
 
+{% block skipLink %}
+  {{super()}}
+  {{ govukSkipLink({
+    text: "Skip to case search",
+    href: "#app-case-search"
+  }) }} 
+  {{ govukSkipLink({
+    text: "Skip to case list",
+    href: "#app-case-list"
+  }) }} 
+{% endblock %}
+
 {% block content %}
+
   <h1 class="govuk-heading-l">{{pageName}}</h1>
 
   <div class="govuk-button-group">
@@ -33,7 +46,7 @@
       {# {% include "_includes/case/sort-controls.njk" %} #}
 
       {% if cases.length %}
-         <div class="app-list">
+         <div class="app-list" id="app-case-list">
           {% for _case in cases %}
            <div class="app-list__item">
 

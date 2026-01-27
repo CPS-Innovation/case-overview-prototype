@@ -2,7 +2,9 @@ App.ListFilter = function(params) {
   this.params = params
   this.container = $(params.container)
   this.container.addClass('app-list-filter--enhanced')
-  this.items = this.container.find("input[type='checkbox'], input[type='radio']")
+  this.checkboxes = this.container.find("input[type='checkbox']")
+  this.radios = this.container.find("input[type='radio']")
+  this.items = this.checkboxes.length ? this.checkboxes : this.radios
   this.itemsContainer = this.container.find('.app-list-filter__container')
   this.itemsInnerContainer = this.itemsContainer.children('.app-list-filter__container-inner')
   this.legend = this.container.find('legend')
@@ -10,6 +12,9 @@ App.ListFilter = function(params) {
   this.setupTextBox()
   if(this.container.find('.app-list-filter__container--max')[0]) {
     this.setupHeight()
+  }
+  if(this.checkboxes.length) {
+    this.setupCheckboxNavigation()
   }
 }
 
@@ -82,6 +87,9 @@ App.ListFilter.prototype.filterList= function() {
     foundCount: this.getAllVisibleItems().length,
     checkedCount: this.getAllVisibleCheckedItems().length
   })
+  if (this.checkboxes.length) {
+    this.updateCheckboxTabIndex()
+  }
 }
 
 App.ListFilter.prototype.getAllItems = function() {
@@ -98,6 +106,59 @@ App.ListFilter.prototype.getAllVisibleCheckedItems = function() {
   return this.getAllVisibleItems().filter(function(i, el) {
     return $(el).find("input[type='radio'], input[type='checkbox']")[0].checked
   })
+}
+
+App.ListFilter.prototype.setupCheckboxNavigation = function() {
+  this.checkboxes.attr('tabindex', '-1')
+  this.updateCheckboxTabIndex()
+  this.itemsContainer.on('keydown', 'input[type="checkbox"]', $.proxy(this, 'onCheckboxKeyDown'))
+}
+
+App.ListFilter.prototype.onCheckboxKeyDown = function(e) {
+  var UP_ARROW = 38
+  var DOWN_ARROW = 40
+
+  if (e.keyCode === DOWN_ARROW) {
+    e.preventDefault()
+    this.focusNextCheckbox(e.target)
+  } else if (e.keyCode === UP_ARROW) {
+    e.preventDefault()
+    this.focusPreviousCheckbox(e.target)
+  }
+}
+
+App.ListFilter.prototype.focusNextCheckbox = function(current) {
+  var visibleCheckboxes = this.getVisibleCheckboxes()
+  var currentIndex = visibleCheckboxes.index(current)
+  var nextIndex = currentIndex + 1
+
+  if (nextIndex < visibleCheckboxes.length) {
+    $(current).attr('tabindex', '-1')
+    $(visibleCheckboxes[nextIndex]).attr('tabindex', '0').focus()
+  }
+}
+
+App.ListFilter.prototype.focusPreviousCheckbox = function(current) {
+  var visibleCheckboxes = this.getVisibleCheckboxes()
+  var currentIndex = visibleCheckboxes.index(current)
+  var prevIndex = currentIndex - 1
+
+  if (prevIndex >= 0) {
+    $(current).attr('tabindex', '-1')
+    $(visibleCheckboxes[prevIndex]).attr('tabindex', '0').focus()
+  }
+}
+
+App.ListFilter.prototype.getVisibleCheckboxes = function() {
+  return this.checkboxes.filter(function(i, el) {
+    return $(el).closest('.app-list-filter__item').css('display') !== 'none'
+  })
+}
+
+App.ListFilter.prototype.updateCheckboxTabIndex = function() {
+  var visibleCheckboxes = this.getVisibleCheckboxes()
+  visibleCheckboxes.attr('tabindex', '-1')
+  visibleCheckboxes.first().attr('tabindex', '0')
 }
 
 App.ListFilter.prototype.setContainerHeight = function(height) {
