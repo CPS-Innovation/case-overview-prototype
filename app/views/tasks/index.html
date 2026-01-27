@@ -3,6 +3,18 @@
 {% set navId = 'tasks' %}
 {% set pageName = "Tasks (:total)" | replace(':total', totalTasks | formatNumber) %}
 
+{% block skipLink %}
+  {{super()}}
+  {{ govukSkipLink({
+    text: "Skip to task search",
+    href: "#app-task-search"
+  }) }} 
+  {{ govukSkipLink({
+    text: "Skip to task list",
+    href: "#app-task-list"
+  }) }} 
+{% endblock %}
+
 {% block content %}
     <h1 class="govuk-heading-l">
       {{ pageName }}
@@ -22,7 +34,7 @@
         {% include "_includes/task/sort-controls.njk" %}
 
         {% if tasks.length %}
-          <div class="app-list">
+          <div class="app-list" id="app-task-list">
             {% for task in tasks %}
             {# Show group heading when group changes or on first task #}
             {% if loop.first or task.groupKey != tasks[loop.index0 - 1].groupKey %}

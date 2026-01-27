@@ -6,6 +6,18 @@
 {% set navId = 'directions' %}
 {% set pageName = "Directions (:total)" | replace(':total', totalDirections | formatNumber) %}
 
+{% block skipLink %}
+  {{super()}}
+  {{ govukSkipLink({
+    text: "Skip to direction search",
+    href: "#app-direction-search"
+  }) }} 
+  {{ govukSkipLink({
+    text: "Skip to direction list",
+    href: "#app-direction-list"
+  }) }} 
+{% endblock %}
+
 {% block content %}
   <h1 class="govuk-heading-l">{{pageName}}</h1>
 
@@ -22,7 +34,7 @@
       {% include "_includes/direction/search-form.njk" %}
 
       {% if directions.length %}
-        <div class="app-list">
+        <div class="app-list" id="app-direction-list">
           {% for direction in directions %}
             {% if loop.first or direction.groupKey != directions[loop.index0 - 1].groupKey %}
               <h2 class="govuk-heading-m govuk-!-margin-top-7 govuk-!-margin-bottom-0">{{direction.groupHeading}}</h2>
