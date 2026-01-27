@@ -6,6 +6,7 @@ const {
   generateTomorrowSTL,
   generateThisWeekSTL
 } = require('./stl-generators');
+const { createDirectionsForCase } = require('./directions');
 
 const SIMON_UNITS = {
   NORTH_YORKSHIRE_MAGISTRATES_COURT: 9,
@@ -212,6 +213,9 @@ async function createSTLCase(prisma, user, taskConfig, config) {
     }
   });
 
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
+
   return _case;
 }
 
@@ -292,6 +296,9 @@ async function createCTLCase(prisma, user, taskConfig, config) {
       assignedToUserId: user.id
     }
   });
+
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
   return _case;
 }
@@ -421,6 +428,9 @@ async function createManyStatementsCase(prisma, user, config) {
       await createSpecialMeasures(prisma, witness.id);
     }
   }
+
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
   return _case;
 }

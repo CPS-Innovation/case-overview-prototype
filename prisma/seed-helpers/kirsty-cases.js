@@ -5,6 +5,7 @@ const {
   generateTomorrowSTL,
   generateThisWeekSTL
 } = require('./stl-generators');
+const { createDirectionsForCase } = require('./directions');
 
 const KIRSTY_UNIT = 3; // Wessex Crown Court
 
@@ -89,6 +90,9 @@ async function createSTLCase(prisma, user, taskConfig, config) {
     }
   });
 
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
+
   return _case;
 }
 
@@ -168,6 +172,9 @@ async function createCTLCase(prisma, user, taskConfig, config) {
       assignedToUserId: user.id
     }
   });
+
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
   return _case;
 }

@@ -24,6 +24,7 @@ const {
   generateLessThan3HoursPACE,
   generateMoreThan3HoursPACE
 } = require('./pace-generators');
+const { createDirectionsForCase } = require('./directions');
 
 const BRUCE_UNITS = {
   WESSEX_CROWN_COURT: 3,
@@ -253,6 +254,9 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
       await createSpecialMeasures(prisma, witness.id);
     }
   }
+
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
   return _case;
 }

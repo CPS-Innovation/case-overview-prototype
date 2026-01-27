@@ -3,6 +3,7 @@ const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
 const { futureDateAt10am } = require('./dates');
 const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates, generateEscalatedTaskDates } = require('./task-dates');
+const { prosecutionDirections, defenceDirections } = require('./directions');
 
 async function seedGeneralCases(prisma, dependencies, config) {
   const {
@@ -34,6 +35,14 @@ async function seedGeneralCases(prisma, dependencies, config) {
   } = config;
 
   const createdCases = [];
+
+  const usersWithDedicatedSeeds = [
+    'rachael@cps.gov.uk',
+    'simon@cps.gov.uk',
+    'kirsty@cps.gov.uk',
+    'tony@cps.gov.uk',
+    'bruce@cps.gov.uk'
+  ];
 
   for (let i = 0; i < totalCases; i++) {
     // Randomly choose which time limit type this case will have
@@ -96,14 +105,6 @@ async function seedGeneralCases(prisma, dependencies, config) {
     const tasksData = allTasks.map((taskInfo) => {
       const { name, reminderType } = taskInfo;
 
-      // Exclude users with dedicated seed files from random task assignments
-      const usersWithDedicatedSeeds = [
-        'rachael@cps.gov.uk',
-        'simon@cps.gov.uk',
-        'kirsty@cps.gov.uk',
-        'tony@cps.gov.uk',
-        'bruce@cps.gov.uk'
-      ];
       const eligibleUsers = users.filter(u => !usersWithDedicatedSeeds.includes(u.email));
       const assignedToUserId = faker.helpers.arrayElement(eligibleUsers).id;
 
@@ -176,40 +177,13 @@ async function seedGeneralCases(prisma, dependencies, config) {
     // Generate 0-5 directions per case
     const numDirections = faker.number.int({ min: 0, max: 5 });
     const directionsData = [];
+
     for (let dir = 0; dir < numDirections; dir++) {
-      const directionTitles = [
-        'Witness statement required',
-        'Evidence review needed',
-        'Extension application',
-        'Disclosure exercise',
-        'Notice to be served',
-        'Expert report request',
-        'Defence case statement response',
-        'Counsel conference',
-        'Victim update required',
-        'Bad Character application',
-        'Court order compliance',
-        'Additional evidence service'
-      ];
-
-      const directionDescriptions = [
-        'Provide witness statement by the specified date',
-        'Submit evidence review by the specified date',
-        'File application for extension by the specified date',
-        'Complete disclosure exercise by the specified date',
-        'Serve notice on defendant by the specified date',
-        'Obtain expert report by the specified date',
-        'File response to defence case statement by the specified date',
-        'Arrange conference with counsel by the specified date',
-        'Update victim on case progress by the specified date',
-        'Submit Bad Character application by the specified date',
-        'Comply with court order by the specified date',
-        'Serve additional evidence by the specified date'
-      ];
-
-      const directionIndex = faker.number.int({ min: 0, max: directionTitles.length - 1 });
-      const title = directionTitles[directionIndex];
-      const description = directionDescriptions[directionIndex];
+      // 75% prosecution directions, 25% defence directions
+      const isProsecution = faker.datatype.boolean({ probability: 0.75 });
+      const directionPool = isProsecution ? prosecutionDirections : defenceDirections;
+      const direction = faker.helpers.arrayElement(directionPool);
+      const assignee = isProsecution ? 'Prosecution' : 'Defence';
 
       // Generate due date: 60% overdue, 20% today/tomorrow, 20% future
       const dateChoice = faker.number.float({ min: 0, max: 1 });
@@ -235,17 +209,14 @@ async function seedGeneralCases(prisma, dependencies, config) {
       // 5% chance direction is already completed
       const completedDate = faker.datatype.boolean({ probability: 0.05 }) ? faker.date.recent({ days: 30 }) : null;
 
-      // Assignee: Prosecution or Defence
-      const assignee = faker.helpers.arrayElement(['Prosecution', 'Defence']);
-
       // Always assign to a specific defendant from this case
       const defendantId = assignedDefendants.length > 0
         ? faker.helpers.arrayElement(assignedDefendants).id
         : null;
 
       directionsData.push({
-        title,
-        description,
+        title: direction.title,
+        description: direction.description,
         dueDate,
         completedDate,
         assignee,
@@ -299,9 +270,10 @@ async function seedGeneralCases(prisma, dependencies, config) {
       const prosecutorAssignmentChoice = faker.number.float({ min: 0, max: 1 });
       const numProsecutors = prosecutorAssignmentChoice < 0.99 ? 1 : faker.number.int({ min: 2, max: 3 });
 
-      // Get prosecutors from this case's unit
+      // Get prosecutors from this case's unit, excluding those with dedicated seed files
       const unitProsecutors = prosecutors.filter(p =>
-        p.units.some(uu => uu.unitId === caseUnitId)
+        p.units.some(uu => uu.unitId === caseUnitId) &&
+        !usersWithDedicatedSeeds.includes(p.email)
       );
 
       if (unitProsecutors.length > 0) {
@@ -325,9 +297,11 @@ async function seedGeneralCases(prisma, dependencies, config) {
       const paralegalAssignmentChoice = faker.number.float({ min: 0, max: 1 });
       const numParalegals = paralegalAssignmentChoice < 0.99 ? 1 : 2;
 
-      // Get paralegal officers from this case's unit
+      // Get paralegal officers from this case's unit, excluding those with dedicated seed files
       const unitParalegals = users.filter(u =>
-        u.role === 'Paralegal officer' && u.units.some(uu => uu.unitId === caseUnitId)
+        u.role === 'Paralegal officer' &&
+        u.units.some(uu => uu.unitId === caseUnitId) &&
+        !usersWithDedicatedSeeds.includes(u.email)
       );
 
       if (unitParalegals.length > 0) {

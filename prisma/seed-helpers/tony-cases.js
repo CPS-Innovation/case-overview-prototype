@@ -8,6 +8,7 @@ const {
   generateLessThan1HourPACE,
   generateLessThan2HoursPACE
 } = require('./pace-generators');
+const { createDirectionsForCase } = require('./directions');
 
 const TONY_UNITS = {
   DORSET_MAGISTRATES: 1,
@@ -125,6 +126,9 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
     }
   });
 
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
+
   return _case;
 }
 
@@ -191,6 +195,9 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
       assignedToTeamId: adminPoolTeam.id
     }
   });
+
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
   return _case;
 }
@@ -274,6 +281,9 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
       assignedToTeamId: adminPoolTeam.id
     }
   });
+
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
   return _case;
 }

@@ -1,6 +1,7 @@
 const { faker } = require('@faker-js/faker');
 const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
+const { createDirectionsForCase } = require('./directions');
 
 const RACHAEL_UNITS = {
   WESSEX_CROWN_COURT: 3,
@@ -215,6 +216,9 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
     }
   });
 
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
+
   return _case;
 }
 
@@ -292,6 +296,9 @@ async function createManyWitnessesCase(prisma, user, config) {
       await createSpecialMeasures(prisma, witness.id);
     }
   }
+
+  // Create directions
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
   return _case;
 }
