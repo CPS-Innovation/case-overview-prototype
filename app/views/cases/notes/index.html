@@ -1,4 +1,4 @@
-{% extends "layouts/main.html" %}
+{% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'notes' %}
 {% set pageName = "Notes (:total)" | replace(':total', _case.notes.length | formatNumber) %}
@@ -24,12 +24,12 @@
         {{ govukButton({
           text: "Export",
           classes: 'govuk-button--secondary'
-        }) }}
+        }) if _case.notes.length }}
       </div>
 
-      {% include "_includes/note/search-form.njk" %}
-
       {% if _case.notes.length %}
+        {% include "_includes/note/search-form.njk" %}
+
         <div class="app-list">
           {% for note in _case.notes %}
             {% set notePreview %}
@@ -45,22 +45,19 @@
                 <a href="/cases/{{_case.id}}/notes/{{note.id}}" class="govuk-link--no-visited-state">{{ notePreview | trim }}</a>
               </h2>
 
-              {% set summaryRows = [] %}
-
-              {% set summaryRows = (summaryRows.push({
-                key: { html: 'User' },
-                value: { html: note.user.firstName + ' ' + note.user.lastName }
-              }), summaryRows) %}
-
-              {% set summaryRows = (summaryRows.push({
-                key: { html: 'Date added' },
-                value: { html: note.createdAt | isoDateString | govukDateTime }
-              }), summaryRows) %}
-
-              {{ govukSummaryList({
+                {{ govukSummaryList({
                 classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
-                rows: summaryRows
-              })}}
+                rows: [
+                  {
+                    key: { text: 'User' },
+                    value: { text: note.user.firstName + ' ' + note.user.lastName }
+                  },
+                  {
+                    key: { text: 'Date added' },
+                    value: { text: note.createdAt | isoDateString | govukDateTime }
+                  }
+                ]
+              }) }}
             </div>
           {% endfor %}
         </div>

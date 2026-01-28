@@ -125,7 +125,8 @@ module.exports = router => {
       { header: 'Domestic violence', key: 'domesticViolence', width: 20 },
       { header: 'Hate Crime Flag', key: 'hateCrimeFlag', width: 20 },
       { header: 'Failure types', key: 'failureTypes', width: 30 },
-      { header: 'Non-compliant DGA outcome', key: 'outcome', width: 30 },
+      { header: 'Did the police dispute this failure?', key: 'disputed', width: 35 },
+      { header: 'Did CPS accept the dispute?', key: 'cpsAccepted', width: 30 },
       { header: 'Contact methods', key: 'contactMethods', width: 20 },
       { header: 'Comments', key: 'comments', width: 30 }
     ]
@@ -142,8 +143,6 @@ module.exports = router => {
     cases.forEach(_case => {
       if (_case.dga && _case.dga.failureReasons && _case.dga.failureReasons.length > 0) {
         _case.dga.failureReasons.forEach(failureReason => {
-          const outcomeText = failureReason.outcome || 'In progress'
-
           worksheet.addRow({
             urn: _case.reference,
             caseworkType: _case.type || '',
@@ -158,7 +157,8 @@ module.exports = router => {
             domesticViolence: '',
             hateCrimeFlag: '',
             failureTypes: failureReason.reason,
-            outcome: outcomeText,
+            disputed: failureReason.disputed || '',
+            cpsAccepted: failureReason.cpsAccepted || '',
             contactMethods: failureReason.methods || '',
             comments: failureReason.details || ''
           })

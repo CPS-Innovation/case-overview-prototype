@@ -203,7 +203,7 @@ module.exports = router => {
       const reviewFilters = []
 
       if (selectedDgaFilters.includes('Needs review')) {
-        reviewFilters.push({ dga: { outcome: null } })
+        reviewFilters.push({ dga: { failureReasons: { some: { disputed: null } } } })
       }
 
       if (selectedDgaFilters.includes('Does not need review')) {

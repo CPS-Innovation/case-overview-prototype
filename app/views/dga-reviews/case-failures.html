@@ -1,4 +1,4 @@
-{% extends "layouts/main.html" %}
+{% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
 {% set pageName = 'Failures' %}
@@ -58,7 +58,7 @@
               {{ reason.reason }}
             </h2>
 
-            {% if not reason.outcome %}
+            {% if not reason.disputed %}
               {{ govukButton({
                 text: "Record dispute outcome",
                 href: "/dga-reviews/" + monthKey + "/" + policeUnitId + "/" + case.id + "/" + reason.id + "/record-dispute-outcome"
@@ -80,37 +80,44 @@
               {{ govukSummaryList({
                 rows: [
                   {
-                    key: {
-                      text: "Outcome"
-                    },
-                    value: {
-                      text: reason.outcome
-                    },
+                    key: { text: "Did the police dispute this failure?" },
+                    value: { text: reason.disputed },
                     actions: {
                       items: [
                         {
                           href: baseUrl,
                           text: "Change",
-                          visuallyHiddenText: "outcome"
+                          visuallyHiddenText: "did the police dispute this failure"
                         }
                       ]
                     }
                   },
-
+                  {
+                    key: { text: "Did CPS accept the dispute?" },
+                    value: { text: reason.cpsAccepted },
+                    actions: {
+                      items: [
+                        {
+                          href: baseUrl + "/cps-accepted",
+                          text: "Change",
+                          visuallyHiddenText: "did CPS accept the dispute"
+                        }
+                      ]
+                    }
+                  } if reason.disputed == "Yes",
                   {
                     key: { text: "Reason for outcome" },
                     value: { text: reason.details if reason.details else "-" },
                     actions: {
                       items: [
                         {
-                          href: baseUrl + "/explanation",
+                          href: baseUrl + "/reason",
                           text: "Change",
-                          visuallyHiddenText: "explanation"
+                          visuallyHiddenText: "reason for outcome"
                         }
                       ]
                     }
-                  } if reason.outcome != "Not disputed",
-
+                  } if reason.disputed == "Yes",
                   {
                     key: { text: "How did you discuss this dispute with the police?" },
                     value: { html: methodsHtml },
@@ -119,11 +126,11 @@
                         {
                           href: baseUrl + "/method",
                           text: "Change",
-                          visuallyHiddenText: "methods"
+                          visuallyHiddenText: "how you discussed this dispute with the police"
                         }
                       ]
                     }
-                  } if reason.outcome != "Not disputed"
+                  } if reason.disputed == "Yes"
                 ]
               }) }}
             {% endif %}

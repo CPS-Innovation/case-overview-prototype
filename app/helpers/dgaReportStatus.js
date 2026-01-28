@@ -26,7 +26,7 @@ function getDgaReportStatus(_case) {
 
   const failureReasons = _case.dga.failureReasons
   const totalReasons = failureReasons.length
-  const completedReasons = failureReasons.filter(fr => fr.outcome !== null).length
+  const completedReasons = failureReasons.filter(fr => fr.disputed !== null).length
 
   return getCompletionStatus(completedReasons, totalReasons)
 }

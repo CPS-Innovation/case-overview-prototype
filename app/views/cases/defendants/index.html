@@ -1,4 +1,4 @@
-{% extends "layouts/main.html" %}
+{% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'defendants' %}
 {% set pageName = "Defendants (:total)" | replace(':total', _case.defendants.length | formatNumber) %}

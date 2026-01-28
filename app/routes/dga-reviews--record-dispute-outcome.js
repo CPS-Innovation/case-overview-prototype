@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const { calculateLegacyOutcome, isFinalFailure } = require('../helpers/dgaLegacyOutcome')
 
 module.exports = router => {
 
@@ -29,7 +30,7 @@ module.exports = router => {
     res.render('dga-reviews/record-dispute-outcome/index', {
       case: caseData,
       failureReason: failureReason,
-      selectedOutcome: req.session.data.recordOutcome?.outcome,
+      selectedDisputed: req.session.data.recordOutcome?.disputed,
       monthKey,
       policeUnitId
     })
@@ -40,24 +41,22 @@ module.exports = router => {
     const policeUnitId = req.params.policeUnitId
     const caseId = req.params.caseId
     const failureReasonId = req.params.failureReasonId
-    const outcome = req.body.recordOutcome?.outcome
+    const disputed = req.body.recordOutcome?.disputed
 
-    // Store in session
-    _.set(req, 'session.data.recordOutcome.outcome', outcome)
+    _.set(req, 'session.data.recordOutcome.disputed', disputed)
 
-    // If "Not disputed", skip to check answers
-    if (outcome === 'Not disputed') {
+    if (disputed === 'No') {
+      _.set(req, 'session.data.recordOutcome.cpsAccepted', null)
       _.set(req, 'session.data.recordOutcome.explanation', null)
       _.set(req, 'session.data.recordOutcome.methods', null)
       return res.redirect(`/dga-reviews/${monthKey}/${policeUnitId}/${caseId}/${failureReasonId}/record-dispute-outcome/check`)
     }
 
-    // Otherwise go to details page
-    res.redirect(`/dga-reviews/${monthKey}/${policeUnitId}/${caseId}/${failureReasonId}/record-dispute-outcome/explanation`)
+    res.redirect(`/dga-reviews/${monthKey}/${policeUnitId}/${caseId}/${failureReasonId}/record-dispute-outcome/cps-accepted`)
   })
 
-  // Step 2a: Add details (only if disputed)
-  router.get('/dga-reviews/:month/:policeUnitId/:caseId/:failureReasonId/record-dispute-outcome/explanation', async (req, res) => {
+  // Step 1b: Did CPS accept the dispute? (only if disputed)
+  router.get('/dga-reviews/:month/:policeUnitId/:caseId/:failureReasonId/record-dispute-outcome/cps-accepted', async (req, res) => {
     const monthKey = req.params.month
     const policeUnitId = parseInt(req.params.policeUnitId)
     const caseId = parseInt(req.params.caseId)
@@ -78,7 +77,50 @@ module.exports = router => {
 
     const failureReason = caseData.dga.failureReasons[0]
 
-    res.render('dga-reviews/record-dispute-outcome/explanation', {
+    res.render('dga-reviews/record-dispute-outcome/cps-accepted', {
+      case: caseData,
+      failureReason: failureReason,
+      selectedCpsAccepted: req.session.data.recordOutcome?.cpsAccepted,
+      monthKey,
+      policeUnitId
+    })
+  })
+
+  router.post('/dga-reviews/:month/:policeUnitId/:caseId/:failureReasonId/record-dispute-outcome/cps-accepted', (req, res) => {
+    const monthKey = req.params.month
+    const policeUnitId = req.params.policeUnitId
+    const caseId = req.params.caseId
+    const failureReasonId = req.params.failureReasonId
+    const cpsAccepted = req.body.recordOutcome?.cpsAccepted
+
+    _.set(req, 'session.data.recordOutcome.cpsAccepted', cpsAccepted)
+
+    res.redirect(`/dga-reviews/${monthKey}/${policeUnitId}/${caseId}/${failureReasonId}/record-dispute-outcome/reason`)
+  })
+
+  // Step 2a: Add details (only if disputed)
+  router.get('/dga-reviews/:month/:policeUnitId/:caseId/:failureReasonId/record-dispute-outcome/reason', async (req, res) => {
+    const monthKey = req.params.month
+    const policeUnitId = parseInt(req.params.policeUnitId)
+    const caseId = parseInt(req.params.caseId)
+    const failureReasonId = parseInt(req.params.failureReasonId)
+
+    const caseData = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: {
+        dga: {
+          include: {
+            failureReasons: {
+              where: { id: failureReasonId }
+            }
+          }
+        }
+      }
+    })
+
+    const failureReason = caseData.dga.failureReasons[0]
+
+    res.render('dga-reviews/record-dispute-outcome/reason', {
       case: caseData,
       failureReason: failureReason,
       details: req.session.data.recordOutcome?.explanation,
@@ -87,7 +129,7 @@ module.exports = router => {
     })
   })
 
-  router.post('/dga-reviews/:month/:policeUnitId/:caseId/:failureReasonId/record-dispute-outcome/explanation', (req, res) => {
+  router.post('/dga-reviews/:month/:policeUnitId/:caseId/:failureReasonId/record-dispute-outcome/reason', (req, res) => {
     const monthKey = req.params.month
     const policeUnitId = req.params.policeUnitId
     const caseId = req.params.caseId
@@ -164,21 +206,37 @@ module.exports = router => {
       include: {
         dga: {
           include: {
-            failureReasons: {
-              where: { id: failureReasonId }
-            }
+            failureReasons: true
           }
         }
       }
     })
 
-    const failureReason = caseData.dga.failureReasons[0]
+    const failureReason = caseData.dga.failureReasons.find(fr => fr.id === failureReasonId)
+    const allFailureReasons = caseData.dga.failureReasons
+
+    let legacyOutcome = null
+    if (isFinalFailure(allFailureReasons)) {
+      // Build a simulated list including the current session data for the failure being recorded
+      const simulatedReasons = allFailureReasons.map(fr => {
+        if (fr.id === failureReasonId) {
+          return {
+            ...fr,
+            disputed: req.session.data.recordOutcome?.disputed,
+            cpsAccepted: req.session.data.recordOutcome?.cpsAccepted
+          }
+        }
+        return fr
+      })
+      legacyOutcome = calculateLegacyOutcome(simulatedReasons)
+    }
 
     res.render('dga-reviews/record-dispute-outcome/check', {
       case: caseData,
       failureReason: failureReason,
       monthKey,
-      policeUnitId
+      policeUnitId,
+      legacyOutcome
     })
   })
 
@@ -188,7 +246,8 @@ module.exports = router => {
     const caseId = parseInt(req.params.caseId)
     const failureReasonId = parseInt(req.params.failureReasonId)
 
-    const outcome = req.session.data.recordOutcome?.outcome
+    const disputed = req.session.data.recordOutcome?.disputed
+    const cpsAccepted = req.session.data.recordOutcome?.cpsAccepted
     const details = req.session.data.recordOutcome?.explanation
     const methods = req.session.data.recordOutcome?.methods
 
@@ -205,11 +264,11 @@ module.exports = router => {
       }
     })
 
-    // Update the failure reason with the outcome, details, and methods
     await prisma.dGAFailureReason.update({
       where: { id: failureReasonId },
       data: {
-        outcome: outcome,
+        disputed: disputed,
+        cpsAccepted: cpsAccepted,
         details: details,
         methods: methods ? methods.join(', ') : null
       }

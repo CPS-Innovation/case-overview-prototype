@@ -40,7 +40,11 @@ module.exports = router => {
     const needsDGAReviewCount = await prisma.case.count({
       where: {
         dga: {
-          outcome: null
+          failureReasons: {
+            some: {
+              disputed: null
+            }
+          }
         }
       }
     })
@@ -51,7 +55,7 @@ module.exports = router => {
         reviewDate: { not: null },
         failureReasons: {
           some: {
-            outcome: null
+            disputed: null
           }
         }
       },

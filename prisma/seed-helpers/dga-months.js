@@ -52,8 +52,6 @@ async function seedDGAMonths(prisma, defendants) {
     "Victim and witness failure - VPS - no information on whether VPS offered/not provided"
   ];
 
-  // Possible outcomes for completed/in-progress cases
-  const outcomes = ['Not disputed', 'Disputed successfully', 'Disputed unsuccessfully'];
 
   // Month configurations
   // September 2025: All completed (past month)
@@ -172,26 +170,26 @@ async function seedDGAMonths(prisma, defendants) {
         const selectedReasons = faker.helpers.arrayElements(failureReasonsList, numFailureReasons);
 
         for (const reason of selectedReasons) {
-          let outcome = null;
+          let disputed = null;
+          let cpsAccepted = null;
 
-          // Set outcomes based on state
-          if (state === 'completed') {
-            // All failure reasons have outcomes
-            outcome = faker.helpers.arrayElement(outcomes);
-          } else if (state === 'in-progress') {
-            // 50% chance each failure reason has an outcome
-            outcome = faker.datatype.boolean() ? faker.helpers.arrayElement(outcomes) : null;
+          const shouldHaveOutcome = state === 'completed' || (state === 'in-progress' && faker.datatype.boolean());
+
+          if (shouldHaveOutcome) {
+            disputed = faker.helpers.arrayElement(['Yes', 'No']);
+            if (disputed === 'Yes') {
+              cpsAccepted = faker.helpers.arrayElement(['Yes', 'No']);
+            }
           }
-          // else state === 'not-started', outcome stays null
 
           await prisma.dGAFailureReason.create({
             data: {
               dgaId: dga.id,
               reason: reason,
-              outcome: outcome,
-              // Set details and methods if outcome is disputed
-              details: outcome && outcome !== 'Not disputed' ? faker.lorem.paragraph() : null,
-              methods: outcome && outcome !== 'Not disputed'
+              disputed: disputed,
+              cpsAccepted: cpsAccepted,
+              details: disputed === 'Yes' ? faker.lorem.paragraph() : null,
+              methods: disputed === 'Yes'
                 ? faker.helpers.arrayElements(['Email', 'Phone', 'Letter'], faker.number.int({ min: 1, max: 2 })).join(', ')
                 : null
             }

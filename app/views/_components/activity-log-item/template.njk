@@ -43,17 +43,21 @@
               value: { text: params.event.meta.monthName }
             },
             {
-              key: { text: "Outcome" },
-              value: { text: params.event.meta.outcome }
+              key: { text: "Did the police dispute this failure?" },
+              value: { text: params.event.meta.disputed }
             },
+            {
+              key: { text: "Did CPS accept the dispute?" },
+              value: { text: params.event.meta.cpsAccepted }
+            } if params.event.meta.disputed == 'Yes',
             {
               key: { text: "Reason for outcome" },
               value: { text: params.event.meta.explanation }
-            } if params.event.meta.outcome != 'Not disputed' and params.event.meta.explanation,
+            } if params.event.meta.disputed == 'Yes' and params.event.meta.explanation,
             {
               key: { text: "How did you discuss this dispute with the police?" },
               value: { html: methodsHtml }
-            } if params.event.meta.outcome != 'Not disputed' and params.event.meta.methods
+            } if params.event.meta.disputed == 'Yes' and params.event.meta.methods
           ]
         }) }}
       </div>

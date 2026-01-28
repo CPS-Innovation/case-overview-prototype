@@ -59,7 +59,7 @@ module.exports = router => {
       if (isNonCompliant) {
         monthData.nonCompliantCases++
         // Check if all failure reasons have outcomes
-        const allCompleted = _case.dga.failureReasons.every(fr => fr.outcome !== null)
+        const allCompleted = _case.dga.failureReasons.every(fr => fr.disputed !== null)
         if (allCompleted) {
           monthData.completedCases++
         }
@@ -180,13 +180,13 @@ module.exports = router => {
         unitData.nonCompliantCases++
 
         // Check if all failure reasons have outcomes (case is fully complete)
-        const allCompleted = _case.dga.failureReasons.every(fr => fr.outcome !== null)
+        const allCompleted = _case.dga.failureReasons.every(fr => fr.disputed !== null)
         if (allCompleted) {
           unitData.completedCases++
         }
 
         // Check if any failure reason has an outcome (case has progress)
-        const hasAnyOutcome = _case.dga.failureReasons.some(fr => fr.outcome !== null)
+        const hasAnyOutcome = _case.dga.failureReasons.some(fr => fr.disputed !== null)
         if (hasAnyOutcome) {
           unitData.hasAnyProgress = true
         }
@@ -305,7 +305,7 @@ module.exports = router => {
     // Calculate report status for each case
     const casesWithStatus = casesForPoliceUnit.map(_case => {
       const outcomesTotal = _case.dga.failureReasons.length
-      const outcomesCompleted = _case.dga.failureReasons.filter(fr => fr.outcome !== null).length
+      const outcomesCompleted = _case.dga.failureReasons.filter(fr => fr.disputed !== null).length
 
       return {
         ..._case,
@@ -371,7 +371,7 @@ module.exports = router => {
 
     // Calculate outcomes progress
     const outcomesTotal = caseData.dga.failureReasons.length
-    const outcomesCompleted = caseData.dga.failureReasons.filter(fr => fr.outcome !== null).length
+    const outcomesCompleted = caseData.dga.failureReasons.filter(fr => fr.disputed !== null).length
     const outcomesRemaining = outcomesTotal - outcomesCompleted
 
     res.render('dga-reviews/case-failures', {
