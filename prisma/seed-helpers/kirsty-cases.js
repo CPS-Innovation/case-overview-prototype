@@ -27,7 +27,7 @@ const KIRSTY_CTL_TASKS = [
 ];
 
 async function createSTLCase(prisma, user, taskConfig, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities, availableOperationNames } = config;
   const { name, stlGenerator } = taskConfig;
 
   const statutoryTimeLimit = stlGenerator();
@@ -57,9 +57,14 @@ async function createSTLCase(prisma, user, taskConfig, config) {
 
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
+      operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: KIRSTY_UNIT } },
@@ -97,10 +102,11 @@ async function createSTLCase(prisma, user, taskConfig, config) {
 }
 
 async function createCTLCase(prisma, user, taskConfig, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, availableOperationNames } = config;
   const { name, hearingType, isReminder } = taskConfig;
 
   const custodyTimeLimit = faker.date.soon({ days: 14 });
+  custodyTimeLimit.setHours(23, 59, 59, 999);
 
   const defendant = await prisma.defendant.create({
     data: {
@@ -127,9 +133,14 @@ async function createCTLCase(prisma, user, taskConfig, config) {
 
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
+      operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: KIRSTY_UNIT } },
@@ -147,6 +158,7 @@ async function createCTLCase(prisma, user, taskConfig, config) {
 
   // Create hearing
   const hearingDate = faker.date.soon({ days: 30 });
+  hearingDate.setUTCHours(faker.helpers.arrayElement([10, 11, 12]), 0, 0, 0);
   await prisma.hearing.create({
     data: {
       startDate: hearingDate,
@@ -160,6 +172,7 @@ async function createCTLCase(prisma, user, taskConfig, config) {
 
   // Create task
   const dueDate = faker.date.soon({ days: 14 });
+  dueDate.setHours(23, 59, 59, 999);
   await prisma.task.create({
     data: {
       name,
@@ -180,7 +193,7 @@ async function createCTLCase(prisma, user, taskConfig, config) {
 }
 
 async function seedKirstyCases(prisma, dependencies, config) {
-  const { defenceLawyers, victims } = dependencies;
+  const { defenceLawyers, victims, availableOperationNames } = dependencies;
   const { charges, firstNames, lastNames, pleas, types, complexities } = config;
 
   const kirstyPriest = await prisma.user.findFirst({
@@ -200,7 +213,8 @@ async function seedKirstyCases(prisma, dependencies, config) {
     pleas,
     victims,
     types,
-    complexities
+    complexities,
+    availableOperationNames
   };
 
   // Create STL cases (pre-charge, no hearing)

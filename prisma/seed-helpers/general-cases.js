@@ -1,7 +1,7 @@
 const { faker } = require('@faker-js/faker');
 const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
-const { futureDateAt10am } = require('./dates');
+const { futureDateAtHearingTime } = require('./dates');
 const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates, generateEscalatedTaskDates } = require('./task-dates');
 const { prosecutionDirections, defenceDirections } = require('./directions');
 
@@ -192,6 +192,7 @@ async function seedGeneralCases(prisma, dependencies, config) {
       if (dateChoice < 0.6) {
         // Overdue - 1 to 90 days in the past
         dueDate = faker.date.past({ days: 90 });
+        dueDate.setHours(23, 59, 59, 999);
       } else if (dateChoice < 0.7) {
         // Due today
         dueDate = new Date();
@@ -204,6 +205,7 @@ async function seedGeneralCases(prisma, dependencies, config) {
       } else {
         // Future - 2 to 60 days ahead
         dueDate = faker.date.soon({ days: 60 });
+        dueDate.setHours(23, 59, 59, 999);
       }
 
       // 5% chance direction is already completed
@@ -330,18 +332,17 @@ async function seedGeneralCases(prisma, dependencies, config) {
       const dateChoice = faker.number.float({ min: 0, max: 1 });
       let hearingStartDate;
 
+      const hearingHour = faker.helpers.arrayElement([10, 11, 12]);
+
       if (dateChoice < 0.4) {
-        // Today at 10am
         hearingStartDate = new Date();
-        hearingStartDate.setUTCHours(10, 0, 0, 0);
+        hearingStartDate.setUTCHours(hearingHour, 0, 0, 0);
       } else if (dateChoice < 0.8) {
-        // Tomorrow at 10am
         hearingStartDate = new Date();
         hearingStartDate.setDate(hearingStartDate.getDate() + 1);
-        hearingStartDate.setUTCHours(10, 0, 0, 0);
+        hearingStartDate.setUTCHours(hearingHour, 0, 0, 0);
       } else {
-        // Future date at 10am
-        hearingStartDate = futureDateAt10am();
+        hearingStartDate = futureDateAtHearingTime();
       }
 
       // 10% chance of multi-day hearing (has endDate)

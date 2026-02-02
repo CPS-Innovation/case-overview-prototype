@@ -23,6 +23,7 @@ function generateDirectionDueDate() {
 
   if (dateChoice < 0.6) {
     dueDate = faker.date.past({ days: 90 });
+    dueDate.setHours(23, 59, 59, 999);
   } else if (dateChoice < 0.7) {
     dueDate = new Date();
     dueDate.setHours(23, 59, 59, 999);
@@ -32,6 +33,7 @@ function generateDirectionDueDate() {
     dueDate.setHours(23, 59, 59, 999);
   } else {
     dueDate = faker.date.soon({ days: 60 });
+    dueDate.setHours(23, 59, 59, 999);
   }
 
   return dueDate;

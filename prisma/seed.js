@@ -162,10 +162,17 @@ async function main() {
   const dgaCasesCount = await seedDGAMonths(prisma, defendants);
   done(dgaCasesCount);
 
+  const availableOperationNames = faker.helpers.shuffle([
+    'Ragnarok', 'Valhalla', 'Odin', 'Mjolnir', 'Bifrost',
+    'Asgard', 'Ultron', 'Endgame', 'Sakaar', 'Infinity',
+    'Avalon', 'Fenrir', 'Surtur', 'Heimdall', 'Yggdrasil',
+    'Titan', 'Wakanda', 'Vibranium', 'Nexus', 'Kree'
+  ]);
+
   step("Rachael Harvey's cases");
   const rachaelCasesCount = await seedRachaelCases(
     prisma,
-    { defenceLawyers, victims },
+    { defenceLawyers, victims, availableOperationNames },
     { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities }
   );
   done(rachaelCasesCount);
@@ -173,7 +180,7 @@ async function main() {
   step("Simon Whatley's cases");
   const simonCasesCount = await seedSimonCases(
     prisma,
-    { defenceLawyers, victims },
+    { defenceLawyers, victims, availableOperationNames },
     { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities }
   );
   done(simonCasesCount);
@@ -181,7 +188,7 @@ async function main() {
   step("Kirsty Priest's cases");
   const kirstyCasesCount = await seedKirstyCases(
     prisma,
-    { defenceLawyers, victims },
+    { defenceLawyers, victims, availableOperationNames },
     { charges, firstNames, lastNames, pleas, types, complexities }
   );
   done(kirstyCasesCount);
@@ -189,7 +196,7 @@ async function main() {
   step("Tony Stark's cases");
   const tonyCasesCount = await seedTonyCases(
     prisma,
-    { defenceLawyers, victims },
+    { defenceLawyers, victims, availableOperationNames },
     { charges, firstNames, lastNames, pleas, types, complexities }
   );
   done(tonyCasesCount);

@@ -1,8 +1,8 @@
 const { faker } = require('@faker-js/faker');
 
-function futureDateAt10am() {
+function futureDateAtHearingTime() {
   const d = faker.date.future();
-  d.setHours(10, 0, 0, 0);
+  d.setUTCHours(faker.helpers.arrayElement([10, 11, 12]), 0, 0, 0);
   return d;
 }
 
@@ -31,7 +31,7 @@ function getTomorrowDate() {
 }
 
 module.exports = {
-  futureDateAt10am,
+  futureDateAtHearingTime,
   getOverdueDate,
   getTodayDate,
   getTomorrowDate

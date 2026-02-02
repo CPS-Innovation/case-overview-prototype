@@ -135,12 +135,13 @@ async function createSpecialMeasures(prisma, witnessId) {
 }
 
 async function createCaseWithTask(prisma, user, taskConfig, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, availableOperationNames } = config;
   const { name, hasCTL, hearingType, isReminder } = taskConfig;
 
   const unitId = faker.helpers.arrayElement([RACHAEL_UNITS.WESSEX_CROWN_COURT, RACHAEL_UNITS.WESSEX_RASSO]);
 
   const custodyTimeLimit = hasCTL ? faker.date.soon({ days: 14 }) : null;
+  if (custodyTimeLimit) custodyTimeLimit.setHours(23, 59, 59, 999);
   const remandStatus = hasCTL ? 'REMANDED_IN_CUSTODY' : faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL']);
 
   const defendant = await prisma.defendant.create({
@@ -168,9 +169,14 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
 
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
+      operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -188,6 +194,7 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
 
   // Create hearing
   const hearingDate = faker.date.soon({ days: 30 });
+  hearingDate.setUTCHours(faker.helpers.arrayElement([10, 11, 12]), 0, 0, 0);
   const venue = unitId === RACHAEL_UNITS.WESSEX_CROWN_COURT ? 'Wessex Crown Court' : 'Wessex RASSO';
 
   await prisma.hearing.create({
@@ -203,6 +210,7 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
 
   // Create task
   const dueDate = faker.date.soon({ days: 14 });
+  dueDate.setHours(23, 59, 59, 999);
   await prisma.task.create({
     data: {
       name,
@@ -223,7 +231,7 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
 }
 
 async function createManyWitnessesCase(prisma, user, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, ukCities } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, ukCities, availableOperationNames } = config;
 
   const defendant = await prisma.defendant.create({
     data: {
@@ -252,9 +260,14 @@ async function createManyWitnessesCase(prisma, user, config) {
 
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
   const _case = await prisma.case.create({
     data: {
       reference: '99RH250001/1',
+      operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: RACHAEL_UNITS.WESSEX_CROWN_COURT } },
@@ -304,7 +317,7 @@ async function createManyWitnessesCase(prisma, user, config) {
 }
 
 async function seedRachaelCases(prisma, dependencies, config) {
-  const { defenceLawyers, victims } = dependencies;
+  const { defenceLawyers, victims, availableOperationNames } = dependencies;
   const { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities } = config;
 
   const rachaelHarvey = await prisma.user.findFirst({
@@ -326,7 +339,8 @@ async function seedRachaelCases(prisma, dependencies, config) {
     types,
     complexities,
     taskNames,
-    ukCities
+    ukCities,
+    availableOperationNames
   };
 
   // Create specific task cases

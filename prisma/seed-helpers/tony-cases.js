@@ -63,7 +63,7 @@ async function getAdminPoolTeamForUnit(prisma, unitId) {
 }
 
 async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities, availableOperationNames } = config;
   const { name, stlGenerator, units } = taskConfig;
 
   const unitId = faker.helpers.arrayElement(units);
@@ -100,9 +100,14 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
 
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
+      operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -133,7 +138,7 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
 }
 
 async function createPACECaseForAdminPool(prisma, taskConfig, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities, availableOperationNames } = config;
   const { name, paceGenerator, units } = taskConfig;
 
   const unitId = faker.helpers.arrayElement(units);
@@ -170,9 +175,14 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
 
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
+      operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -203,11 +213,12 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
 }
 
 async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, availableOperationNames } = config;
   const { name, hearingType, units, isReminder } = taskConfig;
 
   const unitId = faker.helpers.arrayElement(units);
   const custodyTimeLimit = faker.date.soon({ days: 14 });
+  custodyTimeLimit.setHours(23, 59, 59, 999);
 
   const adminPoolTeam = await getAdminPoolTeamForUnit(prisma, unitId);
   if (!adminPoolTeam) {
@@ -240,9 +251,14 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
 
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
+      operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -254,6 +270,7 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
   // Create hearing if applicable
   if (hearingType) {
     const hearingDate = faker.date.soon({ days: 30 });
+    hearingDate.setUTCHours(faker.helpers.arrayElement([10, 11, 12]), 0, 0, 0);
     const unit = await prisma.unit.findUnique({ where: { id: unitId } });
     await prisma.hearing.create({
       data: {
@@ -269,6 +286,7 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
 
   // Create task assigned to admin pool team (not to a user)
   const dueDate = faker.date.soon({ days: 14 });
+  dueDate.setHours(23, 59, 59, 999);
   await prisma.task.create({
     data: {
       name,
@@ -289,7 +307,7 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
 }
 
 async function seedTonyCases(prisma, dependencies, config) {
-  const { defenceLawyers, victims } = dependencies;
+  const { defenceLawyers, victims, availableOperationNames } = dependencies;
   const { charges, firstNames, lastNames, pleas, types, complexities } = config;
 
   const fullConfig = {
@@ -300,7 +318,8 @@ async function seedTonyCases(prisma, dependencies, config) {
     pleas,
     victims,
     types,
-    complexities
+    complexities,
+    availableOperationNames
   };
 
   let count = 0;
