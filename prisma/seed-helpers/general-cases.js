@@ -41,7 +41,8 @@ async function seedGeneralCases(prisma, dependencies, config) {
     'simon@cps.gov.uk',
     'kirsty@cps.gov.uk',
     'tony@cps.gov.uk',
-    'bruce@cps.gov.uk'
+    'bruce@cps.gov.uk',
+    'natasha@cps.gov.uk'
   ];
 
   for (let i = 0; i < totalCases; i++) {

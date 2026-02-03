@@ -58,6 +58,27 @@ module.exports = router => {
     res.redirect(`/tasks?taskListFilters[owner][]=user-${currentUser.id}&taskListFilters[taskNames][]=Priority PCD review&taskListFilters[taskNames][]=Priority resubmitted PCD case`)
   })
 
+  router.get('/tasks/shortcut/admin-pool', async (req, res) => {
+    const currentUser = req.session.data.user
+    const userUnitIds = currentUser?.units?.map(uu => uu.unitId) || []
+    resetFilters(req)
+
+    const adminPoolTeams = await prisma.team.findMany({
+      where: {
+        name: 'Admin pool',
+        unitId: { in: userUnitIds }
+      }
+    })
+
+    const ownerParams = adminPoolTeams.map(t => `taskListFilters[owner][]=team-${t.id}`).join('&')
+    res.redirect(`/tasks?${ownerParams}`)
+  })
+
+  router.get('/tasks/shortcut/unit-priority-charging', (req, res) => {
+    resetFilters(req)
+    res.redirect('/tasks?taskListFilters[taskNames][]=Priority PCD review&taskListFilters[taskNames][]=Priority resubmitted PCD case')
+  })
+
   // Custody Time Limit shortcuts
   router.get('/tasks/shortcut/ctl-overdue', (req, res) => {
     const currentUser = req.session.data.user

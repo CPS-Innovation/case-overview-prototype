@@ -60,6 +60,8 @@ async function seedUsers(prisma) {
       selectedUnits = [3]; // Wessex Crown Court
     } else if (user.firstName === 'Bruce' && user.lastName === 'Banner') {
       selectedUnits = [3, 4]; // Wessex Crown Court, Wessex RASSO (same as Rachael for time limit testing)
+    } else if (user.firstName === 'Natasha' && user.lastName === 'Rogers') {
+      selectedUnits = [1, 2, 3, 4, 5, 6, 7]; // All Wessex units
     } else if (user.firstName === 'Veronica' && user.lastName === 'Mars') {
       selectedUnits = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]; // All Yorkshire and Humberside units
     } else {

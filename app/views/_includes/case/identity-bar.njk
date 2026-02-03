@@ -13,13 +13,13 @@
   </b>
 
   {% if _case.custodyTimeLimit %}
-    {{ govukTag({ text: 'Custody time limit', classes: 'govuk-tag--red' })}}
+    {# {{ govukTag({ text: 'Custody time limit', classes: 'govuk-tag--red' })}} #}
   {% endif %}
   {% if _case.statutoryTimeLimit %}
-    {{ govukTag({ text: 'Statutory time limit', classes: 'govuk-tag--orange' })}}
+    {# {{ govukTag({ text: 'Statutory time limit', classes: 'govuk-tag--orange' })}} #}
   {% endif %}
   {% if _case.paceClock %}
-    {{ govukTag({ text: 'PACE clock', classes: 'govuk-tag--yellow' })}}
+    {# {{ govukTag({ text: 'PACE clock', classes: 'govuk-tag--yellow' })}} #}
   {% endif %}
 {% endset %}
 {{ appIdentityBar({

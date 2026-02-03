@@ -79,7 +79,7 @@ async function createWitness(prisma, caseId, config) {
       workNumber: faker.helpers.arrayElement([null, generateUKPhoneNumber()]),
       otherNumber: faker.helpers.arrayElement([null, generateUKPhoneNumber()]),
       ...witnessTypes,
-      isAppearingInCourt: faker.helpers.arrayElement([false, null]),
+      isAppearingInCourt: null,
       isRelevant: faker.datatype.boolean(),
       attendanceIssues: faker.helpers.arrayElement([null, faker.lorem.sentence()]),
       previousTransgressions: faker.helpers.arrayElement([null, faker.lorem.sentence()]),
@@ -223,6 +223,36 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
       assignedToUserId: user.id
     }
   });
+
+  // Create witnesses - first is always a DCF victim, rest are random
+  const numWitnesses = faker.helpers.arrayElement([2, 3]);
+  for (let w = 0; w < numWitnesses; w++) {
+    const { witness, isDcf } = await createWitness(prisma, _case.id, config);
+
+    if (w === 0) {
+      await prisma.witness.update({
+        where: { id: witness.id },
+        data: { isVictim: true, dcf: true, courtAvailabilityStartDate: faker.date.future(), courtAvailabilityEndDate: faker.date.future(), victimCode: 'Learning disabilities', victimExplained: faker.datatype.boolean(), victimOfferResponse: faker.helpers.arrayElement(['Not offered', 'Declined', 'Accepted']) }
+      });
+    }
+
+    const numStatements = faker.number.int({ min: 1, max: 5 });
+    for (let s = 0; s < numStatements; s++) {
+      await prisma.witnessStatement.create({
+        data: {
+          witnessId: witness.id,
+          number: s + 1,
+          receivedDate: faker.date.past(),
+          isUsedAsEvidence: faker.helpers.arrayElement([true, false, null]),
+          isMarkedAsSection9: null,
+        },
+      });
+    }
+
+    if (w === 0 || isDcf) {
+      await createSpecialMeasures(prisma, witness.id);
+    }
+  }
 
   // Create directions
   await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));

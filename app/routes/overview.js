@@ -124,6 +124,31 @@ module.exports = router => {
       }
     })
 
+    const adminPoolTaskCount = await prisma.task.count({
+      where: {
+        AND: [
+          { completedDate: null },
+          { case: { unitId: { in: userUnitIds } } },
+          { assignedToTeam: { name: 'Admin pool' } }
+        ]
+      }
+    })
+
+    const unitPriorityChargingTaskCount = await prisma.task.count({
+      where: {
+        AND: [
+          { completedDate: null },
+          { case: { unitId: { in: userUnitIds } } },
+          {
+            OR: [
+              { name: 'Priority PCD review' },
+              { name: 'Priority resubmitted PCD case' }
+            ]
+          }
+        ]
+      }
+    })
+
     // Fetch tasks assigned to current user with case and defendant info for time limit calculation
     let tasks = await prisma.task.findMany({
       where: {
@@ -313,6 +338,8 @@ module.exports = router => {
       latestDGAMonth,
       urgentTaskCount,
       priorityChargingTaskCount,
+      adminPoolTaskCount,
+      unitPriorityChargingTaskCount,
       ctlCountsByRange,
       stlCountsByRange,
       paceClockCountsByRange,
