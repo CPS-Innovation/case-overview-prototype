@@ -42,6 +42,11 @@
   overflow-x: hidden;
   overflow-y: auto;
   border-bottom: 1px solid $govuk-border-colour;
+
+  &:focus {
+    outline: 3px solid $govuk-focus-colour;
+    outline-offset: 0;
+  }
 }
 
 .app-list-filter__container--max .app-list-filter__container-inner {

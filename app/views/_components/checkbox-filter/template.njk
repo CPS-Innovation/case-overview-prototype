@@ -106,7 +106,8 @@
     </div>
   {%- endif -%}
 
-  <div class="app-list-filter__container {% if params.maxHeight %}app-list-filter__container--max{% endif %}">
+  <div class="app-list-filter__container {% if params.maxHeight %}app-list-filter__container--max{% endif %}"
+    {% if params.maxHeight %}tabindex="0" role="region" aria-label="{{ params.fieldset.legend.text }} options"{% endif %}>
 
     <div class="govuk-checkboxes app-list-filter__container-inner {%- if params.classes %} {{ params.classes }}{% endif %}"
       {{- govukAttributes(params.attributes) }} data-module="govuk-checkboxes">
