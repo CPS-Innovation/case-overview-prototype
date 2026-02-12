@@ -43,7 +43,7 @@
   overflow-y: auto;
   border-bottom: 1px solid $govuk-border-colour;
 
-  &:focus {
+  &:focus-visible {
     outline: 3px solid $govuk-focus-colour;
     outline-offset: 0;
   }
