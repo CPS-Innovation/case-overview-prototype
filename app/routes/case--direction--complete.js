@@ -1,4 +1,3 @@
-const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
@@ -71,10 +70,7 @@ module.exports = router => {
       }
     })
 
-    _.set(req, 'session.data.successBanner', {
-      heading: 'Direction completed'
-    })
-
+    req.flash('success', 'Direction completed')
     res.redirect(`/cases/${req.params.caseId}/directions`)
   })
 }
