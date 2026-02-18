@@ -63,14 +63,34 @@ module.exports = router => {
   })
 
   router.post("/cases/:caseId/directions/:directionId/complete", async (req, res) => {
-    await prisma.direction.update({
-      where: { id: parseInt(req.params.directionId) },
+    const caseId = parseInt(req.params.caseId)
+    const directionId = parseInt(req.params.directionId)
+
+    const direction = await prisma.direction.update({
+      where: { id: directionId },
       data: {
         completedDate: new Date()
       }
     })
 
+    await prisma.activityLog.create({
+      data: {
+        userId: req.session.data.user.id,
+        model: 'Direction',
+        recordId: direction.id,
+        action: 'UPDATE',
+        title: 'Direction completed',
+        caseId,
+        meta: {
+          direction: {
+            id: direction.id,
+            description: direction.description
+          }
+        }
+      }
+    })
+
     req.flash('success', 'Direction completed')
-    res.redirect(`/cases/${req.params.caseId}/directions`)
+    res.redirect(`/cases/${caseId}/directions`)
   })
 }

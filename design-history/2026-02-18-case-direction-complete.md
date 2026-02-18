@@ -3,7 +3,7 @@ title: Designing the complete direction flow
 date: 2026-02-18
 ---
 
-Users need to mark directions as complete when the work is done. The complete direction flow gives users a way to confirm they want to complete a direction before doing so.
+Users need to be able to complete directions. 
 
 Users reach the flow by clicking "Complete direction" on the [direction details page](2026-02-18-case-direction-show.md).
 
@@ -16,3 +16,9 @@ The confirmation page shows the direction description in an inset and asks users
 After confirming, the user is taken back to the [case direction list](2026-02-18-case-direction-list.md) where a success banner confirms "Direction completed". The completed direction no longer appears in the list.
 
 ![The case direction list with a green success banner saying "Direction completed" at the top.](case-direction-complete/success.png)
+
+### Activity log
+
+The action is recorded in the case activity log as "Direction completed", showing the direction description and a link to view the direction.
+
+![The case activity log showing a "Direction completed" entry by Rachael Harvey, with the direction description and a View direction link.](case-direction-complete/activity-log.png)

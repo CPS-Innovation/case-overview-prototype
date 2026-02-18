@@ -561,6 +561,29 @@
       </p>
     {% endif %}
 
+    {% if params.event.title == 'Direction completed' %}
+      <div class="app-activity-log__box">
+        {% set directionDisplay %}
+          {% if params.event.meta.direction.description.length > 75 %}
+            {{ params.event.meta.direction.description | truncate(75) }}
+          {% else %}
+            {{ params.event.meta.direction.description }}
+          {% endif %}
+        {% endset %}
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: 'Direction' },
+              value: { text: directionDisplay | trim }
+            }
+          ]
+        }) }}
+      </div>
+      <p class="app-log-card__note--link">
+        <a class="govuk-link" href="/cases/{{ params.event.case.id }}/directions/{{ params.event.meta.direction.id }}">View direction</a>
+      </p>
+    {% endif %}
+
     {% if params.event.title == 'Task marked as urgent' %}
       <div class="app-activity-log__box">
         {% set urgentTaskRows = [] %}
