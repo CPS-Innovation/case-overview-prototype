@@ -49,13 +49,13 @@ Each task card shows:
 
 We only show fields that have values, so cards do not show empty rows.
 
-![The task list for Rachael Harvey showing 9 tasks filtered to her as the owner, grouped under Critically overdue, Overdue, Due soon, and Not due yet headings. Each task card shows relevant context including URN, defendant, due date, time limits, and hearing dates where applicable.](task-list/rachel-default-filters.png)
+![The task list for Rachael Harvey showing 9 tasks filtered to her as the owner, grouped under Critically overdue, Overdue, Due soon, and Not due yet headings. Each task card shows relevant context including URN, defendant, due date, time limits, and hearing dates where applicable.](redesigning-the-task-list/rachel-default-filters.png)
 
 The selected owner filter appears at the top of the filter panel as a tag with a remove link. A "Clear filters" link is available to remove all active filters at once.
 
 When filters are cleared, the full list of tasks across all units is shown. For larger teams this can be hundreds of tasks.
 
-![The task list with no filters applied, showing 593 tasks across all units, still grouped by severity.](task-list/rachel-no-filters.png)
+![The task list with no filters applied, showing 593 tasks across all units, still grouped by severity.](redesigning-the-task-list/rachel-no-filters.png)
 
 ### Filters
 
@@ -96,7 +96,7 @@ By default tasks are sorted by due date and grouped by severity. Users can chang
 - Later
 - No hearing date
 
-![The task list sorted by hearing date, grouping tasks by when their associated hearing is scheduled -including an overdue hearing group, followed by date-based groups, and a group for tasks with no hearing date.](task-list/sort-hearing-date.png)
+![The task list sorted by hearing date, grouping tasks by when their associated hearing is scheduled -including an overdue hearing group, followed by date-based groups, and a group for tasks with no hearing date.](redesigning-the-task-list/sort-hearing-date.png)
 
 **PACE clock** groups tasks by how much time is left on the police and criminal evidence clock. This is critical for tasks involving suspects in custody.
 
@@ -106,7 +106,7 @@ By default tasks are sorted by due date and grouped by severity. Users can chang
 - Less than 3 hours
 - More than 3 hours
 
-![The task list sorted by PACE clock, grouping tasks by how much time remains on the custody clock.](task-list/sort-pace-clock.png)
+![The task list sorted by PACE clock, grouping tasks by how much time remains on the custody clock.](redesigning-the-task-list/sort-pace-clock.png)
 
 **CTL (custody time limit)** groups tasks by when the defendant’s custody time limit expires. This helps users prioritise tasks for defendants held in custody.
 
@@ -117,7 +117,7 @@ By default tasks are sorted by due date and grouped by severity. Users can chang
 - Next week
 - Later
 
-![The task list sorted by custody time limit, with tasks grouped under headings such as Custody time limit expired, Ends today, Ends tomorrow, and so on.](task-list/sort-ctl.png)
+![The task list sorted by custody time limit, with tasks grouped under headings such as Custody time limit expired, Ends today, Ends tomorrow, and so on.](redesigning-the-task-list/sort-ctl.png)
 
 **STL (statutory time limit)** groups tasks by when the statutory time limit expires, using the same groupings as CTL. This is relevant for pre-charge cases.
 
@@ -128,7 +128,7 @@ By default tasks are sorted by due date and grouped by severity. Users can chang
 - Next week
 - Later
 
-![The task list sorted by statutory time limit, grouping pre-charge tasks by when their time limit expires.](task-list/sort-stl.png)
+![The task list sorted by statutory time limit, grouping pre-charge tasks by when their time limit expires.](redesigning-the-task-list/sort-stl.png)
 
 ### Casework assistants
 
@@ -136,11 +136,11 @@ Casework assistants do not own tasks in the same way as prosecutors and paralega
 
 When a casework assistant visits the task list, the default filter is set to their own name - but because they have no tasks assigned to them personally, they won’t see any tasks without changing the owner filter to an admin pool to see the work relevant to them.
 
-![The task list for Tony Stark (a casework assistant), showing Tasks (0) with the owner filter set to his name. The filter panel lists his units and admin pool options in the owner section.](task-list/tony-default-filters.png)
+![The task list for Tony Stark (a casework assistant), showing Tasks (0) with the owner filter set to his name. The filter panel lists his units and admin pool options in the owner section.](redesigning-the-task-list/tony-default-filters.png)
 
 Prosecutors see the same default behaviour as paralegal officers -the list is filtered to their own tasks on first visit.
 
-![The task list for Simon Whatley (a prosecutor), showing Tasks (10) filtered to him as owner. Tasks are grouped by Due soon and Not due yet.](task-list/simon-default-filters.png)
+![The task list for Simon Whatley (a prosecutor), showing Tasks (10) filtered to him as owner. Tasks are grouped by Due soon and Not due yet.](redesigning-the-task-list/simon-default-filters.png)
 
 ### Pagination
 

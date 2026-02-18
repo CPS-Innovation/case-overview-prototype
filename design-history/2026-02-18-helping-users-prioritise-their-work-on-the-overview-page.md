@@ -1,5 +1,5 @@
 ---
-title: Designing the overview page
+title: Helping users prioritise their work on the overview page
 date: 2026-02-18
 ---
 
@@ -22,13 +22,13 @@ Paralegal officers see two sections:
 
 Each item is a link that takes the user directly to the task list or direction list with the relevant filter pre-applied.
 
-![The overview page for Rachael Harvey (a paralegal officer), showing high priority directions belonging to her cases and high priority tasks assigned to her, followed by recently viewed cases.](overview/rachael.png)
+![The overview page for Rachael Harvey (a paralegal officer), showing high priority directions belonging to her cases and high priority tasks assigned to her, followed by recently viewed cases.](helping-users-prioritise-their-work-on-the-overview-page/rachael.png)
 
 ### Prosecutors
 
 Prosecutors see the same sections as paralegal officers. The directions shown are filtered to cases where they are the assigned prosecutor.
 
-![The overview page for Simon Whatley (a prosecutor), showing high priority directions and high priority tasks, followed by recently viewed cases.](overview/simon.png)
+![The overview page for Simon Whatley (a prosecutor), showing high priority directions and high priority tasks, followed by recently viewed cases.](helping-users-prioritise-their-work-on-the-overview-page/simon.png)
 
 ### Casework assistants
 
@@ -39,4 +39,4 @@ They see a "Tasks assigned to your units" section with links to:
 - admin pool tasks across their units
 - priority charging tasks across their units
 
-![The overview page for Tony Stark (a casework assistant), showing tasks assigned to his units and recently viewed cases.](overview/tony.png)
+![The overview page for Tony Stark (a casework assistant), showing tasks assigned to his units and recently viewed cases.](helping-users-prioritise-their-work-on-the-overview-page/tony.png)

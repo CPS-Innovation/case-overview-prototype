@@ -1,9 +1,9 @@
 ---
-title: Designing the case task list
+title: Allowing users to see tasks for a specific case
 date: 2026-02-18
 ---
 
-The [task list](2026-02-18-task-list.md) shows all tasks across all cases. The case task list shows all the tasks for a single case in one place.
+The [task list](2026-02-18-redesigning-the-task-list.md) shows all tasks across all cases. The case task list shows all the tasks for a single case in one place.
 
 Users reach the case task list by navigating to a case and clicking "Tasks" in the case navigation.
 
@@ -27,8 +27,4 @@ Each task card shows:
 
 We only show fields that have values, so cards do not show empty rows.
 
-![The case task list for case 86Y419606/3, showing 18 tasks sorted by due date. Tasks include urgent tags, overdue indicators, statutory time limit dates, notes, and reminder types.](case-task-list/task-list.png)
-
-### Adding reminders
-
-Users can add a reminder task to the case using the "Add reminder" button at the top of the page.
+![The case task list for case 86Y419606/3, showing 18 tasks sorted by due date. Tasks include urgent tags, overdue indicators, statutory time limit dates, notes, and reminder types.](allowing-users-to-see-tasks-for-a-specific-case/task-list.png)

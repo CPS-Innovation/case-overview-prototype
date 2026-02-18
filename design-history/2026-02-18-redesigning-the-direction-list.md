@@ -7,7 +7,7 @@ Directions are court orders that must be complied with by a specific deadline. U
 
 The direction list gives users a way to see all directions they're responsible for and act on the ones that need attention.
 
-The current direction list has [the same problems as the task list](2026-02-18-task-list.md).
+The current direction list has [the same problems as the task list](2026-02-18-redesigning-the-task-list.md).
 
 We redesigned the direction list to address these problems.
 
@@ -43,7 +43,7 @@ Each direction card shows:
 
 We only show fields that have values, so cards do not show empty rows.
 
-![The direction list for Rachael Harvey showing 21 directions filtered to her as paralegal officer, grouped under Overdue, Due today, Due tomorrow, Due this week, and Due later headings.](directions/rachael-default-filters.png)
+![The direction list for Rachael Harvey showing 21 directions filtered to her as paralegal officer, grouped under Overdue, Due today, Due tomorrow, Due this week, and Due later headings.](redesigning-the-direction-list/rachael-default-filters.png)
 
 ### Filters
 
@@ -59,13 +59,13 @@ There are 5 filter groups:
 
 When filters are cleared, the full list of directions across all units is shown.
 
-![The direction list with no filters applied, showing 372 directions across all units.](directions/rachael-no-filters.png)
+![The direction list with no filters applied, showing 372 directions across all units.](redesigning-the-direction-list/rachael-no-filters.png)
 
 ### Prosecutors
 
 Prosecutors see the same page with the prosecutor filter defaulted to their own name.
 
-![The direction list for Simon Whatley (a prosecutor) showing 19 directions filtered to him as prosecutor, grouped under Overdue, Due today, Due tomorrow, and Due later headings.](directions/simon-default-filters.png)
+![The direction list for Simon Whatley (a prosecutor) showing 19 directions filtered to him as prosecutor, grouped under Overdue, Due today, Due tomorrow, and Due later headings.](redesigning-the-direction-list/simon-default-filters.png)
 
 ## Future considerations
 
