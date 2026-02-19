@@ -1,19 +1,19 @@
 ---
 title: Redesigning the direction list
-date: 2026-02-18
+date: 2026-02-16
 ---
 
 Directions are court orders that must be complied with by a specific deadline. Unlike tasks - which can be more flexible - directions are fixed obligations that carry legal consequences if missed.
 
 The direction list gives users a way to see all directions they're responsible for and act on the ones that need attention.
 
-The current direction list has [the same problems as the task list](2026-02-18-redesigning-the-task-list.md).
+The current direction list has [the same problems as the task list](2026-02-15-redesigning-the-task-list.md).
 
 We redesigned the direction list to address these problems.
 
 ## How it works
 
-Users reach the direction list by clicking "Directions" in the main navigation.
+Users get to the direction list by clicking "Directions" in the main navigation.
 
 When users first visit the direction list, it is automatically filtered to show only their own directions. Paralegal officers see directions filtered to them as paralegal officer. Prosecutors see directions filtered to them as prosecutor.
 

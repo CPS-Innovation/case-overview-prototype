@@ -1,6 +1,6 @@
 ---
 title: Helping users prioritise their work on the overview page
-date: 2026-02-18
+date: 2026-02-17
 ---
 
 Users work across tasks and directions, and need to know what needs their attention without having to go into each list, apply filters, and work out what's urgent.
@@ -9,7 +9,7 @@ The overview page gives users a single place to see their most important work at
 
 ## How it works
 
-Users reach the overview by clicking "Overview" in the main navigation. It's also the first page they see after signing in.
+Users get to the overview by clicking "Overview" in the main navigation. It's also the first page they see after signing in.
 
 The page shows different information depending on the user's role.
 

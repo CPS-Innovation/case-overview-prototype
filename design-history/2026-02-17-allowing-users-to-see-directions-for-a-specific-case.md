@@ -1,15 +1,15 @@
 ---
 title: Allowing users to see directions for a specific case
-date: 2026-02-18
+date: 2026-02-17
 ---
 
-The [direction list](2026-02-18-redesigning-the-direction-list.md) shows all directions across all cases. 
+The [direction list](2026-02-16-redesigning-the-direction-list.md) shows all directions across all cases. 
 
 The case direction list shows all the directions for a single case in one place.
 
-Users reach the case direction list by navigating to a case and clicking "Directions" in the case navigation.
-
 ## How it works
+
+Users get to the case direction list by navigating to a case and clicking "Directions" in the case navigation.
 
 The page shows all open directions for the case, sorted by due date.
 

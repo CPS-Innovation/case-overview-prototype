@@ -1,14 +1,17 @@
 ---
 title: Adding a direction details page
-date: 2026-02-18
+date: 2026-02-17
 ---
 
-Previously, direction details were shown in an expanding row within the direction list. This squeezed a lot of information into a single page, making it harder to read and act on. A separate page gives each direction the space it needs and is simpler to navigate.
+Previously, direction details were shown in an expanding row within the direction list. 
 
+This squeezed a lot of information into a single page, making it harder to read and act on. 
+
+A separate page gives each direction the space it needs and is simpler to navigate.
 
 ## How it works
 
-Clicking a direction in the [case direction list](2026-02-18-allowing-users-to-see-directions-for-a-specific-case.md) or the [direction list](2026-02-18-redesigning-the-direction-list.md) takes the user to the details page.
+Clicking a direction in the [case direction list](2026-02-17-allowing-users-to-see-directions-for-a-specific-case.md) or the [direction list](2026-02-16-redesigning-the-direction-list.md) takes the user to the details page.
 
 The page heading shows the direction description and a status tag where applicable.
 

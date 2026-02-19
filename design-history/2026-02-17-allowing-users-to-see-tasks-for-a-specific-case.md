@@ -1,9 +1,9 @@
 ---
 title: Allowing users to see tasks for a specific case
-date: 2026-02-18
+date: 2026-02-17
 ---
 
-The [task list](2026-02-18-redesigning-the-task-list.md) shows all tasks across all cases. The case task list shows all the tasks for a single case in one place.
+The [task list](2026-02-15-redesigning-the-task-list.md) shows all tasks across all cases. The case task list shows all the tasks for a single case in one place.
 
 Users reach the case task list by navigating to a case and clicking "Tasks" in the case navigation.
 
