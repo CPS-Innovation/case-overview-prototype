@@ -82,6 +82,8 @@ When filters are applied, the selected values appear as tags at the top of the f
 
 A search bar at the top of the results area lets users search by task name, URN, or defendant name. This is useful when users know exactly what they are looking for and do not need to browse.
 
+![The task list showing 5 results after searching for "check", filtered to Rachael Harvey as owner, with tasks grouped under Due soon and Not due yet headings.](redesigning-the-task-list/search.png)
+
 ### Sort options
 
 By default tasks are sorted by due date and grouped by severity. Users can change the sort to prioritise different types of urgency.
