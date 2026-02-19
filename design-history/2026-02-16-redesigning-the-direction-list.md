@@ -67,6 +67,12 @@ Prosecutors see the same page with the prosecutor filter defaulted to their own 
 
 ![The direction list for Simon Whatley (a prosecutor) showing 19 directions filtered to him as prosecutor, grouped under Overdue, Due today, Due tomorrow, and Due later headings.](redesigning-the-direction-list/simon-default-filters.png)
 
+### Search
+
+A search bar at the top of the results area lets users search by direction description, URN, or defendant name. This is useful when users know exactly what they are looking for and do not need to browse.
+
+![The direction list showing 3 results after searching for "CCTV", filtered to Rachael Harvey as paralegal officer, with directions grouped under Overdue and Due later headings.](redesigning-the-direction-list/search.png)
+
 ## Future considerations
 
 We considered combining tasks and directions into a single unified list. In practice, tasks and directions are modelled differently and have different fields, statuses, and workflows. Merging them would have required significant changes to the underlying data model.
