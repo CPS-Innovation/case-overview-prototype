@@ -1,5 +1,5 @@
 ---
-title: Helping users prioritise their work on the overview page
+title: Showing users high priority tasks and directions on the overview page
 date: 2026-02-17
 ---
 
