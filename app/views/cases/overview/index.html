@@ -96,7 +96,7 @@
         ]
       }) }}
 
-      <h2 class="govuk-heading-m">Prosecutors</h2>
+      <h2 class="govuk-heading-m">Prosecutor</h2>
 
       <p><a href="/cases/{{ _case.id }}/add-prosecutor">Add prosecutor</a></p>
 
@@ -114,10 +114,10 @@
           {% endfor %}
         </div>
       {% else %}
-        <p>There are no assigned prosecutors.</p>
+        <p>There is no assigned prosecutor.</p>
       {% endif %}
 
-      <h2 class="govuk-heading-m">Paralegal officers</h2>
+      <h2 class="govuk-heading-m">Paralegal officer</h2>
 
       <p><a href="/cases/{{ _case.id }}/add-paralegal-officer">Add paralegal officer</a></p>
 
@@ -135,7 +135,7 @@
           {% endfor %}
         </div>
       {% else %}
-        <p>There are no paralegal officers assigned to this case.</p>
+        <p>There is no paralegal officer assigned.</p>
       {% endif %}
 
     </div>
