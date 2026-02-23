@@ -31,6 +31,10 @@
         {{ govukSummaryList({
           rows: [
             {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
               key: { text: "Failure reason" },
               value: { text: params.event.meta.failureReason }
             },
@@ -71,12 +75,32 @@
         {{ govukSummaryList({
           rows: [
             {
-              key: {
-                text: "Prosecutor"
-              },
-              value: {
-                text: params.event.meta.prosecutor.firstName + ' ' + params.event.meta.prosecutor.lastName
-              }
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
+              key: { text: "Prosecutor" },
+              value: { text: params.event.meta.prosecutor.firstName + ' ' + params.event.meta.prosecutor.lastName }
+            }
+          ]
+        }) }}
+      </div>
+      <p class="app-log-card__note--link">
+        <a class="govuk-link" href="/cases/{{ params.event.case.id }}">View case</a>
+      </p>
+    {% endif %}
+
+    {% if params.event.title == 'Prosecutor removed' %}
+      <div class="app-activity-log__box">
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
+              key: { text: "Prosecutor" },
+              value: { text: params.event.meta.prosecutor.firstName + ' ' + params.event.meta.prosecutor.lastName }
             }
           ]
         }) }}
@@ -91,12 +115,12 @@
         {{ govukSummaryList({
           rows: [
             {
-              key: {
-                text: "Witness"
-              },
-              value: {
-                text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName
-              }
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
+              key: { text: "Witness" },
+              value: { text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName }
             }
           ]
         }) }}
@@ -111,20 +135,16 @@
         {{ govukSummaryList({
           rows: [
             {
-              key: {
-                text: "Witness"
-              },
-              value: {
-                text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName
-              }
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
+              key: { text: "Witness" },
+              value: { text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName }
             },
             {
-              key: {
-                text: "Reason for marking the witness as not required to attend court"
-              },
-              value: {
-                text: params.event.meta.reason
-              }
+              key: { text: "Reason for marking the witness as not required to attend court" },
+              value: { text: params.event.meta.reason }
             }
           ]
         }) }}
@@ -139,23 +159,19 @@
         {{ govukSummaryList({
           rows: [
             {
-              key: {
-                text: "Witness"
-              },
-              value: {
-                text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName
-              }
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
+              key: { text: "Witness" },
+              value: { text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName }
             },
             {
-              key: {
-                text: "Statement number"
-              },
-              value: {
-                text: params.event.meta.witnessStatement.number
-              }
+              key: { text: "Statement number" },
+              value: { text: params.event.meta.witnessStatement.number }
             }
           ]
-        })  }}
+        }) }}
       </div>
       <p class="app-log-card__note--link">
         <a class="govuk-link" href="/cases/{{ params.event.case.id }}/witnesses">View statement</a>
@@ -167,23 +183,19 @@
         {{ govukSummaryList({
           rows: [
             {
-              key: {
-                text: "Witness"
-              },
-              value: {
-                text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName
-              }
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
+              key: { text: "Witness" },
+              value: { text: params.event.meta.witness.firstName + ' ' + params.event.meta.witness.lastName }
             },
             {
-              key: {
-                text: "Statement number"
-              },
-              value: {
-                text: params.event.meta.witnessStatement.number
-              }
+              key: { text: "Statement number" },
+              value: { text: params.event.meta.witnessStatement.number }
             }
           ]
-        })  }}
+        }) }}
       </div>
       <p class="app-log-card__note--link">
         <a class="govuk-link" href="/cases/{{ params.event.case.id }}/witnesses">View statement</a>
@@ -194,6 +206,10 @@
       <div class="app-activity-log__box">
         {{ govukSummaryList({
           rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
             {
               key: { text: 'Note' },
               value: { text: params.event.meta.content }
@@ -210,6 +226,10 @@
       <div class="app-activity-log__box">
         {{ govukSummaryList({
           rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
             {
               key: { text: 'Task' },
               value: { text: params.event.meta.task.name }
@@ -238,6 +258,10 @@
         {{ govukSummaryList({
           rows: [
             {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
               key: { text: 'Direction' },
               value: { text: directionDisplay | trim }
             },
@@ -257,6 +281,10 @@
       <div class="app-activity-log__box">
         {% set taskRows = [] %}
 
+        {% if params.showUrn %}
+          {% set taskRows = (taskRows.push({ key: { text: "URN" }, value: { text: params.event.case.reference } }), taskRows) %}
+        {% endif %}
+
         {% set taskRows = (taskRows.push({
           key: { text: 'Task' },
           value: { text: params.event.meta.task.name }
@@ -274,9 +302,7 @@
           }), taskRows) %}
         {% endif %}
 
-        {{ govukSummaryList({
-          rows: taskRows
-        }) }}
+        {{ govukSummaryList({ rows: taskRows }) }}
       </div>
       <p class="app-log-card__note--link">
         <a class="govuk-link" href="/cases/{{ params.event.case.id }}/tasks/{{ params.event.recordId }}">View task</a>
@@ -287,6 +313,10 @@
       <div class="app-activity-log__box">
         {{ govukSummaryList({
           rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
             {
               key: { text: 'Task' },
               value: { text: params.event.meta.task.name }
@@ -309,7 +339,6 @@
 
     {% if params.event.title == 'Task completed: Check New PCD case' %}
       <div class="app-activity-log__box">
-        {# Rejection reasons HTML (Reject flow) #}
         {% set reasonsHtml %}
           {% if params.event.meta.rejectionReasons %}
             <ul class="govuk-list govuk-list--spaced govuk-!-margin-bottom-0">
@@ -329,6 +358,10 @@
 
         {{ govukSummaryList({
           rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
             {
               key: { text: 'Task' },
               value: { text: params.event.meta.task.name }
@@ -374,7 +407,7 @@
               value: { text: params.event.meta.unit.name }
             } if params.event.meta.transferCase == "Yes" and params.event.meta.unit,
             {
-              key: { text: 'Who do you want to assign the ‘early advice manager triage’ task to?' },
+              key: { text: "Who do you want to assign the 'early advice manager triage' task to?" },
               value: { text: params.event.meta.taskOwner.name }
             } if params.event.meta.decision == "Accept" and params.event.meta.transferCase == "Yes" and params.event.meta.reviewTaskType == "Early advice" and params.event.meta.caseType == "RASSO" and params.event.meta.taskOwner,
             {
@@ -390,7 +423,7 @@
               value: { text: "Yes" if params.event.meta.createReminderTask == "Yes" else "No" }
             } if params.event.meta.decision == "Reject",
             {
-              key: { text: 'Date you’ll be reminded' },
+              key: { text: "Date you'll be reminded" },
               value: { text: params.event.meta.reminderDueDate | govukDate }
             } if params.event.meta.decision == "Reject" and params.event.meta.createReminderTask == "Yes" and params.event.meta.reminderDueDate
           ]
@@ -403,7 +436,6 @@
 
     {% if params.event.title == 'Task completed: Early advice manager triage' %}
       <div class="app-activity-log__box">
-        {# Rejection reasons HTML (Reject flow) #}
         {% set reasonsHtml %}
           {% if params.event.meta.rejectionReasons %}
             <ul class="govuk-list govuk-list--spaced govuk-!-margin-bottom-0">
@@ -423,6 +455,10 @@
 
         {{ govukSummaryList({
           rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
             {
               key: { text: 'Task' },
               value: { text: params.event.meta.task.name }
@@ -456,7 +492,7 @@
               value: { text: "Yes" if params.event.meta.createReminderTask == "Yes" else "No" }
             } if params.event.meta.decision == "Reject",
             {
-              key: { text: 'Date you’ll be reminded' },
+              key: { text: "Date you'll be reminded" },
               value: { text: params.event.meta.reminderDueDate | govukDate }
             } if params.event.meta.decision == "Reject" and params.event.meta.createReminderTask == "Yes" and params.event.meta.reminderDueDate
           ]
@@ -469,7 +505,6 @@
 
     {% if params.event.title == 'Task completed: Priority PCD review' %}
       <div class="app-activity-log__box">
-        {# NFS reasons HTML #}
         {% set nfsReasonsHtml %}
           {% if params.event.meta.nfsReasons %}
             <ul class="govuk-list govuk-list--spaced govuk-!-margin-bottom-0">
@@ -487,7 +522,6 @@
           {% endif %}
         {% endset %}
 
-        {# Priority reason HTML #}
         {% set priorityReasonHtml %}
           {% if params.event.meta.priorityReason %}
             {% if params.event.meta.rejectionDetails and params.event.meta.rejectionDetails[params.event.meta.priorityReason] and params.event.meta.rejectionDetails[params.event.meta.priorityReason] | trim %}
@@ -501,6 +535,10 @@
 
         {{ govukSummaryList({
           rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
             {
               key: { text: 'Task' },
               value: { text: params.event.meta.task.name }
@@ -573,6 +611,10 @@
         {{ govukSummaryList({
           rows: [
             {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
               key: { text: 'Direction' },
               value: { text: directionDisplay | trim }
             }
@@ -584,10 +626,37 @@
       </p>
     {% endif %}
 
+    {% if params.event.title == 'Working pattern added' or params.event.title == 'Working pattern updated' %}
+      <div class="app-activity-log__box">
+        {% set workingPatternRows = [] %}
+
+        {% set workingPatternRows = (workingPatternRows.push({
+          key: { text: "Prosecutor" },
+          value: { text: params.event.meta.prosecutor.firstName + ' ' + params.event.meta.prosecutor.lastName }
+        }), workingPatternRows) %}
+
+        {% for item in params.event.meta.workingPattern %}
+          {% set workingPatternRows = (workingPatternRows.push({
+            key: { text: item.day },
+            value: { text: item.hours + (' hour' if item.hours == '1' else ' hours') }
+          }), workingPatternRows) %}
+        {% endfor %}
+
+        {{ govukSummaryList({ rows: workingPatternRows }) }}
+      </div>
+      <p class="app-log-card__note--link">
+        <a class="govuk-link" href="/prosecutors/{{ params.event.meta.prosecutor.id }}">View prosecutor</a>
+      </p>
+    {% endif %}
+
     {% if params.event.title == 'Complexity updated' %}
       <div class="app-activity-log__box">
         {{ govukSummaryList({
           rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
             {
               key: { text: "Complexity" },
               value: { text: params.event.meta.complexity }
@@ -604,6 +673,10 @@
       <div class="app-activity-log__box">
         {% set urgentTaskRows = [] %}
 
+        {% if params.showUrn %}
+          {% set urgentTaskRows = (urgentTaskRows.push({ key: { text: "URN" }, value: { text: params.event.case.reference } }), urgentTaskRows) %}
+        {% endif %}
+
         {% set urgentTaskRows = (urgentTaskRows.push({
           key: { text: 'Task' },
           value: { text: params.event.meta.task.name }
@@ -614,9 +687,7 @@
           value: { text: params.event.meta.urgentNote }
         }), urgentTaskRows) %}
 
-        {{ govukSummaryList({
-          rows: urgentTaskRows
-        }) }}
+        {{ govukSummaryList({ rows: urgentTaskRows }) }}
       </div>
       <p class="app-log-card__note--link">
         <a class="govuk-link" href="/cases/{{ params.event.case.id }}/tasks/{{ params.event.recordId }}">View task</a>
@@ -626,6 +697,10 @@
     {% if params.event.title == 'Task marked as not urgent' %}
       <div class="app-activity-log__box">
         {% set notUrgentTaskRows = [] %}
+
+        {% if params.showUrn %}
+          {% set notUrgentTaskRows = (notUrgentTaskRows.push({ key: { text: "URN" }, value: { text: params.event.case.reference } }), notUrgentTaskRows) %}
+        {% endif %}
 
         {% set notUrgentTaskRows = (notUrgentTaskRows.push({
           key: { text: 'Task' },
@@ -637,9 +712,7 @@
           value: { text: params.event.meta.notUrgentNote }
         }), notUrgentTaskRows) %}
 
-        {{ govukSummaryList({
-          rows: notUrgentTaskRows
-        }) }}
+        {{ govukSummaryList({ rows: notUrgentTaskRows }) }}
       </div>
       <p class="app-log-card__note--link">
         <a class="govuk-link" href="/cases/{{ params.event.case.id }}/tasks/{{ params.event.recordId }}">View task</a>
