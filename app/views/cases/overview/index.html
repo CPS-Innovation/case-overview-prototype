@@ -30,10 +30,6 @@
         {% endif %}
       {% endset %}
 
-      {% set locationValue %}
-        {{appAddress({ address: _case.location })}}
-      {% endset %}
-
       {{ govukSummaryList({
         rows: [
           {
@@ -52,14 +48,6 @@
               html: _case.operationName
             }
           } if _case.operationName,
-          {
-            key: {
-              text: "Location"
-            },
-            value: {
-              html: locationValue
-            }
-          },
           {
             key: {
               text: "Unit"

@@ -7,6 +7,10 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
 
+      {{ govukNotificationBanner({
+        text: "You must not use this service, unless you have gone through the onboarding process."
+      }) if 1==2}}
+
       <h1 class="govuk-heading-l">
         {{ pageName }}
       </h1>
