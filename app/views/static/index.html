@@ -6,7 +6,7 @@
 
 {% block content %}
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full-width">
+    <div class="govuk-grid-column-full">
 
       <h1 class="govuk-heading-l">
         {{ pageName }}
@@ -20,7 +20,16 @@
           <a href="/static/403-case" class="govuk-link">403 - lack of permissions to view a case</a>
         </li>
         <li>
+          <a href="/static/403-transfer" class="govuk-link">403 - lack of permissions to transfer a case</a>
+        </li>
+        <li>
           <a href="/static/500" class="govuk-link">500</a>
+        </li>
+        <li>
+          <a href="/static/423-locked" class="govuk-link">423 - case locked before task could be completed</a>
+        </li>
+        <li>
+          <a href="/static/409-task-deleted" class="govuk-link">409 - task deleted before it could be completed</a>
         </li>
         <li>
           <a href="/static/show-more" class="govuk-link">Show more</a>

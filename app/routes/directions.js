@@ -4,6 +4,7 @@ const prisma = new PrismaClient()
 const Pagination = require('../helpers/pagination')
 const { groupDirections } = require('../helpers/directionGrouping')
 const { getDirectionStatus } = require('../helpers/directionState')
+const { addTimeLimitDates } = require('../helpers/timeLimit')
 
 function resetFilters(req) {
   _.set(req, 'session.data.directionListFilters.prosecutors', null)
@@ -325,24 +326,9 @@ module.exports = router => {
       }
     })
 
-    // Add CTL information and status to each direction
     directions = directions.map(direction => {
-      let allCtlDates = []
-      direction.case.defendants.forEach(defendant => {
-        defendant.charges.forEach(charge => {
-          if (charge.custodyTimeLimit) {
-            allCtlDates.push(new Date(charge.custodyTimeLimit))
-          }
-        })
-      })
-
-      direction.case.hasCTL = allCtlDates.length > 0
-      direction.case.soonestCTL = allCtlDates.length > 0 ? new Date(Math.min(...allCtlDates)) : null
-      direction.case.ctlCount = allCtlDates.length
-
-      // Add direction status (for tags)
+      addTimeLimitDates(direction.case)
       direction.status = getDirectionStatus(direction)
-
       return direction
     })
 

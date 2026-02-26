@@ -2,6 +2,8 @@
 
 {% set pageName = "You do not have permission to view this case" %}
 
+{% set pageName = "Sorry, Kirsty Priest has locked the case before the task could be completed" %}
+
 {% block beforeContent %}
   {{ govukBackLink({
     text: "Back",
@@ -15,9 +17,10 @@
 
       <span class="govuk-caption-l">44X831279/3 - Early advice manager triage</span>
       <h1 class="govuk-heading-l">{{pageName}}</h1>
+      <p class="govuk-body">Ask the user to exit the case before trying again.</p>
 
       {{ govukButton({
-        text: "Return to cases"
+        text: "Return to check details and complete task"
       }) }}
 
     </div>

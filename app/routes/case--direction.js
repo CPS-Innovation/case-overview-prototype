@@ -2,23 +2,7 @@ const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const { getDirectionStatus } = require('../helpers/directionState')
-
-function addCtlInfo(_case) {
-  let allCtlDates = []
-  _case.defendants.forEach(defendant => {
-    defendant.charges.forEach(charge => {
-      if (charge.custodyTimeLimit) {
-        allCtlDates.push(new Date(charge.custodyTimeLimit))
-      }
-    })
-  })
-
-  _case.hasCTL = allCtlDates.length > 0
-  _case.soonestCTL = allCtlDates.length > 0 ? new Date(Math.min(...allCtlDates)) : null
-  _case.ctlCount = allCtlDates.length
-
-  return _case
-}
+const { addTimeLimitDates } = require('../helpers/timeLimit')
 
 module.exports = router => {
   router.get("/cases/:caseId/directions/:directionId", async (req, res) => {
@@ -54,8 +38,7 @@ module.exports = router => {
       },
     })
 
-    // Add CTL information to the case
-    _case = addCtlInfo(_case)
+    _case = addTimeLimitDates(_case)
 
     const direction = await prisma.direction.findUnique({
       where: { id: parseInt(req.params.directionId) },

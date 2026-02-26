@@ -2,6 +2,7 @@ const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const documentTypes = require('../data/document-types')
+const { addTimeLimitDates } = require('../helpers/timeLimit')
 
 function resetFilters(req) {
   _.set(req, 'session.data.documentListFilters.documentTypes', null)
@@ -37,7 +38,7 @@ module.exports = router => {
     }
 
     // Fetch case
-    const _case = await prisma.case.findUnique({
+    let _case = await prisma.case.findUnique({
       where: { id: caseId },
       include: {
         witnesses: { include: { statements: true } },
@@ -51,13 +52,15 @@ module.exports = router => {
             user: true
           }
         },
-        defendants: true,
+        defendants: { include: { charges: true } },
         hearings: true,
         location: true,
         tasks: true,
         dga: true
       }
     })
+
+    _case = addTimeLimitDates(_case)
 
     // Fetch documents with filters
     let documents = await prisma.document.findMany({

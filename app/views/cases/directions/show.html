@@ -131,9 +131,9 @@
               text: 'Custody time limit'
             },
             value: {
-              html: (_case.soonestCTL | isoDateString | govukDateTime) + ' (' + (_case.soonestCTL | daysUntil) + ')'
+              html: (_case.custodyTimeLimit | isoDateString | govukDateTime) + ' (' + (_case.custodyTimeLimit | daysUntil) + ')'
             }
-          } if _case.hasCTL,
+          } if _case.custodyTimeLimit,
           {
             key: {
               html: 'Unit'

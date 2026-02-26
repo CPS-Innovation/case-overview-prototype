@@ -649,6 +649,30 @@
       </p>
     {% endif %}
 
+    {% if params.event.title == 'Leave added' or params.event.title == 'Leave removed' %}
+      <div class="app-activity-log__box">
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "Prosecutor" },
+              value: { text: params.event.meta.prosecutor.firstName + ' ' + params.event.meta.prosecutor.lastName }
+            },
+            {
+              key: { text: "Start date" },
+              value: { text: params.event.meta.leave.startDate | govukDate }
+            },
+            {
+              key: { text: "End date" },
+              value: { text: params.event.meta.leave.endDate | govukDate }
+            } if params.event.meta.leave.endDate
+          ]
+        }) }}
+      </div>
+      <p class="app-log-card__note--link">
+        <a class="govuk-link" href="/prosecutors/{{ params.event.meta.prosecutor.id }}">View prosecutor</a>
+      </p>
+    {% endif %}
+
     {% if params.event.title == 'Complexity updated' %}
       <div class="app-activity-log__box">
         {{ govukSummaryList({

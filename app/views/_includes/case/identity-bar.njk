@@ -1,7 +1,6 @@
 {% set identityTitle %}
-
   <span class="govuk-!-margin-right-1">{{_case.reference}}</span>
-  <b class="govuk-!-margin-right-1">
+  <b>
     {% if _case.operationName %}
       {{_case.operationName}}
     {% else %}
@@ -11,21 +10,33 @@
       {% endif %}
     {% endif %}
   </b>
+{% endset %}
 
+{% set descriptionHtml %}
+  
   {% if _case.custodyTimeLimit %}
-    {# {{ govukTag({ text: 'Custody time limit', classes: 'govuk-tag--red' })}} #}
+    <span class="govuk-!-display-block">Custody time limit ends {{ _case.custodyTimeLimit | isoDateString | govukDate }} ({{ _case.custodyTimeLimit | daysUntil }})</span>
   {% endif %}
   {% if _case.statutoryTimeLimit %}
-    {# {{ govukTag({ text: 'Statutory time limit', classes: 'govuk-tag--orange' })}} #}
+    <span class="govuk-!-display-block">Statutory time limit ends {{ _case.statutoryTimeLimit | isoDateString | govukDate }} ({{ _case.statutoryTimeLimit | daysUntil }})</span>
   {% endif %}
   {% if _case.paceClock %}
-    {# {{ govukTag({ text: 'PACE clock', classes: 'govuk-tag--yellow' })}} #}
+    {% set paceStatus = _case.paceClock | paceClockStatus %}
+    {% if paceStatus == 'expired' %}
+      <span class="govuk-!-display-block">PACE clock expired on {{ _case.paceClock | isoDateString | govukDateTime }}</span>
+    {% else %}
+      <span class="govuk-!-display-block">PACE clock {{ paceStatus }} ({{ _case.paceClock | isoDateString | govukDateTime }})</span>
+    {% endif %}
   {% endif %}
 {% endset %}
+
 {{ appIdentityBar({
   title: {
     html: identityTitle
   },
+  description: {
+    html: descriptionHtml
+  } if (_case.custodyTimeLimit or _case.statutoryTimeLimit or _case.paceClock),
   menus: [{
     items: [{
       text: 'Record DGA outcome',

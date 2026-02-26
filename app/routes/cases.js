@@ -4,6 +4,7 @@ const prisma = new PrismaClient()
 const Pagination = require('../helpers/pagination')
 const types = require('../data/types')
 const complexities = require('../data/complexities')
+const { addTimeLimitDates } = require('../helpers/timeLimit')
 const dgaStatuses = ['Needs review', 'Does not need review']
 
 function resetFilters(req) {
@@ -333,30 +334,14 @@ module.exports = router => {
       }
     })
 
-    // Add CTL information to each case and sort by soonest CTL
-    cases = cases.map(_case => {
-      let allCtlDates = []
-      _case.defendants.forEach(defendant => {
-        defendant.charges.forEach(charge => {
-          if (charge.custodyTimeLimit) {
-            allCtlDates.push(new Date(charge.custodyTimeLimit))
-          }
-        })
-      })
-
-      _case.hasCTL = allCtlDates.length > 0
-      _case.soonestCTL = allCtlDates.length > 0 ? new Date(Math.min(...allCtlDates)) : null
-      _case.ctlCount = allCtlDates.length
-
-      return _case
-    })
+    cases = cases.map(addTimeLimitDates)
 
     // Sort: CTL cases first (by soonest date), then non-CTL cases
     cases.sort((a, b) => {
-      if (a.hasCTL && !b.hasCTL) return -1
-      if (!a.hasCTL && b.hasCTL) return 1
-      if (a.hasCTL && b.hasCTL) {
-        return a.soonestCTL - b.soonestCTL // soonest first
+      if (a.custodyTimeLimit && !b.custodyTimeLimit) return -1
+      if (!a.custodyTimeLimit && b.custodyTimeLimit) return 1
+      if (a.custodyTimeLimit && b.custodyTimeLimit) {
+        return a.custodyTimeLimit - b.custodyTimeLimit
       }
       return 0
     })

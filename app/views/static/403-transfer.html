@@ -1,6 +1,6 @@
 {% extends "_layouts/main.html" %}
 
-{% set pageName = "You do not have permission to view this case" %}
+{% set pageName = "You do not have permission to transfer the case because you do not belong to the current unit" %}
 
 {% block beforeContent %}
   {{ govukBackLink({
@@ -17,7 +17,7 @@
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
       {{ govukButton({
-        text: "Return to cases"
+        text: "Return to tasks"
       }) }}
 
     </div>

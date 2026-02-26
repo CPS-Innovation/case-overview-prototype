@@ -92,10 +92,10 @@
                 {% endset %}
               {% endif %}
 
-              {% if direction.case.hasCTL %}
+              {% if direction.case.custodyTimeLimit %}
                 {% set ctlValue %}
-                  {{ direction.case.soonestCTL | isoDateString | govukDateTime }}
-                  <span>({{ direction.case.soonestCTL | daysUntil }})</span>
+                  {{ direction.case.custodyTimeLimit | isoDateString | govukDateTime }}
+                  <span>({{ direction.case.custodyTimeLimit | daysUntil }})</span>
                 {% endset %}
               {% endif %}
 
@@ -173,7 +173,7 @@
                     value: {
                       html: ctlValue
                     }
-                  } if direction.case.hasCTL,
+                  } if direction.case.custodyTimeLimit,
                   {
                     key: {
                       html: 'Unit'

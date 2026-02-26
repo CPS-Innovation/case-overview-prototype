@@ -103,15 +103,6 @@
             },
             value: {
               html: prosecutor.firstName
-            },
-            actions: {
-              items: [
-                {
-                  href: "/prosecutors/:prosecutorId/edit-first-name" | replace(':prosecutorId', prosecutor.id),
-                  text: "Change",
-                  visuallyHiddenText: "First name"
-                }
-              ]
             }
           },
           {
@@ -120,33 +111,15 @@
             },
             value: {
               html: prosecutor.lastName
-            },
-            actions: {
-              items: [
-                {
-                  href: "/prosecutors/:prosecutorId/edit-last-name" | replace(':prosecutorId', prosecutor.id),
-                  text: "Change",
-                  visuallyHiddenText: "Last name"
-                }
-              ]
             }
           },
           {
             key: {
-              text: "Units"
+              text: "Unit"
             },
             value: {
               html: units
-            },
-            actions: {
-              items: [
-                {
-                  href: "/prosecutors/:prosecutorId/edit-units" | replace(':prosecutorId', prosecutor.id),
-                  text: "Change",
-                  visuallyHiddenText: "Units"
-                }
-              ]
-            } if 1==2
+            }
           },
           {
             key: {
@@ -154,6 +127,23 @@
             },
             value: {
               html: workingPatternValue
+            },
+            actions: {
+              items: [
+                {
+                  href: ("/prosecutors/:prosecutorId/edit-working-pattern" if prosecutor.workingPattern and prosecutor.workingPattern.length else "/prosecutors/:prosecutorId/add-working-pattern") | replace(':prosecutorId', prosecutor.id),
+                  text: "Change" if prosecutor.workingPattern and prosecutor.workingPattern.length else "Add",
+                  visuallyHiddenText: "Working pattern"
+                }
+              ]
+            }
+          },
+          {
+            key: {
+              text: "Work load adjustments"
+            },
+            value: {
+              html: '50% capacity'
             },
             actions: {
               items: [
@@ -229,20 +219,27 @@
       <h2 class="govuk-heading-m">Leave</h2>
 
       {{ govukButton({
-        text: "Add leave"
+        text: "Add leave",
+        classes: "govuk-button--secondary",
+        href: "/prosecutors/" + prosecutor.id + "/add-leave"
       }) }}
 
-      <ul class="govuk-list govuk-list--bullet">
-        <li>
-          1 December
-        </li>
-        <li>
-          15 December 2025 to 16 December 2025
-        </li>
-      </ul>
-
-
-
+      {% if prosecutor.leave.length %}
+        <div class="app-list">
+          {% for item in prosecutor.leave %}
+            <div class="app-list__item">
+              <p class="govuk-body govuk-!-margin-bottom-0">
+                {{ item.startDate | isoDateString | govukDate }}{% if item.endDate %} to {{ item.endDate | isoDateString | govukDate }}{% endif %}
+              </p>
+              <div class="app-list__actions">
+                <a href="/prosecutors/{{ prosecutor.id }}/leave/{{ item.id }}/remove" class="govuk-link govuk-link--no-visited-state">Remove</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>There is no leave recorded.</p>
+      {% endif %}
 
     </div>
   </div>

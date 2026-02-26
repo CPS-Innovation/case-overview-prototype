@@ -69,6 +69,11 @@
 }
 
 
+.app-identity-bar__description {
+  @include govuk-font(16);
+  margin: govuk-spacing(1) 0 0;
+}
+
 .app-identity-bar__actions {
   margin-bottom: - govuk-spacing(2);
 

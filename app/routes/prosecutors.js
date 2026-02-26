@@ -81,6 +81,9 @@ module.exports = router => {
         preferredAreas: true,
         restrictedAreas: true,
         workingPattern: true,
+        leave: {
+          orderBy: { startDate: 'asc' }
+        },
         _count: {
           select: {
             caseProsecutors: true
