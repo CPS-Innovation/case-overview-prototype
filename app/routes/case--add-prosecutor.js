@@ -241,7 +241,11 @@ module.exports = router => {
     })
     const excludedIds = assigned.map(a => a.userId)
 
-    const prosecutorItems = await getProsecutorListData(excludedIds)
+    const selectedProsecutorId = req.session.data.assignProsecutor?.prosecutor
+    const prosecutorItems = (await getProsecutorListData(excludedIds)).map(p => ({
+      ...p,
+      selected: p.value === selectedProsecutorId
+    }))
 
     res.render("cases/add-prosecutor/choose", {
       _case,
