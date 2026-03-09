@@ -93,7 +93,14 @@
             }}
           </div>
 
-          <div class="app-list app-list--with-checkboxes" id="app-case-list">
+          <div class="govuk-form-group{% if inlineErrors.applyAction.cases %} govuk-form-group--error{% endif %}">
+          {% call govukFieldset({
+            legend: { text: "Select cases", classes: "govuk-visually-hidden" }
+          }) %}
+            {% if inlineErrors.applyAction.cases %}
+              {{ govukErrorMessage({ text: inlineErrors.applyAction.cases.text }) }}
+            {% endif %}
+            <div class="app-list app-list--with-checkboxes" id="app-case-list">
             {% for _case in cases %}
               <div class="app-list__item">
                 {{
@@ -102,9 +109,10 @@
                     idPrefix: "applyAction.cases",
                     name: "applyAction[cases]",
                     items: [{
-                      value: _case.id,
+                      value: _case.id ~ '',
                       html: '&nbsp;<span class="govuk-visually-hidden">' + _case.reference + '</span>'
-                    }]
+                    }],
+                    values: data.applyAction.cases
                   })
                 }}
 
@@ -249,6 +257,8 @@
                 </div>
               </div>
             {% endfor %}
+            </div>
+          {% endcall %}
           </div>
         </form>
       {% else %}
