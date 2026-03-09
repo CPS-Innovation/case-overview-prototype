@@ -217,13 +217,6 @@ $statuses: (
   margin-bottom: 15px !important;
 }
 
-.govuk-template--rebranded .govuk-header {
-  // background: govuk-colour("black") !important;
-}
-
-.govuk-template--rebranded .govuk-header__link--homepage:not(:focus) {
-  // background: govuk-colour("black") !important;
-}
 
 .app-inset-action {
   margin-top: -30px;
@@ -232,8 +225,3 @@ $statuses: (
 .app-overview-section {
   margin-bottom: govuk-spacing(9);
 }
-
-.govuk-header__product-name {
-  display: none; // Temp
-}
-

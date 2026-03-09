@@ -1,7 +1,7 @@
 {% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'dga' %}
-{% set pageName = 'DGA' %}
+{% set pageName = 'DGA reporting' %}
 
 {% block beforeContent %}
   {% include "_includes/case/identity-bar.njk" %}
@@ -13,24 +13,27 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      <h1 class="govuk-heading-l">DGA</h1>
-
-      {% if outcomesRemaining > 0 %}
-        <p class="govuk-body">{{ outcomesRemaining }} failure {{ "reason" if outcomesRemaining == 1 else "reasons" }} {{ "needs" if outcomesRemaining == 1 else "need" }} {{ "an outcome" if outcomesRemaining == 1 else "outcomes" }}.</p>
+      {% if outcomesRemaining > 0 and _case.dga.recordDisputeOutcomesDeadline %}
+        <p class="govuk-body">
+          You have {{ outcomesRemaining }} {{ "outcome" if outcomesRemaining == 1 else "outcomes" }}
+          to record by
+          {{ _case.dga.recordDisputeOutcomesDeadline | isoDateString | govukDateTime }}.
+        </p>
       {% endif %}
 
       {% for reason in _case.dga.failureReasons %}
         <div>
-          <h2 class="govuk-heading-m govuk-!-margin-top-7">
-            {{ reason.reason }}
-          </h2>
+          <h2 class="govuk-heading-m govuk-!-margin-top-7">{{ reason.reason }}</h2>
 
           {% if not reason.disputed %}
-            {{ govukButton({
-              text: "Record dispute outcome",
-              href: "/cases/" + _case.id + "/dga/" + reason.id + "/record-dispute-outcome"
-            })}}
+            {{
+              govukButton({
+                text: "Record dispute outcome",
+                href: "/cases/" + _case.id + "/dga/" + reason.id + "/record-dispute-outcome"
+              })
+            }}
           {% else %}
             {% set methodsHtml %}
               {% if reason.methods %}
@@ -45,58 +48,59 @@
             {% endset %}
 
             {% set baseUrl = "/cases/" + _case.id + "/dga/" + reason.id + "/record-dispute-outcome" %}
-            {{ govukSummaryList({
-              rows: [
-                {
-                  key: { text: "Did the police dispute this failure?" },
-                  value: { text: reason.disputed },
-                  actions: {
-                    items: [{
-                      href: baseUrl,
-                      text: "Change",
-                      visuallyHiddenText: "did the police dispute this failure"
-                    }]
-                  }
-                },
-                {
-                  key: { text: "Did CPS accept the dispute?" },
-                  value: { text: reason.cpsAccepted },
-                  actions: {
-                    items: [{
-                      href: baseUrl + "/cps-accepted",
-                      text: "Change",
-                      visuallyHiddenText: "did CPS accept the dispute"
-                    }]
-                  }
-                } if reason.disputed == "Yes",
-                {
-                  key: { text: "Reason for outcome" },
-                  value: { text: reason.details if reason.details else "-" },
-                  actions: {
-                    items: [{
-                      href: baseUrl + "/reason",
-                      text: "Change",
-                      visuallyHiddenText: "reason for outcome"
-                    }]
-                  }
-                } if reason.disputed == "Yes",
-                {
-                  key: { text: "How did you discuss this dispute with the police?" },
-                  value: { html: methodsHtml },
-                  actions: {
-                    items: [{
-                      href: baseUrl + "/method",
-                      text: "Change",
-                      visuallyHiddenText: "how you discussed this dispute with the police"
-                    }]
-                  }
-                } if reason.disputed == "Yes"
-              ]
-            }) }}
+            {{
+              govukSummaryList({
+                rows: [
+                  {
+                    key: { text: "Did the police dispute this failure?" },
+                    value: { text: reason.disputed },
+                    actions: {
+                      items: [{
+                        href: baseUrl,
+                        text: "Change",
+                        visuallyHiddenText: "did the police dispute this failure"
+                      }]
+                    }
+                  },
+                  {
+                    key: { text: "Did CPS accept the dispute?" },
+                    value: { text: reason.cpsAccepted },
+                    actions: {
+                      items: [{
+                        href: baseUrl + "/cps-accepted",
+                        text: "Change",
+                        visuallyHiddenText: "did CPS accept the dispute"
+                      }]
+                    }
+                  } if reason.disputed == "Yes",
+                  {
+                    key: { text: "Reason for outcome" },
+                    value: { text: reason.details if reason.details else "-" },
+                    actions: {
+                      items: [{
+                        href: baseUrl + "/reason",
+                        text: "Change",
+                        visuallyHiddenText: "reason for outcome"
+                      }]
+                    }
+                  } if reason.disputed == "Yes",
+                  {
+                    key: { text: "How did you discuss this dispute with the police?" },
+                    value: { html: methodsHtml },
+                    actions: {
+                      items: [{
+                        href: baseUrl + "/method",
+                        text: "Change",
+                        visuallyHiddenText: "how you discussed this dispute with the police"
+                      }]
+                    }
+                  } if reason.disputed == "Yes"
+                ]
+              })
+            }}
           {% endif %}
         </div>
       {% endfor %}
-
     </div>
   </div>
 {% endblock %}

@@ -2,6 +2,24 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 module.exports = (router) => {
+  router.get('/cases/record-dga-dispute-outcomes-as-not-disputed/select-all', (req, res) => {
+    const selectedCaseIds = req.session.data.applyAction?.cases || []
+    const allCaseIds = req.session.data.caseListAllIds || []
+
+    res.render('cases/record-dga-dispute-outcomes-as-not-disputed/select-all', {
+      selectedCasesCount: selectedCaseIds.length,
+      totalCasesCount: allCaseIds.length,
+    })
+  })
+
+  router.post('/cases/record-dga-dispute-outcomes-as-not-disputed/select-all', (req, res) => {
+    if (req.body.selection === 'all') {
+      req.session.data.applyAction = { cases: req.session.data.caseListAllIds }
+    }
+
+    res.redirect('/cases/record-dga-dispute-outcomes-as-not-disputed')
+  })
+
   router.get('/cases/record-dga-dispute-outcomes-as-not-disputed', async (req, res) => {
     const selectedCaseIds = req.session.data.applyAction.cases.map(Number)
 

@@ -4,10 +4,9 @@
   {% set serviceUrl = '/' %}
 {% endif %}
 
-{{ appHeader({ 
+{{ appHeader({
   productName: serviceName,
   serviceUrl: serviceUrl,
-  navigationClasses: "govuk-header__navigation--end",
   navigation: [
     {
       href: "/account",

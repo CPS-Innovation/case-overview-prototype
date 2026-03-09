@@ -4,5 +4,9 @@
 //
 
 window.GOVUKPrototypeKit.documentReady(() => {
-  // Add JavaScript here
+  var $header = document.querySelector('[data-module="app-header"]')
+  if ($header) {
+    new App.Header({ module: $header }).init()
+  }
 })
+

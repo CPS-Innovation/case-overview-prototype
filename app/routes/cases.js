@@ -537,6 +537,7 @@ module.exports = (router) => {
     paralegalOfficerItems.unshift({ text: 'Unassigned', value: 'Unassigned' })
 
     let totalCases = cases.length
+    req.session.data.caseListAllIds = cases.map(c => c.id.toString())
     let pageSize = 25
     let pagination = new Pagination(cases, req.query.page, pageSize)
     cases = pagination.getData()
@@ -689,6 +690,17 @@ module.exports = (router) => {
 
     if (action === 'record-dga-dispute-outcomes-as-not-disputed') {
       req.session.data.applyAction = { cases: selectedCases }
+
+      const page = parseInt(req.query.page) || 1
+      const pageSize = 25
+      const allIds = req.session.data.caseListAllIds || []
+      const totalCases = allIds.length
+      const pageCount = Math.min(pageSize, totalCases - (page - 1) * pageSize)
+
+      if (selectedCases.length === pageCount && totalCases > pageCount) {
+        return res.redirect('/cases/record-dga-dispute-outcomes-as-not-disputed/select-all')
+      }
+
       return res.redirect('/cases/record-dga-dispute-outcomes-as-not-disputed')
     }
 

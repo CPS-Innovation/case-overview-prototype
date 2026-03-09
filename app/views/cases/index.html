@@ -73,7 +73,7 @@
       {# {% include "_includes/case/sort-controls.njk" %} #}
 
       {% if cases.length %}
-        <form method="post" action="/cases">
+        <form method="post" action="/cases?page={{ pagination.pageNumber }}">
           <div class="govuk-button-group app-list-actions govuk-!-margin-top-4">
             {{
               govukButton({

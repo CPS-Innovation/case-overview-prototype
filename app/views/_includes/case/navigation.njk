@@ -26,7 +26,7 @@
     text: "Material",
     current: secondaryNavId == 'documents'
   }, {
-    text: "DGA",
+    text: "DGA reporting",
     href: "/cases/:caseId/dga" | replace(':caseId', _case.id),
     current: secondaryNavId == 'dga'
   } if _case.dga, {
