@@ -17,6 +17,7 @@
 
       {% if data.user.role == "Manager" %}
         {% include "_includes/overview/cases.njk" %}
+        {% include "_includes/overview/dga-reporting.njk" %}
       {% endif %}
 
       {% if data.user.role == "Prosecutor" or data.user.role == "Paralegal officer" %}

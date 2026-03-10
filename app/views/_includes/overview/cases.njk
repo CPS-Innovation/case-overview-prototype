@@ -1,5 +1,5 @@
 
-{% if unassignedCaseCount > 0 or latestDGAMonth %}
+{% if unassignedCaseCount > 0 %}
   <div class="app-overview-section">
     <h2 class="govuk-heading-m">Cases</h2>
     <ul class="govuk-list govuk-list--bullet">
@@ -13,18 +13,6 @@
               cases do not
             {% endif %}
             have a prosecutor assigned
-          </a>
-        </li>
-      {% endif %}
-      {% if latestDGAMonth %}
-        <li>
-          <a href="/cases/shortcut/dga" class="govuk-link--no-visited-state">
-            {{ latestDGAMonth.count }}
-            {% if latestDGAMonth.count == 1 %}
-              case awaiting DGA dispute outcome
-            {% else %}
-              cases awaiting DGA dispute outcome
-            {% endif %}
           </a>
         </li>
       {% endif %}

@@ -4,7 +4,13 @@
     <ul class="govuk-list govuk-list--bullet">
       <li>
         <a href="/dga-reporting/{{ latestDGAMonth.key }}" class="govuk-link--no-visited-state">
-          Export DGA cases for {{ latestDGAMonth.name }}
+          {{ latestDGAMonth.count }}
+          {% if latestDGAMonth.count == 1 %}
+            case needs
+          {% else %}
+            cases need
+          {% endif %}
+          DGA dispute outcomes recorded by {{ latestDGAMonth.deadline | isoDateString | govukDate }}
         </a>
       </li>
     </ul>

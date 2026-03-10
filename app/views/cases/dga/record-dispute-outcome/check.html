@@ -6,10 +6,12 @@
 {% set baseUrl = "/cases/" + case.id + "/dga/" + failureReason.id + "/record-dispute-outcome" %}
 
 {% block beforeContent %}
-  {{ govukBackLink({
-    text: "Back",
-    href: baseUrl + "/method" if data.recordOutcome.disputed == "Yes" else baseUrl
-  }) }}
+  {{
+    govukBackLink({
+      text: "Back",
+      href: baseUrl + "/method" if data.recordOutcome.disputed == "Yes" else baseUrl
+    })
+  }}
 {% endblock %}
 
 {% block content %}
@@ -19,6 +21,7 @@
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
       {% include "_includes/record-dispute-outcome/failure-reason-inset.njk" %}
+
 
       {% set methodsHtml %}
         {% if data.recordOutcome.methods and data.recordOutcome.methods.length > 0 %}
@@ -30,62 +33,65 @@
         {% endif %}
       {% endset %}
 
-      {{ govukSummaryList({
-        rows: [
-          {
-            key: { text: "Did the police dispute this failure?" },
-            value: { text: data.recordOutcome.disputed },
-            actions: {
-              items: [{
-                href: baseUrl,
-                text: "Change",
-                visuallyHiddenText: "did the police dispute this failure"
-              }]
-            }
-          },
-          {
-            key: { text: "Did CPS accept the dispute?" },
-            value: { text: data.recordOutcome.cpsAccepted },
-            actions: {
-              items: [{
-                href: baseUrl + "/cps-accepted",
-                text: "Change",
-                visuallyHiddenText: "did CPS accept the dispute"
-              }]
-            }
-          } if data.recordOutcome.disputed == "Yes",
-          {
-            key: { text: "Reason for outcome" },
-            value: { text: data.recordOutcome.explanation },
-            actions: {
-              items: [{
-                href: baseUrl + "/reason",
-                text: "Change",
-                visuallyHiddenText: "reason for outcome"
-              }]
-            }
-          } if data.recordOutcome.disputed == "Yes",
-          {
-            key: { text: "How did you discuss this dispute with the police?" },
-            value: { html: methodsHtml },
-            actions: {
-              items: [{
-                href: baseUrl + "/method",
-                text: "Change",
-                visuallyHiddenText: "how you discussed this dispute with the police"
-              }]
-            }
-          } if data.recordOutcome.disputed == "Yes"
-        ]
-      }) }}
+      {{
+        govukSummaryList({
+          rows: [
+            {
+              key: { text: "Did the police dispute this failure?" },
+              value: { text: data.recordOutcome.disputed },
+              actions: {
+                items: [{
+                  href: baseUrl,
+                  text: "Change",
+                  visuallyHiddenText: "did the police dispute this failure"
+                }]
+              }
+            },
+            {
+              key: { text: "Did CPS accept the dispute?" },
+              value: { text: data.recordOutcome.cpsAccepted },
+              actions: {
+                items: [{
+                  href: baseUrl + "/cps-accepted",
+                  text: "Change",
+                  visuallyHiddenText: "did CPS accept the dispute"
+                }]
+              }
+            } if data.recordOutcome.disputed == "Yes",
+            {
+              key: { text: "Reason for outcome" },
+              value: { text: data.recordOutcome.explanation },
+              actions: {
+                items: [{
+                  href: baseUrl + "/reason",
+                  text: "Change",
+                  visuallyHiddenText: "reason for outcome"
+                }]
+              }
+            } if data.recordOutcome.disputed == "Yes",
+            {
+              key: { text: "How did you discuss this dispute with the police?" },
+              value: { html: methodsHtml },
+              actions: {
+                items: [{
+                  href: baseUrl + "/method",
+                  text: "Change",
+                  visuallyHiddenText: "how you discussed this dispute with the police"
+                }]
+              }
+            } if data.recordOutcome.disputed == "Yes"
+          ]
+        })
+      }}
 
       {% if legacyOutcome %}
-        <p>This will record the outcome as '{{ legacyOutcome }}'.</p>
+        <p class="govuk-body">
+          Recording this outcome will set the overall DGA outcome for this case to
+          ‘{{ legacyOutcome }}’.
+        </p>
       {% endif %}
 
-      <form method="post">
-        {{ govukButton({ text: "Record dispute outcome" }) }}
-      </form>
+      <form method="post">{{ govukButton({ text: "Record dispute outcome" }) }}</form>
     </div>
   </div>
 {% endblock %}
