@@ -31,16 +31,17 @@ module.exports = (router) => {
       },
     })
 
-    const caseItems = cases
-      .map((c) => ({
-        ...c,
-        totalFailureReasons: c.dga?.failureReasons?.length || 0,
-        unresolvedFailureReasons:
-          c.dga?.failureReasons?.filter((fr) => fr.disputed === null).length || 0,
-      }))
-      .filter((c) => c.unresolvedFailureReasons > 0)
+    const mappedCases = cases.map((c) => ({
+      ...c,
+      totalFailureReasons: c.dga?.failureReasons?.length || 0,
+      unresolvedFailureReasons:
+        c.dga?.failureReasons?.filter((fr) => fr.disputed === null).length || 0,
+    }))
 
-    res.render('cases/record-dga-dispute-outcomes-as-not-disputed/index', { caseItems })
+    const caseItems = mappedCases.filter((c) => c.unresolvedFailureReasons > 0)
+    const excludedCount = mappedCases.length - caseItems.length
+
+    res.render('cases/record-dga-dispute-outcomes-as-not-disputed/index', { caseItems, excludedCount })
   })
 
   router.post('/cases/record-dga-dispute-outcomes-as-not-disputed', async (req, res) => {

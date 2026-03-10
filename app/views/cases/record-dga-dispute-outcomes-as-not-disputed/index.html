@@ -36,6 +36,14 @@
         {% endfor %}
       </div>
 
+      {% if excludedCount > 0 %}
+        {{
+          govukInsetText({
+            text: excludedCount + ' of the cases you selected have no DGA dispute outcomes to record.'
+          })
+        }}
+      {% endif %}
+
       <form method="post">
         {{ govukButton({ text: "Record DGA dispute outcomes as not disputed" }) }}
       </form>

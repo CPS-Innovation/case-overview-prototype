@@ -85,8 +85,7 @@
             {% if data.applyAction.cases and data.applyAction.cases.length == totalCases %}
               {{
                 govukButton({
-                  textx: "Deselect all " + totalCases + " cases",
-                  text: "Deselect all cases",
+                  text: "Deselect all " + totalCases + " cases",
                   classes: "govuk-button--secondary",
                   href: "/cases/deselect-all?page=" + pagination.pageNumber
                 })
@@ -119,7 +118,7 @@
           </div>
 
           <div
-            class="govuk-form-group{% if inlineErrors.applyAction.cases %}govuk-form-group--error{% endif %}"
+            class="govuk-form-group{% if inlineErrors.applyAction.cases %} govuk-form-group--error{% endif %}"
           >
             {%
               call govukFieldset({
