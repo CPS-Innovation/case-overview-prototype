@@ -536,11 +536,18 @@ module.exports = (router) => {
     // Add Unassigned at the beginning
     paralegalOfficerItems.unshift({ text: 'Unassigned', value: 'Unassigned' })
 
+    const currentFilterKey = JSON.stringify(req.session.data.caseListFilters || {}) + (_.get(req.session.data.caseSearch, 'keywords') || '')
+    if (currentFilterKey !== req.session.data.caseListFilterKey) {
+      req.session.data.applyAction = {}
+      req.session.data.caseListFilterKey = currentFilterKey
+    }
+
     let totalCases = cases.length
     req.session.data.caseListAllIds = cases.map(c => c.id.toString())
     let pageSize = 25
     let pagination = new Pagination(cases, req.query.page, pageSize)
     cases = pagination.getData()
+    req.session.data.caseListPageIds = cases.map(c => c.id.toString())
 
     const showMarkAsNotDisputed = cases.some((c) =>
       c.dga?.failureReasons?.some((fr) => fr.disputed === null),
@@ -690,17 +697,6 @@ module.exports = (router) => {
 
     if (action === 'record-dga-dispute-outcomes-as-not-disputed') {
       req.session.data.applyAction = { cases: selectedCases }
-
-      const page = parseInt(req.query.page) || 1
-      const pageSize = 25
-      const allIds = req.session.data.caseListAllIds || []
-      const totalCases = allIds.length
-      const pageCount = Math.min(pageSize, totalCases - (page - 1) * pageSize)
-
-      if (selectedCases.length === pageCount && totalCases > pageCount) {
-        return res.redirect('/cases/record-dga-dispute-outcomes-as-not-disputed/select-all')
-      }
-
       return res.redirect('/cases/record-dga-dispute-outcomes-as-not-disputed')
     }
 

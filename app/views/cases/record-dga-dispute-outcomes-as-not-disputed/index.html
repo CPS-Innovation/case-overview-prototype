@@ -1,7 +1,7 @@
 {% extends "_layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set pageName = "Confirm that you want to record DGA dispute outcomes as not disputed" %}
+{% set pageName = "Confirm that you want to record the DGA dispute outcomes for " + (caseItems | length) + " cases as not disputed" %}
 
 {% block beforeContent %}
   {{ govukBackLink({

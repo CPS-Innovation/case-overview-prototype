@@ -82,6 +82,23 @@
       {% if cases.length %}
         <form method="post" action="/cases?page={{ pagination.pageNumber }}">
           <div class="govuk-button-group app-list-actions govuk-!-margin-top-4">
+            {% if data.applyAction.cases and data.applyAction.cases.length %}
+              {{
+                govukButton({
+                  text: "Deselect all",
+                  classes: "govuk-button--secondary",
+                  href: "/cases/deselect-all?page=" + pagination.pageNumber
+                })
+              }}
+            {% else %}
+              {{
+                govukButton({
+                  text: "Select all",
+                  classes: "govuk-button--secondary",
+                  href: "/cases/select-all?page=" + pagination.pageNumber
+                })
+              }}
+            {% endif %}
             {{
               govukButton({
                 text: "Add prosecutor",
@@ -111,6 +128,14 @@
               {% if inlineErrors.applyAction.cases %}
                 {{ govukErrorMessage({ text: inlineErrors.applyAction.cases.text }) }}
               {% endif %}
+              {% for selectedId in data.applyAction.cases %}
+                {% set onPage = false %}
+                {% for _case in cases %}{% if _case.id | string == selectedId %}{% set onPage = true %}{% endif %}{% endfor %}
+                {% if not onPage %}
+                  <input type="hidden" name="applyAction[cases]" value="{{ selectedId }}" />
+                {% endif %}
+              {% endfor %}
+
               <div class="app-list app-list--with-checkboxes" id="app-case-list">
                 {% for _case in cases %}
                   <div class="app-list__item">
@@ -313,12 +338,6 @@
       textBox: {
         label: 'Find paralegal',
       },
-    })
-
-    new App.CheckboxSelector({
-      container: $('.app-list-actions'),
-      injectRule: 'prepend',
-      checkboxes: $('.app-list .govuk-checkboxes__input'),
     })
   </script>
 {% endblock %}
