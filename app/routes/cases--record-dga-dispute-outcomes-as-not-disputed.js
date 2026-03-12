@@ -73,7 +73,7 @@ module.exports = (router) => {
             model: 'DGAFailureReason',
             recordId: fr.id,
             action: 'UPDATE',
-            title: 'DGA outcome recorded',
+            title: 'DGA dispute outcome recorded',
             caseId: c.id,
             meta: {
               failureReason: fr.reason,
