@@ -437,7 +437,8 @@ module.exports = (router) => {
           ' ' +
           _case.defendants[0].lastName
         ).toLowerCase()
-        return reference.indexOf(keywords) > -1 || defendantName.indexOf(keywords) > -1
+        let operationName = (_case.operationName || '').toLowerCase()
+        return reference.indexOf(keywords) > -1 || defendantName.indexOf(keywords) > -1 || operationName.indexOf(keywords) > -1
       })
     }
 

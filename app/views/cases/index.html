@@ -138,7 +138,22 @@
 
               <div class="app-list app-list--with-checkboxes" id="app-case-list">
                 {% for _case in cases %}
+                  {% set defendantLabel %}
+                    {{ _case.defendants[0].firstName }}
+                    {{ _case.defendants[0].lastName }}
+                    {% if _case.defendants.length > 1 %}
+                      and {{ _case.defendants.length - 1 }} more
+                    {%- endif %}
+                  {% endset %}
+
                   <div class="app-list__item">
+                    {% set labelHtml %}
+                      &nbsp;
+                      <span class="govuk-visually-hidden">
+                        {{ _case.reference }} - {{ defendantLabel }}
+                      </span>
+                    {% endset %}
+
                     {{
                       govukCheckboxes({
                         classes: "govuk-checkboxes--small app-list__checkbox",
@@ -146,26 +161,17 @@
                         name: "applyAction[cases]",
                         items: [{
                           value: _case.id ~ '',
-                          html: '&nbsp;<span class="govuk-visually-hidden">' + _case.reference + '</span>'
+                          html: labelHtml
                         }],
                         values: data.applyAction.cases
                       })
                     }}
 
-
-                    {% set defendantsValue %}
-                      {{ _case.defendants[0].firstName }}
-                      {{ _case.defendants[0].lastName }}
-                      {% if _case.defendants.length > 1 %}
-                        and {{ _case.defendants.length - 1 }} more
-                      {% endif %}
-                    {% endset %}
-
                     <div class="app-list__content">
                       <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
                         <div>
                           <a href="/cases/{{ _case.id }}" class="govuk-link--no-visited-state">
-                            {{ defendantsValue }}
+                            {{ defendantLabel }}
                           </a>
                         </div>
                       </h2>
