@@ -22,7 +22,7 @@ module.exports = router => {
     })
 
     const outcomesTotal = _case.dga?.failureReasons?.length || 0
-    const outcomesCompleted = _case.dga?.failureReasons?.filter(fr => fr.disputed !== null).length || 0
+    const outcomesCompleted = _case.dga?.failureReasons?.filter(fr => fr.didPoliceDisputeFailure !== null).length || 0
     const outcomesRemaining = outcomesTotal - outcomesCompleted
 
     res.render('cases/dga/index', {

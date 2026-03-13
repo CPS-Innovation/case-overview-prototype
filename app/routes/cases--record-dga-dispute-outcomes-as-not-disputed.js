@@ -35,7 +35,7 @@ module.exports = (router) => {
       ...c,
       totalFailureReasons: c.dga?.failureReasons?.length || 0,
       unresolvedFailureReasons:
-        c.dga?.failureReasons?.filter((fr) => fr.disputed === null).length || 0,
+        c.dga?.failureReasons?.filter((fr) => fr.didPoliceDisputeFailure === null).length || 0,
     }))
 
     const caseItems = mappedCases.filter((c) => c.unresolvedFailureReasons > 0)
@@ -56,12 +56,12 @@ module.exports = (router) => {
     })
 
     for (const c of cases) {
-      const unresolvedReasons = c.dga?.failureReasons?.filter((fr) => fr.disputed === null) || []
+      const unresolvedReasons = c.dga?.failureReasons?.filter((fr) => fr.didPoliceDisputeFailure === null) || []
 
       for (const fr of unresolvedReasons) {
         await prisma.dGAFailureReason.update({
           where: { id: fr.id },
-          data: { disputed: 'No' },
+          data: { didPoliceDisputeFailure: 'No' },
         })
 
         const date = new Date(c.dga.reviewDate)
@@ -79,7 +79,7 @@ module.exports = (router) => {
               failureReason: fr.reason,
               policeUnit: c.policeUnit?.name || 'Not specified',
               monthName,
-              disputed: 'No',
+              didPoliceDisputeFailure: 'No',
             },
           },
         })

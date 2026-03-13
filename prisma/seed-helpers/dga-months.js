@@ -210,15 +210,15 @@ async function seedDGAMonths(prisma, defendants) {
         const selectedReasons = faker.helpers.arrayElements(failureReasonsList, numFailureReasons);
 
         for (const reason of selectedReasons) {
-          let disputed = null;
-          let cpsAccepted = null;
+          let didPoliceDisputeFailure = null;
+          let didCpsAcceptDispute = null;
 
           const shouldHaveOutcome = state === 'completed' || (state === 'in-progress' && faker.datatype.boolean());
 
           if (shouldHaveOutcome) {
-            disputed = faker.helpers.arrayElement(['Yes', 'No']);
-            if (disputed === 'Yes') {
-              cpsAccepted = faker.helpers.arrayElement(['Yes', 'No']);
+            didPoliceDisputeFailure = faker.helpers.arrayElement(['Yes', 'No']);
+            if (didPoliceDisputeFailure === 'Yes') {
+              didCpsAcceptDispute = faker.helpers.arrayElement(['Yes', 'No']);
             }
           }
 
@@ -226,11 +226,11 @@ async function seedDGAMonths(prisma, defendants) {
             data: {
               dgaId: dga.id,
               reason: reason,
-              disputed: disputed,
-              cpsAccepted: cpsAccepted,
+              didPoliceDisputeFailure: didPoliceDisputeFailure,
+              didCpsAcceptDispute: didCpsAcceptDispute,
               details: failureReasonDetails[reason] || null,
-              reasonForOutcome: disputed === 'Yes' ? faker.lorem.paragraph() : null,
-              methods: disputed === 'Yes'
+              reasonForOutcome: didPoliceDisputeFailure === 'Yes' ? faker.lorem.paragraph() : null,
+              discussionMethods: didPoliceDisputeFailure === 'Yes'
                 ? faker.helpers.arrayElements(['Email', 'Phone', 'Letter'], faker.number.int({ min: 1, max: 2 })).join(', ')
                 : null
             }

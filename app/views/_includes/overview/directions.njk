@@ -5,25 +5,15 @@
       {% if overdueDirectionCount > 0 %}
         <li>
           <a href="/directions/shortcut/overdue">
-            {{overdueDirectionCount}}
-              {% if overdueDirectionCount == 1 %}
-                direction
-              {% else %}
-                directions
-              {% endif %}
-              assigned to prosecution are overdue
+            {{overdueDirectionCount}} {{ overdueDirectionCount | pluralize("direction") }}
+            assigned to prosecution are overdue
           </a>
         </li>
       {% endif %}
       {% if dueTodayDirectionCount > 0 %}
         <li>
           <a href="/directions/shortcut/due-today">
-            {{overdueDirectionCount}}
-            {% if overdueDirectionCount == 1 %}
-              direction
-            {% else %}
-              directions
-            {% endif %}
+            {{overdueDirectionCount}} {{ overdueDirectionCount | pluralize("direction") }}
             assigned to prosecution are due today
           </a>
         </li>
@@ -31,12 +21,7 @@
       {% if dueTomorrowDirectionCount > 0 %}
         <li>
           <a href="/directions/shortcut/due-tomorrow">
-            {{dueTomorrowDirectionCount}}
-            {% if dueTomorrowDirectionCount == 1 %}
-              direction
-            {% else %}
-              directions
-            {% endif %}
+            {{dueTomorrowDirectionCount}} {{ dueTomorrowDirectionCount | pluralize("direction") }}
             assigned to prosecution due tomorrow
           </a>
         </li>

@@ -1,11 +1,11 @@
 function calculateLegacyOutcome(failureReasons) {
   const hasDisputedUnsuccessfully = failureReasons.some(
-    fr => fr.disputed === 'Yes' && fr.cpsAccepted === 'No'
+    fr => fr.didPoliceDisputeFailure === 'Yes' && fr.didCpsAcceptDispute === 'No'
   )
   if (hasDisputedUnsuccessfully) return 'Disputed unsuccessfully'
 
   const hasDisputedSuccessfully = failureReasons.some(
-    fr => fr.disputed === 'Yes' && fr.cpsAccepted === 'Yes'
+    fr => fr.didPoliceDisputeFailure === 'Yes' && fr.didCpsAcceptDispute === 'Yes'
   )
   if (hasDisputedSuccessfully) return 'Disputed successfully'
 
@@ -13,7 +13,7 @@ function calculateLegacyOutcome(failureReasons) {
 }
 
 function isFinalFailure(failureReasons) {
-  const completedCount = failureReasons.filter(fr => fr.disputed !== null).length
+  const completedCount = failureReasons.filter(fr => fr.didPoliceDisputeFailure !== null).length
   return completedCount === failureReasons.length - 1
 }
 

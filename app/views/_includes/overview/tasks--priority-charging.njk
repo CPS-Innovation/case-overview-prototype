@@ -5,12 +5,7 @@
       <a href="/tasks/shortcut/priority-charging" class="app-overview-card app-overview-card--blue">
         <span class="app-overview-card__count">{{priorityChargingTaskCount}}</span>
         <span class="app-overview-card__status">
-          priority charging
-          {% if priorityChargingTaskCount == 1 %}
-            task
-          {% else %}
-            tasks
-          {% endif %}
+          priority charging {{ priorityChargingTaskCount | pluralize("task") }}
         </span>
       </a>
     </div>

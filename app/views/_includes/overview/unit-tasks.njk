@@ -5,24 +5,14 @@
       {% if adminPoolTaskCount > 0 %}
         <li>
           <a href="/tasks/shortcut/admin-pool" class="govuk-link--no-visited-state">
-            {{adminPoolTaskCount}} admin pool
-            {% if adminPoolTaskCount == 1 %}
-              task
-            {% else %}
-              tasks
-            {% endif %}
+            {{adminPoolTaskCount}} admin pool {{ adminPoolTaskCount | pluralize("task") }}
           </a>
         </li>
       {% endif %}
       {% if unitPriorityChargingTaskCount > 0 %}
         <li>
           <a href="/tasks/shortcut/unit-priority-charging" class="govuk-link--no-visited-state">
-            {{unitPriorityChargingTaskCount}} priority charging
-            {% if unitPriorityChargingTaskCount == 1 %}
-              task
-            {% else %}
-              tasks
-            {% endif %}
+            {{unitPriorityChargingTaskCount}} priority charging {{ unitPriorityChargingTaskCount | pluralize("task") }}
           </a>
         </li>
       {% endif %}

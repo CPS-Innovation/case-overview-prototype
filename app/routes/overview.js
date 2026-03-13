@@ -42,7 +42,7 @@ module.exports = router => {
         dga: {
           failureReasons: {
             some: {
-              disputed: null
+              didPoliceDisputeFailure: null
             }
           }
         }
@@ -55,7 +55,7 @@ module.exports = router => {
         reviewDate: { not: null },
         failureReasons: {
           some: {
-            disputed: null
+            didPoliceDisputeFailure: null
           }
         }
       },

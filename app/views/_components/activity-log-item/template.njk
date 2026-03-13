@@ -19,9 +19,9 @@
   <div class="app-activity-log__description">
     {% if params.event.title == 'DGA dispute outcome recorded' %}
       {% set methodsHtml %}
-        {% if params.event.meta.methods %}
+        {% if params.event.meta.discussionMethods %}
           <ul class="govuk-list govuk-list--bullet">
-            {% for method in params.event.meta.methods %}
+            {% for method in params.event.meta.discussionMethods %}
               <li>{{ method }}</li>
             {% endfor %}
           </ul>
@@ -48,20 +48,20 @@
             },
             {
               key: { text: "Did the police dispute this failure?" },
-              value: { text: params.event.meta.disputed }
+              value: { text: params.event.meta.didPoliceDisputeFailure }
             },
             {
               key: { text: "Did CPS accept the dispute?" },
-              value: { text: params.event.meta.cpsAccepted }
-            } if params.event.meta.disputed == 'Yes',
+              value: { text: params.event.meta.didCpsAcceptDispute }
+            } if params.event.meta.didPoliceDisputeFailure == 'Yes',
             {
               key: { text: "Reason for outcome" },
-              value: { text: params.event.meta.explanation }
-            } if params.event.meta.disputed == 'Yes' and params.event.meta.explanation,
+              value: { text: params.event.meta.reasonForOutcome }
+            } if params.event.meta.didPoliceDisputeFailure == 'Yes' and params.event.meta.reasonForOutcome,
             {
               key: { text: "How did you discuss this dispute with the police?" },
               value: { html: methodsHtml }
-            } if params.event.meta.disputed == 'Yes' and params.event.meta.methods
+            } if params.event.meta.didPoliceDisputeFailure == 'Yes' and params.event.meta.discussionMethods
           ]
         }) }}
       </div>

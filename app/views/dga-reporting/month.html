@@ -50,12 +50,12 @@
           {% if policeUnit.casesNeedingOutcomes > 0 %}
             <p>
               You need to record {{ policeUnit.casesNeedingOutcomes }}
-              {{ "outcome" if policeUnit.casesNeedingOutcomes == 1 else "outcomes" }}.
+              {{ policeUnit.casesNeedingOutcomes | pluralize("outcome") }}.
             </p>
           {% else %}
             <p>
               All {{ policeUnit.completedCases }}
-              {{ "outcome" if policeUnit.completedCases == 1 else "outcomes" }}
+              {{ policeUnit.completedCases | pluralize("outcome") }}
               have been recorded.
             </p>
           {% endif %}

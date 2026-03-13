@@ -278,11 +278,11 @@ module.exports = (router) => {
       const reviewFilters = []
 
       if (selectedDgaFilters.includes('Awaiting DGA dispute outcome')) {
-        reviewFilters.push({ dga: { failureReasons: { some: { disputed: null } } } })
+        reviewFilters.push({ dga: { failureReasons: { some: { didPoliceDisputeFailure: null } } } })
       }
 
       if (selectedDgaFilters.includes('DGA dispute outcome recorded')) {
-        reviewFilters.push({ NOT: { dga: { failureReasons: { some: { disputed: null } } } } })
+        reviewFilters.push({ NOT: { dga: { failureReasons: { some: { didPoliceDisputeFailure: null } } } } })
       }
 
       if (reviewFilters.length) {
@@ -413,7 +413,7 @@ module.exports = (router) => {
 
     cases = cases.map((c) => ({
       ...addTimeLimitDates(c),
-      needsDgaOutcome: c.dga?.failureReasons?.some((fr) => fr.disputed === null) ?? false,
+      needsDgaOutcome: c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null) ?? false,
     }))
 
     // Sort: CTL cases first (by soonest date), then non-CTL cases
@@ -561,7 +561,7 @@ module.exports = (router) => {
     req.session.data.caseListPageIds = cases.map((c) => c.id.toString())
 
     const showMarkAsNotDisputed = cases.some((c) =>
-      c.dga?.failureReasons?.some((fr) => fr.disputed === null),
+      c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null),
     )
 
     res.render('cases/index', {
@@ -697,7 +697,7 @@ module.exports = (router) => {
           where: { id: { in: selectedCases.map(Number) } },
           include: { dga: { include: { failureReasons: true } } },
         })
-        hasUnresolved = cases.some((c) => c.dga?.failureReasons?.some((fr) => fr.disputed === null))
+        hasUnresolved = cases.some((c) => c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null))
       }
 
       validator.add({

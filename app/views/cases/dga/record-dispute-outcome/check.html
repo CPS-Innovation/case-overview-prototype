@@ -9,7 +9,7 @@
   {{
     govukBackLink({
       text: "Back",
-      href: baseUrl + "/method" if data.recordOutcome.disputed == "Yes" else baseUrl
+      href: baseUrl + "/method" if data.recordOutcome.didPoliceDisputeFailure == "Yes" else baseUrl
     })
   }}
 {% endblock %}
@@ -24,9 +24,9 @@
 
 
       {% set methodsHtml %}
-        {% if data.recordOutcome.methods and data.recordOutcome.methods.length > 0 %}
+        {% if data.recordOutcome.discussionMethods and data.recordOutcome.discussionMethods.length > 0 %}
           <ul class="govuk-list govuk-list--bullet">
-            {% for method in data.recordOutcome.methods %}
+            {% for method in data.recordOutcome.discussionMethods %}
               <li>{{ method }}</li>
             {% endfor %}
           </ul>
@@ -38,7 +38,7 @@
           rows: [
             {
               key: { text: "Did the police dispute this failure?" },
-              value: { text: data.recordOutcome.disputed },
+              value: { text: data.recordOutcome.didPoliceDisputeFailure },
               actions: {
                 items: [{
                   href: baseUrl,
@@ -49,7 +49,7 @@
             },
             {
               key: { text: "Did CPS accept the dispute?" },
-              value: { text: data.recordOutcome.cpsAccepted },
+              value: { text: data.recordOutcome.didCpsAcceptDispute },
               actions: {
                 items: [{
                   href: baseUrl + "/cps-accepted",
@@ -57,10 +57,10 @@
                   visuallyHiddenText: "did CPS accept the dispute"
                 }]
               }
-            } if data.recordOutcome.disputed == "Yes",
+            } if data.recordOutcome.didPoliceDisputeFailure == "Yes",
             {
               key: { text: "Reason for outcome" },
-              value: { text: data.recordOutcome.explanation },
+              value: { text: data.recordOutcome.reasonForOutcome },
               actions: {
                 items: [{
                   href: baseUrl + "/reason",
@@ -68,7 +68,7 @@
                   visuallyHiddenText: "reason for outcome"
                 }]
               }
-            } if data.recordOutcome.disputed == "Yes",
+            } if data.recordOutcome.didPoliceDisputeFailure == "Yes",
             {
               key: { text: "How did you discuss this dispute with the police?" },
               value: { html: methodsHtml },
@@ -79,7 +79,7 @@
                   visuallyHiddenText: "how you discussed this dispute with the police"
                 }]
               }
-            } if data.recordOutcome.disputed == "Yes"
+            } if data.recordOutcome.didPoliceDisputeFailure == "Yes"
           ]
         })
       }}

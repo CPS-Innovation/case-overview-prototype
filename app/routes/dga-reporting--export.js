@@ -127,7 +127,7 @@ module.exports = router => {
       { header: 'Failure types', key: 'failureTypes', width: 30 },
       { header: 'Did the police dispute this failure?', key: 'disputed', width: 35 },
       { header: 'Did CPS accept the dispute?', key: 'cpsAccepted', width: 30 },
-      { header: 'Contact methods', key: 'contactMethods', width: 20 },
+      { header: 'Contact methods', key: 'discussionMethods', width: 20 },
       { header: 'Comments', key: 'comments', width: 30 }
     ]
 
@@ -157,9 +157,9 @@ module.exports = router => {
             domesticViolence: '',
             hateCrimeFlag: '',
             failureTypes: failureReason.reason,
-            disputed: failureReason.disputed || '',
-            cpsAccepted: failureReason.cpsAccepted || '',
-            contactMethods: failureReason.methods || '',
+            disputed: failureReason.didPoliceDisputeFailure || '',
+            cpsAccepted: failureReason.didCpsAcceptDispute || '',
+            discussionMethods: failureReason.discussionMethods || '',
             comments: failureReason.details || ''
           })
         })

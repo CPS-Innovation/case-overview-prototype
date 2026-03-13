@@ -29,21 +29,21 @@ module.exports = router => {
     res.render('cases/dga/record-dispute-outcome/index', {
       case: caseData,
       failureReason: caseData.dga.failureReasons[0],
-      selectedDisputed: req.session.data.recordOutcome?.disputed
+      selectedDisputed: req.session.data.recordOutcome?.didPoliceDisputeFailure
     })
   })
 
   router.post('/cases/:caseId/dga/:failureReasonId/record-dispute-outcome', (req, res) => {
     const caseId = req.params.caseId
     const failureReasonId = req.params.failureReasonId
-    const disputed = req.body.recordOutcome?.disputed
+    const didPoliceDisputeFailure = req.body.recordOutcome?.didPoliceDisputeFailure
 
-    _.set(req, 'session.data.recordOutcome.disputed', disputed)
+    _.set(req, 'session.data.recordOutcome.didPoliceDisputeFailure', didPoliceDisputeFailure)
 
-    if (disputed === 'No') {
-      _.set(req, 'session.data.recordOutcome.cpsAccepted', null)
-      _.set(req, 'session.data.recordOutcome.explanation', null)
-      _.set(req, 'session.data.recordOutcome.methods', null)
+    if (didPoliceDisputeFailure === 'No') {
+      _.set(req, 'session.data.recordOutcome.didCpsAcceptDispute', null)
+      _.set(req, 'session.data.recordOutcome.reasonForOutcome', null)
+      _.set(req, 'session.data.recordOutcome.discussionMethods', null)
       return res.redirect(`/cases/${caseId}/dga/${failureReasonId}/record-dispute-outcome/check`)
     }
 
@@ -59,7 +59,7 @@ module.exports = router => {
     res.render('cases/dga/record-dispute-outcome/cps-accepted', {
       case: caseData,
       failureReason: caseData.dga.failureReasons[0],
-      selectedCpsAccepted: req.session.data.recordOutcome?.cpsAccepted
+      selectedCpsAccepted: req.session.data.recordOutcome?.didCpsAcceptDispute
     })
   })
 
@@ -67,7 +67,7 @@ module.exports = router => {
     const caseId = req.params.caseId
     const failureReasonId = req.params.failureReasonId
 
-    _.set(req, 'session.data.recordOutcome.cpsAccepted', req.body.recordOutcome?.cpsAccepted)
+    _.set(req, 'session.data.recordOutcome.didCpsAcceptDispute', req.body.recordOutcome?.didCpsAcceptDispute)
 
     res.redirect(`/cases/${caseId}/dga/${failureReasonId}/record-dispute-outcome/reason`)
   })
@@ -81,7 +81,7 @@ module.exports = router => {
     res.render('cases/dga/record-dispute-outcome/reason', {
       case: caseData,
       failureReason: caseData.dga.failureReasons[0],
-      details: req.session.data.recordOutcome?.explanation
+      reasonForOutcome: req.session.data.recordOutcome?.reasonForOutcome
     })
   })
 
@@ -89,7 +89,7 @@ module.exports = router => {
     const caseId = req.params.caseId
     const failureReasonId = req.params.failureReasonId
 
-    _.set(req, 'session.data.recordOutcome.explanation', req.body.recordOutcome?.explanation)
+    _.set(req, 'session.data.recordOutcome.reasonForOutcome', req.body.recordOutcome?.reasonForOutcome)
 
     res.redirect(`/cases/${caseId}/dga/${failureReasonId}/record-dispute-outcome/method`)
   })
@@ -103,23 +103,23 @@ module.exports = router => {
     res.render('cases/dga/record-dispute-outcome/method', {
       case: caseData,
       failureReason: caseData.dga.failureReasons[0],
-      selectedMethods: req.session.data.recordOutcome?.methods || []
+      selectedMethods: req.session.data.recordOutcome?.discussionMethods || []
     })
   })
 
   router.post('/cases/:caseId/dga/:failureReasonId/record-dispute-outcome/method', (req, res) => {
     const caseId = req.params.caseId
     const failureReasonId = req.params.failureReasonId
-    let methods = req.body.recordOutcome?.methods
+    let discussionMethods = req.body.recordOutcome?.discussionMethods
 
-    if (!methods) {
-      methods = []
-    } else if (!Array.isArray(methods)) {
-      methods = [methods]
+    if (!discussionMethods) {
+      discussionMethods = []
+    } else if (!Array.isArray(discussionMethods)) {
+      discussionMethods = [discussionMethods]
     }
-    methods = methods.filter(m => m !== '_unchecked')
+    discussionMethods = discussionMethods.filter(m => m !== '_unchecked')
 
-    _.set(req, 'session.data.recordOutcome.methods', methods)
+    _.set(req, 'session.data.recordOutcome.discussionMethods', discussionMethods)
 
     res.redirect(`/cases/${caseId}/dga/${failureReasonId}/record-dispute-outcome/check`)
   })
@@ -143,8 +143,8 @@ module.exports = router => {
         if (fr.id === failureReasonId) {
           return {
             ...fr,
-            disputed: req.session.data.recordOutcome?.disputed,
-            cpsAccepted: req.session.data.recordOutcome?.cpsAccepted
+            didPoliceDisputeFailure: req.session.data.recordOutcome?.didPoliceDisputeFailure,
+            didCpsAcceptDispute: req.session.data.recordOutcome?.didCpsAcceptDispute
           }
         }
         return fr
@@ -163,10 +163,10 @@ module.exports = router => {
     const caseId = parseInt(req.params.caseId)
     const failureReasonId = parseInt(req.params.failureReasonId)
 
-    const disputed = req.session.data.recordOutcome?.disputed
-    const cpsAccepted = req.session.data.recordOutcome?.cpsAccepted
-    const details = req.session.data.recordOutcome?.explanation
-    const methods = req.session.data.recordOutcome?.methods
+    const didPoliceDisputeFailure = req.session.data.recordOutcome?.didPoliceDisputeFailure
+    const didCpsAcceptDispute = req.session.data.recordOutcome?.didCpsAcceptDispute
+    const reasonForOutcome = req.session.data.recordOutcome?.reasonForOutcome
+    const discussionMethods = req.session.data.recordOutcome?.discussionMethods
 
     const caseData = await prisma.case.findUnique({
       where: { id: caseId },
@@ -179,10 +179,10 @@ module.exports = router => {
     await prisma.dGAFailureReason.update({
       where: { id: failureReasonId },
       data: {
-        disputed,
-        cpsAccepted,
-        reasonForOutcome: details,
-        methods: methods ? methods.join(', ') : null
+        didPoliceDisputeFailure,
+        didCpsAcceptDispute,
+        reasonForOutcome,
+        discussionMethods: discussionMethods ? discussionMethods.join(', ') : null
       }
     })
 
@@ -213,7 +213,7 @@ module.exports = router => {
 
     delete req.session.data.recordOutcome
 
-    req.flash('success', 'Outcome recorded')
+    req.flash('success', 'DGA dispute outcome recorded')
 
     res.redirect(`/cases/${caseId}/dga`)
   })

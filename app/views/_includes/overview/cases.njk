@@ -6,12 +6,7 @@
       {% if unassignedCaseCount > 0 %}
         <li>
           <a href="/cases/shortcut/unassigned" class="govuk-link--no-visited-state">
-            {{unassignedCaseCount}}
-            {% if unassignedCaseCount == 1 %}
-              case does not
-            {% else %}
-              cases do not
-            {% endif %}
+            {{unassignedCaseCount}} {{ unassignedCaseCount | pluralize("case does not", "cases do not") }}
             have a prosecutor assigned
           </a>
         </li>
@@ -28,11 +23,7 @@
       <a href="/cases/shortcut/unassigned" class="app-overview-card app-overview-card--yellow">
         <span class="app-overview-card__count">{{unassignedCaseCount}}</span>
         <span class="app-overview-card__status">
-          {% if unassignedCaseCount == 1 %}
-            case does not
-          {% else %}
-            cases do not
-          {% endif %}
+          {{ unassignedCaseCount | pluralize("case does not", "cases do not") }}
           have a prosecutor assigned
         </span>
       </a>

@@ -58,7 +58,7 @@ module.exports = router => {
       if (isNonCompliant) {
         monthData.nonCompliantCases++
         // Check if all failure reasons have outcomes
-        const allCompleted = _case.dga.failureReasons.every(fr => fr.disputed !== null)
+        const allCompleted = _case.dga.failureReasons.every(fr => fr.didPoliceDisputeFailure !== null)
         if (allCompleted) {
           monthData.completedCases++
         }
@@ -179,13 +179,13 @@ module.exports = router => {
         unitData.nonCompliantCases++
 
         // Check if all failure reasons have outcomes (case is fully complete)
-        const allCompleted = _case.dga.failureReasons.every(fr => fr.disputed !== null)
+        const allCompleted = _case.dga.failureReasons.every(fr => fr.didPoliceDisputeFailure !== null)
         if (allCompleted) {
           unitData.completedCases++
         }
 
         // Check if any failure reason has an outcome (case has progress)
-        const hasAnyOutcome = _case.dga.failureReasons.some(fr => fr.disputed !== null)
+        const hasAnyOutcome = _case.dga.failureReasons.some(fr => fr.didPoliceDisputeFailure !== null)
         if (hasAnyOutcome) {
           unitData.hasAnyProgress = true
         }

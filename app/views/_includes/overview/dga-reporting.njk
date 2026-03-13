@@ -4,12 +4,7 @@
     <ul class="govuk-list govuk-list--bullet">
       <li>
         <a href="/dga-reporting/{{ latestDGAMonth.key }}" class="govuk-link--no-visited-state">
-          {{ latestDGAMonth.count }}
-          {% if latestDGAMonth.count == 1 %}
-            case needs
-          {% else %}
-            cases need
-          {% endif %}
+          {{ latestDGAMonth.count }} {{ latestDGAMonth.count | pluralize("case needs", "cases need") }}
           DGA dispute outcomes recorded by {{ latestDGAMonth.deadline | isoDateString | govukDate }}
         </a>
       </li>
