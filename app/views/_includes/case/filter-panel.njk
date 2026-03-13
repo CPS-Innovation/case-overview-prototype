@@ -52,18 +52,23 @@
     values: data.caseListFilters.unit
   }) if unitItems.length > 1}}
 
-  {{ govukCheckboxes({
+  {{ appCheckboxFilter({
     idPrefix: "caseListFilters[policeUnit]",
     name: "caseListFilters[policeUnit]",
-    classes: "govuk-checkboxes--small",
+    classes: "govuk-checkboxes--small police-unit-filter",
+    attributes: {
+      id: 'police-unit-filter'
+    },
     fieldset: {
       legend: {
         text: "Police unit",
         classes: "govuk-fieldset__legend--s"
       }
     },
+    maxHeight: true,
     items: policeUnitItems,
-    values: data.caseListFilters.policeUnit
+    values: data.caseListFilters.policeUnit,
+    selectedItems: selectedPoliceUnitItems
   }) if policeUnitItems.length }}
 
   {# {{ govukCheckboxes({

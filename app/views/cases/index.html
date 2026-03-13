@@ -118,7 +118,7 @@
           </div>
 
           <div
-            class="govuk-form-group{% if inlineErrors.applyAction.cases %}govuk-form-group--error{% endif %}"
+            class="govuk-form-group {% if inlineErrors.applyAction.cases %}govuk-form-group--error{% endif %}"
           >
             {%
               call govukFieldset({
@@ -337,6 +337,13 @@
       container: $('.paralegal-officer-filter'),
       textBox: {
         label: 'Find paralegal',
+      },
+    })
+
+    new App.ListFilter({
+      container: $('.police-unit-filter'),
+      textBox: {
+        label: 'Find police unit',
       },
     })
   </script>

@@ -35,7 +35,6 @@ require('./routes/paralegal-officer')(router)
 // DGA reporting routes
 require('./routes/dga-reporting--export')(router)
 require('./routes/dga-reporting')(router)
-require('./routes/dga-reporting--record-dispute-outcome')(router)
 
 // Record recent case views
 router.get('/cases/:caseId*', async (req, res, next) => {

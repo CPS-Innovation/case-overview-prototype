@@ -85,6 +85,7 @@ module.exports = (router) => {
     let selectedFilters = { categories: [] }
     let selectedProsecutorItems = []
     let selectedParalegalOfficerItems = []
+    let selectedPoliceUnitItems = []
 
     let prosecutorIds
 
@@ -185,7 +186,7 @@ module.exports = (router) => {
     // Priority filter display
     if (selectedDgaFilters?.length) {
       selectedFilters.categories.push({
-        heading: { text: 'DGA' },
+        heading: { text: 'DGA reporting' },
         items: selectedDgaFilters.map(function (label) {
           return { text: label, href: '/cases/remove-dga/' + label }
         }),
@@ -224,7 +225,7 @@ module.exports = (router) => {
         where: { id: { in: policeUnitIds } },
       })
 
-      let items = selectedPoliceUnitFilters.map(function (selectedPoliceUnit) {
+      selectedPoliceUnitItems = selectedPoliceUnitFilters.map(function (selectedPoliceUnit) {
         let policeUnit = fetchedPoliceUnits.find((pu) => pu.id === Number(selectedPoliceUnit))
         return {
           text: policeUnit ? policeUnit.name : selectedPoliceUnit,
@@ -232,7 +233,7 @@ module.exports = (router) => {
         }
       })
 
-      selectedFilters.categories.push({ heading: { text: 'Police unit' }, items })
+      selectedFilters.categories.push({ heading: { text: 'Police unit' }, items: selectedPoliceUnitItems })
     }
 
     // Type filter display
@@ -543,18 +544,20 @@ module.exports = (router) => {
     // Add Unassigned at the beginning
     paralegalOfficerItems.unshift({ text: 'Unassigned', value: 'Unassigned' })
 
-    const currentFilterKey = JSON.stringify(req.session.data.caseListFilters || {}) + (_.get(req.session.data.caseSearch, 'keywords') || '')
+    const currentFilterKey =
+      JSON.stringify(req.session.data.caseListFilters || {}) +
+      (_.get(req.session.data.caseSearch, 'keywords') || '')
     if (currentFilterKey !== req.session.data.caseListFilterKey) {
       req.session.data.applyAction = {}
       req.session.data.caseListFilterKey = currentFilterKey
     }
 
     let totalCases = cases.length
-    req.session.data.caseListAllIds = cases.map(c => c.id.toString())
+    req.session.data.caseListAllIds = cases.map((c) => c.id.toString())
     let pageSize = 25
     let pagination = new Pagination(cases, req.query.page, pageSize)
     cases = pagination.getData()
-    req.session.data.caseListPageIds = cases.map(c => c.id.toString())
+    req.session.data.caseListPageIds = cases.map((c) => c.id.toString())
 
     const showMarkAsNotDisputed = cases.some((c) =>
       c.dga?.failureReasons?.some((fr) => fr.disputed === null),
@@ -567,6 +570,7 @@ module.exports = (router) => {
       ctlItems,
       unitItems,
       policeUnitItems,
+      selectedPoliceUnitItems,
       complexityItems,
       typeItems,
       prosecutorItems,
@@ -669,7 +673,8 @@ module.exports = (router) => {
     const action = req.body.action
 
     const errorMessages = {
-      'record-dga-dispute-outcomes-as-not-disputed': 'Select a case to record DGA dispute outcomes as not disputed',
+      'record-dga-dispute-outcomes-as-not-disputed':
+        'Select a case to record DGA dispute outcomes as not disputed',
       'add-prosecutor': 'Select a case to add a prosecutor to',
     }
 
@@ -681,7 +686,7 @@ module.exports = (router) => {
 
     validator.add({
       name: 'applyAction.cases',
-      rules: [{ fn: rules.checkboxSelected, message: errorMessages[action] || 'Select a case' }]
+      rules: [{ fn: rules.checkboxSelected, message: errorMessages[action] || 'Select a case' }],
     })
 
     if (action === 'record-dga-dispute-outcomes-as-not-disputed') {
@@ -689,18 +694,20 @@ module.exports = (router) => {
       if (selectedCases.length) {
         const cases = await prisma.case.findMany({
           where: { id: { in: selectedCases.map(Number) } },
-          include: { dga: { include: { failureReasons: true } } }
+          include: { dga: { include: { failureReasons: true } } },
         })
-        hasUnresolved = cases.some(c => c.dga?.failureReasons?.some(fr => fr.disputed === null))
+        hasUnresolved = cases.some((c) => c.dga?.failureReasons?.some((fr) => fr.disputed === null))
       }
 
       validator.add({
         name: 'applyAction.cases',
-        rules: [{
-          fn: (value, params) => params.hasUnresolved,
-          params: { hasUnresolved },
-          message: 'Selected cases must have a DGA dispute outcome that needs recording'
-        }]
+        rules: [
+          {
+            fn: (value, params) => params.hasUnresolved,
+            params: { hasUnresolved },
+            message: 'Selected cases must have a DGA dispute outcome that needs recording',
+          },
+        ],
       })
     }
 
