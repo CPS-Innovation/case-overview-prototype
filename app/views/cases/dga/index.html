@@ -27,6 +27,10 @@
         <div>
           <h2 class="govuk-heading-m govuk-!-margin-top-7">{{ reason.reason }}</h2>
 
+          {% if reason.details %}
+            <p class="govuk-body">{{ reason.details }}</p>
+          {% endif %}
+
           {% if not reason.disputed %}
             {{
               govukButton({
@@ -75,7 +79,7 @@
                   } if reason.disputed == "Yes",
                   {
                     key: { text: "Reason for outcome" },
-                    value: { text: reason.details if reason.details else "-" },
+                    value: { text: reason.reasonForOutcome if reason.reasonForOutcome else "-" },
                     actions: {
                       items: [{
                         href: baseUrl + "/reason",

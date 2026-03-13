@@ -171,12 +171,13 @@ model DGA {
 }
 
 model DGAFailureReason {
-  id          Int      @id @default(autoincrement())
-  reason      String
-  disputed    String?
-  cpsAccepted String?
-  details     String?
-  methods     String?
+  id              Int      @id @default(autoincrement())
+  reason          String
+  disputed        String?
+  cpsAccepted     String?
+  details         String?
+  reasonForOutcome String?
+  methods         String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   dga         DGA      @relation(fields: [dgaId], references: [id])

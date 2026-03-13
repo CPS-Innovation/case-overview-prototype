@@ -181,7 +181,7 @@ module.exports = router => {
       data: {
         disputed,
         cpsAccepted,
-        details,
+        reasonForOutcome: details,
         methods: methods ? methods.join(', ') : null
       }
     })

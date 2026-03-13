@@ -55,6 +55,32 @@ async function seedDGAMonths(prisma, defendants) {
     "Victim and witness failure - VPS - no information on whether VPS offered/not provided"
   ];
 
+  const failureReasonDetails = {
+    "Breach failure - Charged by Police in breach of the Director's Guidance": "The defendant has been charged with an offence that falls outside the Director's Guidance on charging. The police should have sought advice from a prosecutor before charging in this case.",
+    "Disclosure failure - Disclosable unused material not provided": "You have not provided the disclosable unused material listed on the schedule. Items 3, 7 and 12 on the MG6C are missing from the file.",
+    "Disclosure failure - Information about reasonable lines of inquiry insufficient": "The information provided about the lines of inquiry conducted is insufficient. You have not explained why CCTV from the adjacent premises was not sought.",
+    "Disclosure failure - Information about reasonable lines of inquiry not provided": "You have not provided any information about the reasonable lines of inquiry that were pursued or considered in this case.",
+    "Disclosure failure - Rebuttable presumption material not provided": "The material that attracts a rebuttable presumption of disclosure under the Criminal Procedure and Investigations Act 1996 has not been included in the file.",
+    "Disclosure failure - Schedules of unused material not completed correctly": "The MG6C schedule has not been completed correctly. Items are listed without sufficient description to allow a prosecutor to assess their relevance to the defence.",
+    "Disclosure failure - Schedules of unused material not provided": "No schedule of unused material has been provided with this file. An MG6C must be completed and submitted.",
+    "Evidential failure - Exhibit": "The exhibit referred to in the witness statement (exhibit JS/1) has not been included in the file. Please resubmit with the exhibit attached.",
+    "Evidential failure - Forensic": "The forensic analysis report referenced in the investigation has not been provided. The DNA comparison results must be included before this matter can proceed.",
+    "Evidential failure - Medical evidence": "The medical evidence referenced in the officer's statement has not been included. The A&E records and medical photographs must be provided.",
+    "Evidential failure - Multi-media BWV not clipped": "You have provided a 10 minute clip of the BWV but only the section between 1min 20s and 3min 45s is relevant. Please resubmit with only that section.",
+    "Evidential failure - Multi-media BWV not in playable format": "The body-worn video file submitted cannot be opened. Please resubmit in a standard playable format such as MP4.",
+    "Evidential failure - Multi-media BWV not provided": "Body-worn video was recorded at the scene but has not been included in the file. Please provide the footage referenced in the officer's statement.",
+    "Evidential failure - Multi-media CCTV not clipped": "The CCTV footage provided covers an 8 hour period. Only the footage between 22:15 and 22:45 is relevant to this case. Please resubmit with only that section.",
+    "Evidential failure - Multi-media CCTV not in playable format": "The CCTV file submitted is in a proprietary format that requires specialist software to view. Please convert and resubmit in a standard playable format.",
+    "Evidential failure - Multi-media CCTV not provided": "CCTV footage from the location has been referenced in statements but not provided. Please include the relevant footage from the three cameras identified.",
+    "Evidential failure - Multi-media Other not clipped": "The dashcam footage provided covers an excessive period. Please clip to the relevant section only and resubmit.",
+    "Evidential failure - Multi-media Other not in playable format": "The audio recording submitted is in a format that cannot be played. Please resubmit in MP3 or WAV format.",
+    "Evidential failure - Relevant orders/applications, details not provided": "The restraining order referenced in this case has not been included in the file. A copy of the order with full details of the conditions must be provided.",
+    "Evidential failure - Statement(s)": "The witness statement from the independent witness referred to in the officer's account has not been included. This statement is essential to the prosecution case.",
+    "Victim and witness failure - Needs of the victim/witness special measures have not been considered or are inadequate": "There is no record that special measures were considered for the vulnerable witness in this case. The MG2 has not been completed.",
+    "Victim and witness failure - Victim and witness needs (not special measures related)": "The victim's need for an interpreter has not been addressed. There is no record of arrangements being made for the forthcoming hearing.",
+    "Victim and witness failure - VPS - no information on whether VPS offered/not provided": "You have not stated whether the victim was offered the opportunity to complete a Victim Personal Statement."
+  };
+
 
   // Month configurations
   // October 2025: All completed (past month)
@@ -202,7 +228,8 @@ async function seedDGAMonths(prisma, defendants) {
               reason: reason,
               disputed: disputed,
               cpsAccepted: cpsAccepted,
-              details: disputed === 'Yes' ? faker.lorem.paragraph() : null,
+              details: failureReasonDetails[reason] || null,
+              reasonForOutcome: disputed === 'Yes' ? faker.lorem.paragraph() : null,
               methods: disputed === 'Yes'
                 ? faker.helpers.arrayElements(['Email', 'Phone', 'Letter'], faker.number.int({ min: 1, max: 2 })).join(', ')
                 : null
