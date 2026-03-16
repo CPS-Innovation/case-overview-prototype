@@ -61,7 +61,7 @@
     },
     fieldset: {
       legend: {
-        text: "Police unit",
+        text: "Police force",
         classes: "govuk-fieldset__legend--s"
       }
     },
@@ -92,13 +92,27 @@
       classes: "govuk-checkboxes--small",
       fieldset: {
         legend: {
-          text: "DGA reporting",
+          text: "DGA dispute outcome",
           classes: "govuk-fieldset__legend--s"
         }
       },
       items: dgaItems,
       values: data.caseListFilters.dga
     }) }}
+
+    {{ govukCheckboxes({
+      idPrefix: "caseListFilters[dgaMonth]",
+      name: "caseListFilters[dgaMonth]",
+      classes: "govuk-checkboxes--small",
+      fieldset: {
+        legend: {
+          text: "DGA reporting month",
+          classes: "govuk-fieldset__legend--s"
+        }
+      },
+      items: dgaMonthItems,
+      values: data.caseListFilters.dgaMonth
+    }) if dgaMonthItems.length }}
   {% endif %}
 
 {% endset %}

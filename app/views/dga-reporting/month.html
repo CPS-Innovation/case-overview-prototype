@@ -82,14 +82,14 @@
             <li>
               {% if policeUnit.casesNeedingOutcomes > 0 %}
                 <a
-                  href="/cases/shortcut/dga-police-unit/{{ policeUnit.id }}"
+                  href="/cases/shortcut/dga-police-unit/{{ monthKey }}/{{ policeUnit.id }}"
                   class="govuk-link govuk-link--no-visited-state"
                 >
                   Record outcomes for cases that failed DGA
                 </a>
               {% else %}
                 <a
-                  href="/cases/shortcut/dga-police-unit-recorded/{{ policeUnit.id }}"
+                  href="/cases/shortcut/dga-police-unit-recorded/{{ monthKey }}/{{ policeUnit.id }}"
                   class="govuk-link govuk-link--no-visited-state"
                 >
                   View outcomes for cases that failed DGA

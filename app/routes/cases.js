@@ -7,10 +7,11 @@ const complexities = require('../data/complexities')
 const { addTimeLimitDates } = require('../helpers/timeLimit')
 const Validator = require('../helpers/validator')
 const rules = require('../helpers/rules')
-const dgaStatuses = ['Awaiting DGA dispute outcome', 'DGA dispute outcome recorded']
+const dgaStatuses = ['Awaiting outcome', 'Outcome recorded']
 
 function resetFilters(req) {
   _.set(req, 'session.data.caseListFilters.dga', null)
+  _.set(req, 'session.data.caseListFilters.dgaMonth', null)
   _.set(req, 'session.data.caseListFilters.isCTL', null)
   _.set(req, 'session.data.caseListFilters.unit', null)
   _.set(req, 'session.data.caseListFilters.policeUnit', null)
@@ -28,19 +29,35 @@ module.exports = (router) => {
 
   router.get('/cases/shortcut/dga', (req, res) => {
     resetFilters(req)
-    res.redirect('/cases/?caseListFilters[dga][]=Awaiting DGA dispute outcome')
+    res.redirect('/cases/?caseListFilters[dga][]=Awaiting outcome')
   })
 
   router.get('/cases/shortcut/dga-police-unit/:policeUnitId', (req, res) => {
     resetFilters(req)
-    _.set(req, 'session.data.caseListFilters.dga', ['Awaiting DGA dispute outcome'])
+    _.set(req, 'session.data.caseListFilters.dga', ['Awaiting outcome'])
+    _.set(req, 'session.data.caseListFilters.policeUnit', [req.params.policeUnitId])
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/dga-police-unit/:month/:policeUnitId', (req, res) => {
+    resetFilters(req)
+    _.set(req, 'session.data.caseListFilters.dga', ['Awaiting outcome'])
+    _.set(req, 'session.data.caseListFilters.dgaMonth', [req.params.month])
     _.set(req, 'session.data.caseListFilters.policeUnit', [req.params.policeUnitId])
     res.redirect('/cases')
   })
 
   router.get('/cases/shortcut/dga-police-unit-recorded/:policeUnitId', (req, res) => {
     resetFilters(req)
-    _.set(req, 'session.data.caseListFilters.dga', ['DGA dispute outcome recorded'])
+    _.set(req, 'session.data.caseListFilters.dga', ['Outcome recorded'])
+    _.set(req, 'session.data.caseListFilters.policeUnit', [req.params.policeUnitId])
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/dga-police-unit-recorded/:month/:policeUnitId', (req, res) => {
+    resetFilters(req)
+    _.set(req, 'session.data.caseListFilters.dga', ['Outcome recorded'])
+    _.set(req, 'session.data.caseListFilters.dgaMonth', [req.params.month])
     _.set(req, 'session.data.caseListFilters.policeUnit', [req.params.policeUnitId])
     res.redirect('/cases')
   })
@@ -70,6 +87,7 @@ module.exports = (router) => {
     }
 
     let selectedDgaFilters = _.get(req.session.data.caseListFilters, 'dga', [])
+    let selectedDgaMonthFilters = _.get(req.session.data.caseListFilters, 'dgaMonth', [])
     let selectedCtlFilters = _.get(req.session.data.caseListFilters, 'isCTL', [])
     let selectedUnitFilters = _.get(req.session.data.caseListFilters, 'unit', [])
     let selectedPoliceUnitFilters = _.get(req.session.data.caseListFilters, 'policeUnit', [])
@@ -186,9 +204,23 @@ module.exports = (router) => {
     // Priority filter display
     if (selectedDgaFilters?.length) {
       selectedFilters.categories.push({
-        heading: { text: 'DGA reporting' },
+        heading: { text: 'DGA dispute outcome' },
         items: selectedDgaFilters.map(function (label) {
           return { text: label, href: '/cases/remove-dga/' + label }
+        }),
+      })
+    }
+
+    if (selectedDgaMonthFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'DGA reporting month' },
+        items: selectedDgaMonthFilters.map(function (monthKey) {
+          const [year, month] = monthKey.split('-').map(Number)
+          const label = new Date(year, month - 1, 1).toLocaleDateString('en-GB', {
+            month: 'long',
+            year: 'numeric',
+          })
+          return { text: label, href: '/cases/remove-dga-month/' + monthKey }
         }),
       })
     }
@@ -233,7 +265,10 @@ module.exports = (router) => {
         }
       })
 
-      selectedFilters.categories.push({ heading: { text: 'Police unit' }, items: selectedPoliceUnitItems })
+      selectedFilters.categories.push({
+        heading: { text: 'Police force' },
+        items: selectedPoliceUnitItems,
+      })
     }
 
     // Type filter display
@@ -277,17 +312,37 @@ module.exports = (router) => {
     if (selectedDgaFilters?.length) {
       const reviewFilters = []
 
-      if (selectedDgaFilters.includes('Awaiting DGA dispute outcome')) {
+      if (selectedDgaFilters.includes('Awaiting outcome')) {
         reviewFilters.push({ dga: { failureReasons: { some: { didPoliceDisputeFailure: null } } } })
       }
 
-      if (selectedDgaFilters.includes('DGA dispute outcome recorded')) {
-        reviewFilters.push({ NOT: { dga: { failureReasons: { some: { didPoliceDisputeFailure: null } } } } })
+      if (selectedDgaFilters.includes('Outcome recorded')) {
+        reviewFilters.push({
+          AND: [
+            { dga: { failureReasons: { some: {} } } },
+            { NOT: { dga: { failureReasons: { some: { didPoliceDisputeFailure: null } } } } },
+          ],
+        })
       }
 
       if (reviewFilters.length) {
         where.AND.push({ OR: reviewFilters })
       }
+    }
+
+    if (selectedDgaMonthFilters?.length) {
+      const monthRangeFilters = selectedDgaMonthFilters.map(function (monthKey) {
+        const [year, month] = monthKey.split('-').map(Number)
+        return {
+          dga: {
+            reviewDate: {
+              gte: new Date(year, month - 1, 1),
+              lte: new Date(year, month, 0, 23, 59, 59, 999),
+            },
+          },
+        }
+      })
+      where.AND.push({ OR: monthRangeFilters })
     }
 
     if (selectedCtlFilters?.length) {
@@ -413,7 +468,8 @@ module.exports = (router) => {
 
     cases = cases.map((c) => ({
       ...addTimeLimitDates(c),
-      needsDgaOutcome: c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null) ?? false,
+      needsDgaOutcome:
+        c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null) ?? false,
     }))
 
     // Sort: CTL cases first (by soonest date), then non-CTL cases
@@ -438,7 +494,11 @@ module.exports = (router) => {
           _case.defendants[0].lastName
         ).toLowerCase()
         let operationName = (_case.operationName || '').toLowerCase()
-        return reference.indexOf(keywords) > -1 || defendantName.indexOf(keywords) > -1 || operationName.indexOf(keywords) > -1
+        return (
+          reference.indexOf(keywords) > -1 ||
+          defendantName.indexOf(keywords) > -1 ||
+          operationName.indexOf(keywords) > -1
+        )
       })
     }
 
@@ -446,6 +506,30 @@ module.exports = (router) => {
       text: dgaStatus,
       value: dgaStatus,
     }))
+
+    const dgaMonthCases = await prisma.dGA.findMany({
+      where: {
+        reviewDate: { not: null },
+        case: { unitId: { in: userUnitIds } },
+      },
+      select: { reviewDate: true },
+    })
+
+    const uniqueMonthKeys = [...new Set(
+      dgaMonthCases
+        .map((d) => {
+          const date = new Date(d.reviewDate)
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        })
+    )].sort().reverse()
+
+    const dgaMonthItems = uniqueMonthKeys.map((key) => {
+      const [year, month] = key.split('-').map(Number)
+      return {
+        text: new Date(year, month - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
+        value: key,
+      }
+    })
 
     let ctlItems = ['Has custody time limit', 'Does not have custody time limit'].map((ctl) => ({
       text: ctl,
@@ -568,6 +652,8 @@ module.exports = (router) => {
       totalCases,
       cases,
       dgaItems,
+      dgaMonthItems,
+      selectedDgaMonthFilters,
       ctlItems,
       unitItems,
       policeUnitItems,
@@ -589,6 +675,12 @@ module.exports = (router) => {
   router.get('/cases/remove-dga/:dga', (req, res) => {
     const currentFilters = _.get(req, 'session.data.caseListFilters.dga', [])
     _.set(req, 'session.data.caseListFilters.dga', _.pull(currentFilters, req.params.dga))
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/remove-dga-month/:month', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.caseListFilters.dgaMonth', [])
+    _.set(req, 'session.data.caseListFilters.dgaMonth', _.pull(currentFilters, req.params.month))
     res.redirect('/cases')
   })
 
@@ -697,7 +789,9 @@ module.exports = (router) => {
           where: { id: { in: selectedCases.map(Number) } },
           include: { dga: { include: { failureReasons: true } } },
         })
-        hasUnresolved = cases.some((c) => c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null))
+        hasUnresolved = cases.some((c) =>
+          c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null),
+        )
       }
 
       validator.add({
