@@ -27,8 +27,7 @@ module.exports = router => {
 
     const hasDeadlinePassed = !!(
       _case.dga?.recordDisputeOutcomesDeadline &&
-      new Date() > new Date(_case.dga.recordDisputeOutcomesDeadline) &&
-      outcomesRemaining > 0
+      new Date() > new Date(_case.dga.recordDisputeOutcomesDeadline)
     )
 
     res.render('cases/dga/index', {

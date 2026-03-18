@@ -15,10 +15,10 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      {% if outcomesRemaining > 0 and _case.dga.recordDisputeOutcomesDeadline %}
+      {% if _case.dga.recordDisputeOutcomesDeadline %}
         {% if hasDeadlinePassed %}
           <p class="govuk-body">The deadline for recording outcomes passed on {{ _case.dga.recordDisputeOutcomesDeadline | isoDateString | govukDateTime }}.</p>
-        {% else %}
+        {% elif outcomesRemaining > 0 %}
           <p class="govuk-body">
             You must record {{ outcomesRemaining }} {{ outcomesRemaining | pluralize("outcome") }}
             by {{ _case.dga.recordDisputeOutcomesDeadline | isoDateString | govukDateTime }}.
