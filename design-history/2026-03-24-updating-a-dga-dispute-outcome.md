@@ -3,7 +3,7 @@ title: Updating a DGA dispute outcome iteration
 date: 2026-03-24
 ---
 
-Legal managers can update a previously recorded DGA dispute outcome by clicking a change link on the [DGA reporting page for a case](../2026-03-20-viewing-dga-details-for-a-case/).
+Legal managers can update a DGA dispute outcome by clicking a change link on the [DGA reporting page for a case](../2026-03-20-viewing-dga-details-for-a-case/).
 
 ## How it works
 
