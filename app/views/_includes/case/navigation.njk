@@ -15,6 +15,11 @@
     href: "/cases/:caseId/tasks" | replace(':caseId', _case.id),
     current: secondaryNavId == 'tasks'
   }, {
+    text: "CTL log",
+    href: "/cases/:caseId/ctl-log" | replace(':caseId', _case.id),
+    current: secondaryNavId == 'ctl-log'
+  } if _case.custodyTimeLimit,
+  {
     text: "DGA reporting",
     href: "/cases/:caseId/dga" | replace(':caseId', _case.id),
     current: secondaryNavId == 'dga'

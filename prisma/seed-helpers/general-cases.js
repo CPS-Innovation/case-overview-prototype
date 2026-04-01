@@ -4,6 +4,7 @@ const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber 
 const { futureDateAtHearingTime } = require('./dates');
 const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates, generateEscalatedTaskDates } = require('./task-dates');
 const { prosecutionDirections, defenceDirections } = require('./directions');
+const { createCtlLogEntries } = require('./ctl-log-entries');
 
 async function seedGeneralCases(prisma, dependencies, config) {
   const {
@@ -592,6 +593,11 @@ async function seedGeneralCases(prisma, dependencies, config) {
           }
         });
       }
+    }
+
+    // -------------------- CTL Log Entries --------------------
+    if (timeLimitType === 'CTL') {
+      await createCtlLogEntries(prisma, createdCase.id, users);
     }
 
     createdCases.push({ id: createdCase.id });

@@ -197,7 +197,7 @@ async function main() {
   step("Tony Stark's cases");
   const tonyCasesCount = await seedTonyCases(
     prisma,
-    { defenceLawyers, victims, policeUnits, availableOperationNames },
+    { defenceLawyers, victims, policeUnits, availableOperationNames, users },
     { charges, firstNames, lastNames, pleas, types, complexities, ukCities, documentNames, documentTypes }
   );
   done(tonyCasesCount);

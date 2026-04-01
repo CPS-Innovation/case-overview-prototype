@@ -25,6 +25,7 @@ const {
   generateMoreThan3HoursPACE
 } = require('./pace-generators');
 const { createDirectionsForCase } = require('./directions');
+const { createCtlLogEntries } = require('./ctl-log-entries');
 
 const BRUCE_UNITS = {
   WESSEX_CROWN_COURT: 3,
@@ -284,6 +285,10 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
 
   // Create directions
   await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
+
+  if (timeLimitType === 'CTL') {
+    await createCtlLogEntries(prisma, _case.id, [user]);
+  }
 
   return _case;
 }

@@ -15,7 +15,7 @@ The previous design showed a status tag next to each police unit. They were:
 
 - Not started
 - In progress
-- Completed"
+- Completed
 
 We removed the tags because they did not add value. The state of each unit is already clear from the content below the heading — either a count of outstanding cases with a button to act, or a confirmation that all outcomes have been recorded.
 

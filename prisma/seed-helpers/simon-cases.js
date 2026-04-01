@@ -7,6 +7,7 @@ const {
   generateThisWeekSTL
 } = require('./stl-generators');
 const { createDirectionsForCase } = require('./directions');
+const { createCtlLogEntries } = require('./ctl-log-entries');
 
 const SIMON_UNITS = {
   NORTH_YORKSHIRE_MAGISTRATES_COURT: 9,
@@ -368,6 +369,8 @@ async function createCTLCase(prisma, user, taskConfig, config) {
 
   // Create directions
   await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
+
+  await createCtlLogEntries(prisma, _case.id, [user]);
 
   return _case;
 }

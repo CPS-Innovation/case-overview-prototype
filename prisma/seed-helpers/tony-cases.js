@@ -9,6 +9,7 @@ const {
   generateLessThan2HoursPACE
 } = require('./pace-generators');
 const { createDirectionsForCase } = require('./directions');
+const { createCtlLogEntries } = require('./ctl-log-entries');
 
 const TONY_UNITS = {
   DORSET_MAGISTRATES: 1,
@@ -267,7 +268,7 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
 }
 
 async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
-  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, policeUnits, ukCities, availableOperationNames, documentNames, documentTypes } = config;
+  const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, policeUnits, ukCities, availableOperationNames, documentNames, documentTypes, users } = config;
   const { name, hearingType, units, isReminder } = taskConfig;
 
   const unitId = faker.helpers.arrayElement(units);
@@ -384,11 +385,15 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
   // Create directions
   await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
+  if (users && users.length) {
+    await createCtlLogEntries(prisma, _case.id, users);
+  }
+
   return _case;
 }
 
 async function seedTonyCases(prisma, dependencies, config) {
-  const { defenceLawyers, victims, policeUnits, availableOperationNames } = dependencies;
+  const { defenceLawyers, victims, policeUnits, availableOperationNames, users } = dependencies;
   const { charges, firstNames, lastNames, pleas, types, complexities, ukCities, documentNames, documentTypes } = config;
 
   const fullConfig = {
@@ -404,7 +409,8 @@ async function seedTonyCases(prisma, dependencies, config) {
     ukCities,
     availableOperationNames,
     documentNames,
-    documentTypes
+    documentTypes,
+    users
   };
 
   let count = 0;
