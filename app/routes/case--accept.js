@@ -14,9 +14,12 @@ module.exports = (router) => {
   router.post('/cases/:caseId/accept', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
 
+    const prosecutorCount = await prisma.caseProsecutor.count({ where: { caseId } })
+    const newStatus = prosecutorCount > 0 ? 'Ready to make charging decision' : 'Ready to assign prosecutor'
+
     await prisma.case.update({
       where: { id: caseId },
-      data: { status: 'Ready to assign prosecutor' },
+      data: { status: newStatus },
     })
 
     await prisma.activityLog.create({
