@@ -21,7 +21,6 @@ module.exports = (router) => {
       },
     })
 
-    req.flash('success', 'Trial started')
     res.redirect(`/cases/${caseId}`)
   })
 }

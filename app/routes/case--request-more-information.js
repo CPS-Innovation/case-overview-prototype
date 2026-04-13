@@ -53,7 +53,6 @@ module.exports = (router) => {
       },
     })
 
-    req.flash('success', 'Information received')
     res.redirect(`/cases/${caseId}`)
   })
 }
