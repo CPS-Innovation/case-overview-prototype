@@ -41,6 +41,7 @@ const { seedCaseNotes } = require("./seed-helpers/case-notes");
 const { seedDirectionNotes } = require("./seed-helpers/direction-notes");
 const { seedActivityLogs } = require("./seed-helpers/activity-logs");
 const { seedRecentCases } = require("./seed-helpers/recent-cases");
+const { seedPoliceRequests } = require("./seed-helpers/police-requests");
 
 const prisma = new PrismaClient();
 
@@ -239,6 +240,10 @@ async function main() {
   step("Recent cases");
   const recentCasesCount = await seedRecentCases(prisma);
   done(recentCasesCount);
+
+  step("Police requests");
+  const policeRequestsCount = await seedPoliceRequests(prisma);
+  done(policeRequestsCount);
 
   console.log("\n✅ Seed complete\n");
 }

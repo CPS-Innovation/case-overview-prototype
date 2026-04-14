@@ -157,6 +157,7 @@ model Case {
   prosecutors       CaseProsecutor[]
   paralegalOfficers CaseParalegalOfficer[]
   recentCases       RecentCase[]
+  policeRequests    PoliceRequest[]
 }
 
 model DGA {
@@ -457,6 +458,27 @@ model RecentCase {
 
   @@unique([userId, caseId])
   @@map("recent_cases")
+}
+
+model PoliceRequest {
+  id        Int                 @id @default(autoincrement())
+  caseId    Int
+  case      Case                @relation(fields: [caseId], references: [id])
+  sentDate  DateTime
+  deadline  DateTime
+  items     PoliceRequestItem[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+}
+
+model PoliceRequestItem {
+  id              Int           @id @default(autoincrement())
+  policeRequestId Int
+  policeRequest   PoliceRequest @relation(fields: [policeRequestId], references: [id])
+  description     String
+  receivedDate    DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model WorkingPatternDay {

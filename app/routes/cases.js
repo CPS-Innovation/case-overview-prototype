@@ -119,6 +119,7 @@ module.exports = (router) => {
     let selectedCtlFilters = _.get(req.session.data.caseListFilters, 'isCTL', [])
     let selectedUnitFilters = _.get(req.session.data.caseListFilters, 'unit', [])
     let selectedPoliceUnitFilters = _.get(req.session.data.caseListFilters, 'policeUnit', [])
+    let selectedPoliceRequestsFilters = _.get(req.session.data.caseListFilters, 'policeRequests', [])
     let selectedComplexityFilters = _.get(req.session.data.caseListFilters, 'complexities', [])
     let selectedTypeFilters = _.get(req.session.data.caseListFilters, 'types', [])
     let selectedProsecutorFilters = _.get(req.session.data.caseListFilters, 'prosecutors', [])
@@ -329,6 +330,15 @@ module.exports = (router) => {
       })
     }
 
+    if (selectedPoliceRequestsFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'Police requests' },
+        items: selectedPoliceRequestsFilters.map(function (label) {
+          return { text: label, href: '/cases/remove-police-requests/' + encodeURIComponent(label) }
+        }),
+      })
+    }
+
     // Build Prisma where clause
     let where = { AND: [] }
 
@@ -420,6 +430,26 @@ module.exports = (router) => {
       }
     }
 
+    if (selectedPoliceRequestsFilters?.length) {
+      const policeRequestsFilters = []
+
+      if (selectedPoliceRequestsFilters.includes('Has pending requests')) {
+        policeRequestsFilters.push({
+          policeRequests: { some: { items: { some: { receivedDate: null } } } },
+        })
+      }
+
+      if (selectedPoliceRequestsFilters.includes('No pending requests')) {
+        policeRequestsFilters.push({
+          NOT: { policeRequests: { some: { items: { some: { receivedDate: null } } } } },
+        })
+      }
+
+      if (policeRequestsFilters.length) {
+        where.AND.push({ OR: policeRequestsFilters })
+      }
+    }
+
     if (selectedStatusFilters?.length) {
       where.AND.push({ status: { in: selectedStatusFilters } })
     }
@@ -505,14 +535,26 @@ module.exports = (router) => {
         location: true,
         tasks: true,
         dga: { include: { failureReasons: true } },
+        policeRequests: { include: { items: true } },
       },
     })
 
-    cases = cases.map((c) => ({
-      ...addTimeLimitDates(c),
-      needsDgaOutcome:
-        c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null) ?? false,
-    }))
+    cases = cases.map((c) => {
+      const outstandingPoliceRequests = (c.policeRequests || []).filter((r) =>
+        r.items.some((item) => item.receivedDate === null),
+      )
+      const outstandingRequestDeadline =
+        outstandingPoliceRequests.length > 0
+          ? new Date(Math.min(...outstandingPoliceRequests.map((r) => new Date(r.deadline))))
+          : null
+
+      return {
+        ...addTimeLimitDates(c),
+        needsDgaOutcome:
+          c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null) ?? false,
+        outstandingRequestDeadline,
+      }
+    })
 
     // Sort: CTL cases first (by soonest date), then non-CTL cases
     cases.sort((a, b) => {
@@ -585,6 +627,11 @@ module.exports = (router) => {
       text: ctl,
       value: ctl,
     }))
+
+    let policeRequestsItems = [
+      'Has pending requests',
+      'No pending requests',
+    ].map((label) => ({ text: label, value: label }))
 
     let complexityItems = complexities.map((complexity) => ({
       text: complexity,
@@ -707,6 +754,7 @@ module.exports = (router) => {
       dgaMonthItems,
       selectedDgaMonthFilters,
       ctlItems,
+      policeRequestsItems,
       unitItems,
       policeUnitItems,
       selectedPoliceUnitItems,
@@ -796,6 +844,16 @@ module.exports = (router) => {
       req,
       'session.data.caseListFilters.paralegalOfficers',
       _.pull(currentFilters, req.params.paralegalOfficer),
+    )
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/remove-police-requests/:label', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.caseListFilters.policeRequests', [])
+    _.set(
+      req,
+      'session.data.caseListFilters.policeRequests',
+      _.pull(currentFilters, decodeURIComponent(req.params.label)),
     )
     res.redirect('/cases')
   })

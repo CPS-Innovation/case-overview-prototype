@@ -1,0 +1,64 @@
+{% extends "_layouts/main.html" %}
+{% set navId = 'cases' %}
+{% set secondaryNavId = 'police-requests' %}
+{% set pageName = "Police requests (:total)" | replace(':total', policeRequests.length | formatNumber) %}
+
+{% block beforeContent %}
+  {% include "_includes/case/identity-bar.njk" %}
+{% endblock %}
+
+{% block content %}
+  {% include "_includes/case/navigation.njk" %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+      {% if policeRequests.length %}
+        <div class="app-list">
+          {% for request in policeRequests %}
+            <div class="app-list__item">
+              <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
+                <div>
+                  <a
+                    href="/cases/{{ _case.id }}/police-requests/{{ request.id }}"
+                    class="govuk-link--no-visited-state"
+                  >
+                    Request sent {{ request.sentDate | isoDateString | govukDate }}
+                  </a>
+                </div>
+                <div class="app-list__tag">
+                  {{ govukTag({ text: request.status, classes: request.status | policeRequestStatusTagClass }) }}
+                </div>
+              </h2>
+
+              {{
+                govukSummaryList({
+                  classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
+                  rows: [
+                    {
+                      key: { text: 'Deadline' },
+                      value: { text: request.deadline | isoDateString | govukDate }
+                    },
+                    {
+                      key: { text: 'Items' },
+                      value: { text: request.receivedCount + ' of ' + request.items.length + ' received' }
+                    }
+                  ]
+                })
+              }}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        {{
+          govukButton({
+            text: "Create request"
+          })
+        }}
+
+        <p class="govuk-body">There are no police requests for this case.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

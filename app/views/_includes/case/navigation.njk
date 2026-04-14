@@ -37,6 +37,10 @@
     text: "Material",
     current: secondaryNavId == 'documents'
   }, {
+    text: "Police requests",
+    href: "/cases/:caseId/police-requests" | replace(':caseId', _case.id),
+    current: secondaryNavId == 'police-requests'
+  }, {
     text: "Notes",
     href: "/cases/:caseId/notes" | replace(':caseId', _case.id),
     current: secondaryNavId == 'notes'

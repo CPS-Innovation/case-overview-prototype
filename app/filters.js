@@ -168,6 +168,19 @@ addFilter('caseStatusTagClass', (status) => {
   }
 })
 
+addFilter('policeRequestStatusTagClass', (status) => {
+  switch (status) {
+    case 'Received':
+      return 'govuk-tag--green'
+    case 'Partially received':
+      return 'govuk-tag--blue'
+    case 'Overdue':
+      return 'govuk-tag--red'
+    default:
+      return 'govuk-tag--grey'
+  }
+})
+
 addFilter('pluralize', (count, singular, plural) => {
   return count === 1 ? singular : plural || singular + 's'
 })

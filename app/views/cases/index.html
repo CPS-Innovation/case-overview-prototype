@@ -300,7 +300,11 @@
                             {
                               key: { html: 'DGA reporting deadline' },
                               value: { html: _case.dga.recordDisputeOutcomesDeadline | isoDateString | govukDate }
-                            } if _case.dga and _case.dga.recordDisputeOutcomesDeadline
+                            } if _case.dga and _case.dga.recordDisputeOutcomesDeadline,
+                            {
+                              key: { html: 'Police request deadline' },
+                              value: { html: (_case.outstandingRequestDeadline | isoDateString | govukDate) + ' (' + (_case.outstandingRequestDeadline | timeLimitStatus) + ')' }
+                            } if _case.outstandingRequestDeadline
                           ]
                         })
                       }}

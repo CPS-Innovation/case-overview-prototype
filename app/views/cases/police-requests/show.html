@@ -1,0 +1,55 @@
+{% extends "_layouts/main.html" %}
+{% set navId = 'cases' %}
+{% set secondaryNavId = 'police-requests' %}
+
+{% block beforeContent %}
+  {{
+    govukBreadcrumbs({
+      items: [
+        {
+          text: _case.reference,
+          href: "/cases/:caseId" | replace(':caseId', _case.id)
+        },
+        {
+          text: 'Police requests',
+          href: "/cases/:caseId/police-requests" | replace(':caseId', _case.id)
+        }
+      ]
+    })
+  }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{_case.reference}}</span>
+      <h1 class="govuk-heading-l">
+        Request sent {{ policeRequest.sentDate | isoDateString | govukDate }}
+        {{ govukTag({ text: policeRequest.status, classes: policeRequest.status | policeRequestStatusTagClass }) }}
+      </h1>
+
+      {{
+        govukSummaryList({
+          rows: [
+            {
+              key: { text: 'Sent' },
+              value: { text: policeRequest.sentDate | isoDateString | govukDate }
+            },
+            {
+              key: { text: 'Deadline' },
+              value: { text: policeRequest.deadline | isoDateString | govukDate }
+            }
+          ]
+        })
+      }}
+
+      <h2 class="govuk-heading-m">Items requested</h2>
+
+      {{
+        govukSummaryList({
+          rows: policeRequest.itemRows
+        })
+      }}
+    </div>
+  </div>
+{% endblock %}
