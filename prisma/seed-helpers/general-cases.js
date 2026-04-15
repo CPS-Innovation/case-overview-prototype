@@ -42,10 +42,37 @@ async function seedGeneralCases(prisma, dependencies, config) {
   const magsUnitIds = allUnits.filter(u => u.name.includes('Magistrates Court')).map(u => u.id)
   const crownCourtUnitIds = allUnits.filter(u => u.name.includes('Crown Court')).map(u => u.id)
 
+  const magsStatuses = [
+    statuses.TRIAGE_NEEDED,
+    statuses.WAITING_FOR_RESUBMISSION,
+    statuses.PROSECUTOR_NEEDED,
+    statuses.CHARGING_DECISION_NEEDED,
+    statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
+    statuses.WAITING_FOR_POLICE_TO_CHARGE,
+    statuses.FIRST_HEARING_PREPARATION_NEEDED,
+    statuses.WAITING_FOR_FIRST_HEARING,
+    statuses.FIRST_HEARING_OUTCOME_NEEDED,
+    statuses.NO_FURTHER_ACTION,
+    statuses.TRIAL_PREPARATION_NEEDED,
+    statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+    statuses.TRIAL_OUTCOME_NEEDED,
+    statuses.WAITING_FOR_SENTENCING,
+    statuses.NOT_GUILTY,
+    statuses.SENTENCED,
+  ]
+
   const crownCourtStatuses = [
+    statuses.PROSECUTOR_NEEDED,
     statuses.PTPH_NEEDED,
     statuses.WAITING_FOR_PTPH_HEARING,
     statuses.PTPH_HEARING_OUTCOME_NEEDED,
+    statuses.TRIAL_PREPARATION_NEEDED,
+    statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+    statuses.TRIAL_OUTCOME_NEEDED,
+    statuses.WAITING_FOR_SENTENCING,
+    statuses.NOT_GUILTY,
+    statuses.SENTENCED,
+    statuses.NO_FURTHER_ACTION,
     statuses.SENT_TO_CROWN_COURT,
   ]
 
@@ -88,30 +115,10 @@ async function seedGeneralCases(prisma, dependencies, config) {
       faker.number.int({ min: 1, max: 3 })
     );
 
-    const status = faker.helpers.arrayElement([
-      statuses.TRIAGE_NEEDED,
-      statuses.WAITING_FOR_RESUBMISSION,
-      statuses.PROSECUTOR_NEEDED,
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
-      statuses.WAITING_FOR_POLICE_TO_CHARGE,
-      statuses.FIRST_HEARING_PREPARATION_NEEDED,
-      statuses.WAITING_FOR_FIRST_HEARING,
-      statuses.FIRST_HEARING_OUTCOME_NEEDED,
-      statuses.NO_FURTHER_ACTION,
-      statuses.PTPH_NEEDED,
-      statuses.WAITING_FOR_PTPH_HEARING,
-      statuses.PTPH_HEARING_OUTCOME_NEEDED,
-      statuses.TRIAL_PREPARATION_NEEDED,
-      statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
-      statuses.TRIAL_OUTCOME_NEEDED,
-      statuses.WAITING_FOR_SENTENCING,
-      statuses.NOT_GUILTY,
-      statuses.SENTENCED,
-      statuses.SENT_TO_CROWN_COURT,
-    ])
-
-    const unitPool = crownCourtStatuses.includes(status) ? crownCourtUnitIds : magsUnitIds
+    const isCrownCourtCase = faker.datatype.boolean({ probability: 0.3 })
+    const statusPool = isCrownCourtCase ? crownCourtStatuses : magsStatuses
+    const unitPool = isCrownCourtCase ? crownCourtUnitIds : magsUnitIds
+    const status = faker.helpers.arrayElement(statusPool)
     const caseUnitId = faker.helpers.arrayElement(unitPool)
 
     // Pick between 0 and 5 unique standard task names
