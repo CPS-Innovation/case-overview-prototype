@@ -1,4 +1,7 @@
+const caseStatuses = require('../data/case-statuses')
+
 function setLocals(req, res, next) {
+  res.locals.caseStatuses = caseStatuses
   res.locals.referrer = req.query.referrer
   res.locals.path = req.path
   res.locals.protocol = req.protocol

@@ -38,7 +38,7 @@
   {% endif %}
 {% endset %}
 
-{% if _case.status == 'Ready for triage' %}
+{% if _case.status == caseStatuses.TRIAGE_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -68,7 +68,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Waiting for resubmission' %}
+{% elif _case.status == caseStatuses.WAITING_FOR_RESUBMISSION %}
   {% set identityBarMenus = [
     {
       items: [
@@ -80,7 +80,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Waiting for information for charging decision' %}
+{% elif _case.status == caseStatuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION %}
   {% set identityBarMenus = [
     {
       items: [
@@ -92,7 +92,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Ready to assign prosecutor' %}
+{% elif _case.status == caseStatuses.PROSECUTOR_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -112,7 +112,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Ready to make charging decision' %}
+{% elif _case.status == caseStatuses.CHARGING_DECISION_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -123,7 +123,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Waiting for police to charge' %}
+{% elif _case.status == caseStatuses.WAITING_FOR_POLICE_TO_CHARGE %}
   {% set identityBarMenus = [
     {
       items: [
@@ -135,7 +135,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'First hearing preparation' %}
+{% elif _case.status == caseStatuses.FIRST_HEARING_PREPARATION_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -146,7 +146,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Waiting for first hearing' %}
+{% elif _case.status == caseStatuses.WAITING_FOR_FIRST_HEARING %}
   {% set identityBarMenus = [
     {
       items: [
@@ -158,7 +158,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Ready to record first hearing outcome' %}
+{% elif _case.status == caseStatuses.FIRST_HEARING_OUTCOME_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -169,7 +169,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Trial preparation' %}
+{% elif _case.status == caseStatuses.TRIAL_PREPARATION_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -180,7 +180,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Waiting on outcome of trial' %}
+{% elif _case.status == caseStatuses.WAITING_FOR_OUTCOME_OF_TRIAL %}
   {% set identityBarMenus = [
     {
       items: [
@@ -192,7 +192,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Ready to record trial outcome' %}
+{% elif _case.status == caseStatuses.TRIAL_OUTCOME_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -203,7 +203,7 @@
       ]
     }
   ] %}
-{% elif _case.status == 'Waiting for sentencing' %}
+{% elif _case.status == caseStatuses.WAITING_FOR_SENTENCING %}
   {% set identityBarMenus = [
     {
       items: [

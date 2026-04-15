@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const statuses = require('../data/case-statuses')
 
 module.exports = (router) => {
   router.get('/cases/:caseId/accept', async (req, res) => {
@@ -15,7 +16,7 @@ module.exports = (router) => {
     const caseId = parseInt(req.params.caseId)
 
     const prosecutorCount = await prisma.caseProsecutor.count({ where: { caseId } })
-    const newStatus = prosecutorCount > 0 ? 'Ready to make charging decision' : 'Ready to assign prosecutor'
+    const newStatus = prosecutorCount > 0 ? statuses.CHARGING_DECISION_NEEDED : statuses.PROSECUTOR_NEEDED
 
     await prisma.case.update({
       where: { id: caseId },

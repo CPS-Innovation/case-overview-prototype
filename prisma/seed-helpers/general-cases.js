@@ -1,4 +1,5 @@
 const { faker } = require('@faker-js/faker');
+const statuses = require('../../app/data/case-statuses');
 const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
 const { futureDateAtHearingTime } = require('./dates');
@@ -229,23 +230,23 @@ async function seedGeneralCases(prisma, dependencies, config) {
     }
 
     const status = faker.helpers.arrayElement([
-      'Ready for triage',
-      'Waiting for resubmission',
-      'Ready to assign prosecutor',
-      'Ready to make charging decision',
-      'Waiting for information for charging decision',
-      'Waiting for police to charge',
-      'First hearing preparation',
-      'Waiting for first hearing',
-      'Ready to record first hearing outcome',
-      'No further action',
-      'Trial preparation',
-      'Waiting on outcome of trial',
-      'Ready to record trial outcome',
-      'Waiting for sentencing',
-      'Not guilty',
-      'Sentenced',
-      'Sent to crown court',
+      statuses.TRIAGE_NEEDED,
+      statuses.WAITING_FOR_RESUBMISSION,
+      statuses.PROSECUTOR_NEEDED,
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
+      statuses.WAITING_FOR_POLICE_TO_CHARGE,
+      statuses.FIRST_HEARING_PREPARATION_NEEDED,
+      statuses.WAITING_FOR_FIRST_HEARING,
+      statuses.FIRST_HEARING_OUTCOME_NEEDED,
+      statuses.NO_FURTHER_ACTION,
+      statuses.TRIAL_PREPARATION_NEEDED,
+      statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+      statuses.TRIAL_OUTCOME_NEEDED,
+      statuses.WAITING_FOR_SENTENCING,
+      statuses.NOT_GUILTY,
+      statuses.SENTENCED,
+      statuses.SENT_TO_CROWN_COURT,
     ])
 
     const createdCase = await prisma.case.create({

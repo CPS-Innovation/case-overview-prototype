@@ -1,6 +1,7 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const statuses = require('../data/case-statuses')
 
 async function getRecommendedProsecutor(excludedIds = []) {
   const excludeFilter = excludedIds.length ? { NOT: { id: { in: excludedIds } } } : {}
@@ -261,10 +262,10 @@ module.exports = (router) => {
 
     const _case = await prisma.case.findUnique({ where: { id: caseId }, select: { status: true } })
 
-    if (_case.status === 'Ready to assign prosecutor') {
+    if (_case.status === statuses.PROSECUTOR_NEEDED) {
       await prisma.case.update({
         where: { id: caseId },
-        data: { status: 'Ready to make charging decision' },
+        data: { status: statuses.CHARGING_DECISION_NEEDED },
       })
     }
 

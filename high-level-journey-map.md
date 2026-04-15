@@ -44,12 +44,15 @@ Do nothing until day of first hearing where state changes to:
 
 During the hearing or just after advocate records outcome of hearing in their system (PROSApp) and that creates a new PDF doc that appears in CMS. And then OD will do the actual recording in CMS
 
-7. “Waiting on outcome of first hearing”
+7. “Waiting for outcome of first hearing”
 
 Actions: 
 - Record outcome of hearing - defendant pleads guilty and goes for sentencing
 - Record outcome of hearing - sent to crown court (complex journey)
 - Record outcome of hearing - goes to trial in mags court
+
+GBH (not guilty) - tried in crown court
+Affray (plead guilty) - can be split as can be dealt with in mags
 
 8. "Trial preparation"
 
@@ -61,7 +64,7 @@ Actions:
 - Book an advocate for who will present in court
 - Dispatch the material/bundle to advocate so they know what they’re presenting (trial bundle) 
 
-9. "Waiting on outcome of trial"
+9. "Waiting for outcome of trial"
 
 Actions:
 - Mark as pleads guilty - goes for sentencing (which means add a sentencing hearing)
@@ -73,7 +76,7 @@ Actions:
 
 10. "Waiting for sentencing hearing"
 
-11. "Waiting on outcome of sentencing hearing"
+11. "Waiting for outcome of sentencing hearing"
 
 Actions:
 - Record the sentence
@@ -82,3 +85,48 @@ Actions:
 12. "Case finalised"
 
 Nothing to do.
+
+
+
+=====
+
+When you record the outcome of the first hearing, depending on the case it needs to go to crown court.
+
+When you send to crown court, you will as part of that set up a pre-trial prep hearing within crown court.
+
+When sent to crown court the assigned prosecutor is removed.
+
+1. Prosecution not set up => Assign prosecutor / Assign paralegal officer
+
+  * 2. Pre-trial preparation hearing (PTPH) needed => Bundle and stuff, legal review, draft indictment [Mark prep done]
+  
+  * 3. Waiting for PTPH hearing
+  
+  * 4. PTPH hearing outcome needed => Record PTPH hearing outcome
+
+If as part of (4) it goes to trial:
+
+- Add directions (Serve case)
+
+Note: are directions a status ?????
+
+9. Trial preparation needed => Draft and serve any applications
+
+=====
+
+As a user
+I need to keep track of when the police or defence or someone external sends information to me
+So that I can respond in a timely fasion
+
+Comms: generic task "look at your email"
+
+Potential solutions:
+- Notifications (UI/Email)
+- Case list filter "has received blah"
+
+=====
+
+Advocates (booking one)
+Action plans tab
+Hearings tab
+Directions tab (done)

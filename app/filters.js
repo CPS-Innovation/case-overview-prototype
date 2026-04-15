@@ -6,6 +6,7 @@
 const govukPrototypeKit = require('govuk-prototype-kit')
 const addFilter = govukPrototypeKit.views.addFilter
 const { DateTime } = require('luxon')
+const statuses = require('./data/case-statuses')
 
 // Add your filters here
 addFilter('priorityTagClass', (status) => {
@@ -129,39 +130,39 @@ addFilter('completionStatusTagClass', (status) => {
 
 addFilter('caseStatusTagClass', (status) => {
   switch (status) {
-    case 'Ready for triage':
+    case statuses.TRIAGE_NEEDED:
       return 'govuk-tag--blue'
-    case 'Waiting for resubmission':
+    case statuses.WAITING_FOR_RESUBMISSION:
       return 'govuk-tag--orange'
-    case 'Ready to assign prosecutor':
+    case statuses.PROSECUTOR_NEEDED:
       return 'govuk-tag--turquoise'
-    case 'Ready to make charging decision':
+    case statuses.CHARGING_DECISION_NEEDED:
       return 'govuk-tag--purple'
-    case 'Waiting for information for charging decision':
+    case statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION:
       return 'govuk-tag--yellow'
-    case 'Waiting for police to charge':
+    case statuses.WAITING_FOR_POLICE_TO_CHARGE:
       return 'govuk-tag--yellow'
-    case 'First hearing preparation':
+    case statuses.FIRST_HEARING_PREPARATION_NEEDED:
       return 'govuk-tag--green'
-    case 'Waiting for first hearing':
+    case statuses.WAITING_FOR_FIRST_HEARING:
       return 'govuk-tag--yellow'
-    case 'Ready to record first hearing outcome':
+    case statuses.FIRST_HEARING_OUTCOME_NEEDED:
       return 'govuk-tag--blue'
-    case 'No further action':
+    case statuses.NO_FURTHER_ACTION:
       return 'govuk-tag--grey'
-    case 'Trial preparation':
+    case statuses.TRIAL_PREPARATION_NEEDED:
       return 'govuk-tag--purple'
-    case 'Sent to crown court':
+    case statuses.SENT_TO_CROWN_COURT:
       return 'govuk-tag--grey'
-    case 'Waiting for sentencing':
+    case statuses.WAITING_FOR_SENTENCING:
       return 'govuk-tag--orange'
-    case 'Waiting on outcome of trial':
+    case statuses.WAITING_FOR_OUTCOME_OF_TRIAL:
       return 'govuk-tag--yellow'
-    case 'Ready to record trial outcome':
+    case statuses.TRIAL_OUTCOME_NEEDED:
       return 'govuk-tag--blue'
-    case 'Not guilty':
+    case statuses.NOT_GUILTY:
       return 'govuk-tag--grey'
-    case 'Sentenced':
+    case statuses.SENTENCED:
       return 'govuk-tag--grey'
     default:
       return ''
