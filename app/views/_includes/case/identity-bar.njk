@@ -93,25 +93,37 @@
     }
   ] %}
 {% elif _case.status == caseStatuses.PROSECUTOR_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Assign prosecutor',
-          href: '/cases/' + _case.id + '/add-prosecutor'
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          text: 'Placeholder action',
-          href: '#',
-          classes: 'govuk-button--secondary'
-        }
-      ]
-    }
-  ] %}
+  {% if 'Crown Court' in _case.unit.name %}
+    {% set identityBarMenus = [
+      {
+        items: [
+          {
+            text: 'Assign prosecutor',
+            href: '/cases/' + _case.id + '/add-prosecutor'
+          }
+        ]
+      },
+      {
+        items: [
+          {
+            text: 'Assign paralegal officer',
+            href: '/cases/' + _case.id + '/add-paralegal-officer'
+          }
+        ]
+      }
+    ] %}
+  {% else %}
+    {% set identityBarMenus = [
+      {
+        items: [
+          {
+            text: 'Assign prosecutor',
+            href: '/cases/' + _case.id + '/add-prosecutor'
+          }
+        ]
+      }
+    ] %}
+  {% endif %}
 {% elif _case.status == caseStatuses.CHARGING_DECISION_NEEDED %}
   {% set identityBarMenus = [
     {
@@ -140,8 +152,9 @@
     {
       items: [
         {
-          text: 'Add first hearing',
-          href: '/cases/' + _case.id + '/add-first-hearing'
+          text: 'Mark as prepared',
+          href: '/cases/' + _case.id + '/mark-first-hearing-preparation-complete',
+          classes: 'app-button--prototype'
         }
       ]
     }
@@ -174,8 +187,9 @@
     {
       items: [
         {
-          text: 'Add PTPH hearing',
-          href: '/cases/' + _case.id + '/add-ptph-hearing'
+          text: 'Mark as prepared',
+          href: '/cases/' + _case.id + '/mark-ptph-preparation-complete',
+          classes: 'app-button--prototype'
         }
       ]
     }
@@ -208,8 +222,9 @@
     {
       items: [
         {
-          text: 'Mark trial preparation as complete',
-          href: '/cases/' + _case.id + '/mark-trial-preparation-complete'
+          text: 'Mark as prepared',
+          href: '/cases/' + _case.id + '/mark-trial-preparation-complete',
+          classes: 'app-button--prototype'
         }
       ]
     }
@@ -238,6 +253,18 @@
     }
   ] %}
 {% elif _case.status == caseStatuses.WAITING_FOR_SENTENCING %}
+  {% set identityBarMenus = [
+    {
+      items: [
+        {
+          text: 'Sentencing hearing started',
+          href: '/cases/' + _case.id + '/mark-sentencing-hearing-started',
+          classes: 'app-button--prototype'
+        }
+      ]
+    }
+  ] %}
+{% elif _case.status == caseStatuses.SENTENCE_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [

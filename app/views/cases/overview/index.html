@@ -13,16 +13,13 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-
       <h1 class="govuk-heading-l">Overview</h1>
 
       {% set defendantValue %}
         {% if _case.defendants.length %}
           <ul class="govuk-list govuk-list--bullet">
             {% for defendant in _case.defendants %}
-              <li>
-                {{defendant.firstName}} {{defendant.lastName}}
-              </li>
+              <li>{{ defendant.firstName }} {{ defendant.lastName }}</li>
             {% endfor %}
           </ul>
         {% else %}
@@ -30,59 +27,70 @@
         {% endif %}
       {% endset %}
 
-      {{ govukSummaryList({
-        rows: [
-          {
-            key: {
-              text: "URN"
+      {{
+        govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "URN"
+              },
+              value: {
+                html: _case.reference
+              }
             },
-            value: {
-              html: _case.reference
+            {
+              key: {
+                text: "Operation name"
+              },
+              value: {
+                html: _case.operationName
+              }
+            } if _case.operationName,
+            {
+              key: {
+                text: "Unit"
+              },
+              value: {
+                html: _case.unit.name
+              },
+              actions: {
+                items: [
+                  {
+                    href: "#",
+                    text: "Change",
+                    visuallyHiddenText: "Unit"
+                  }
+                ]
+              }
+            },
+            {
+              key: {
+                text: "Complexity"
+              },
+              value: {
+                html: _case.complexity + '<div class="govuk-!-margin-top-1"><a href="/cases/:caseId/complexity-calculation">How we calculated complexity</a></div>' | replace(':caseId', _case.id)
+              },
+              actions: {
+                items: [
+                  {
+                    href: "/cases/:caseId/edit-complexity" | replace(':caseId', _case.id),
+                    text: "Change",
+                    visuallyHiddenText: "Complexity"
+                  }
+                ]
+              }
+            },
+            {
+              key: {
+                text: "Defendants"
+              },
+              value: {
+                html: defendantValue
+              }
             }
-          },
-          {
-            key: {
-              text: "Operation name"
-            },
-            value: {
-              html: _case.operationName
-            }
-          } if _case.operationName,
-          {
-            key: {
-              text: "Unit"
-            },
-            value: {
-              html: _case.unit.name
-            }
-          },
-          {
-            key: {
-              text: "Complexity"
-            },
-            value: {
-              html: _case.complexity + '<div class="govuk-!-margin-top-1"><a href="/cases/:caseId/complexity-calculation">How we calculated complexity</a></div>' | replace(':caseId', _case.id)
-            },
-            actions: {
-              items: [
-                {
-                  href: "/cases/:caseId/edit-complexity" | replace(':caseId', _case.id),
-                  text: "Change",
-                  visuallyHiddenText: "Complexity"
-                }
-              ]
-            }
-          },
-          {
-            key: {
-              text: "Defendants"
-            },
-            value: {
-              html: defendantValue
-            }
-          }
-        ]
-      }) }}
+          ]
+        })
+      }}
 
       <h2 class="govuk-heading-m">Prosecutor</h2>
 
@@ -93,10 +101,16 @@
           {% for cp in _case.prosecutors %}
             <div class="app-list__item">
               <p class="govuk-body govuk-!-margin-bottom-0">
-                {{ cp.user.firstName }} {{ cp.user.lastName }}{% if _case.prosecutors.length > 1 and cp.isLead %} (lead){% endif %}
+                {{ cp.user.firstName }}
+                {{ cp.user.lastName }}{% if _case.prosecutors.length > 1 and cp.isLead %}(lead){% endif %}
               </p>
               <div class="app-list__actions">
-                <a href="/cases/{{ _case.id }}/prosecutors/{{ cp.id }}/remove" class="govuk-link govuk-link--no-visited-state">Remove</a>
+                <a
+                  href="/cases/{{ _case.id }}/prosecutors/{{ cp.id }}/remove"
+                  class="govuk-link govuk-link--no-visited-state"
+                >
+                  Remove
+                </a>
               </div>
             </div>
           {% endfor %}
@@ -117,7 +131,12 @@
                 {{ cpo.user.firstName }} {{ cpo.user.lastName }}
               </p>
               <div class="app-list__actions">
-                <a href="/cases/{{ _case.id }}/paralegal-officers/{{ cpo.id }}/remove" class="govuk-link govuk-link--no-visited-state">Remove</a>
+                <a
+                  href="/cases/{{ _case.id }}/paralegal-officers/{{ cpo.id }}/remove"
+                  class="govuk-link govuk-link--no-visited-state"
+                >
+                  Remove
+                </a>
               </div>
             </div>
           {% endfor %}
@@ -125,7 +144,6 @@
       {% else %}
         {# <p>There is no paralegal officer assigned.</p> #}
       {% endif %}
-
     </div>
   </div>
 {% endblock %}

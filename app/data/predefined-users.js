@@ -1,19 +1,5 @@
 module.exports = [
   {
-    email: 'reporting.admin@cps.gov.uk',
-    password: 'password123',
-    role: 'Reporting admin',
-    firstName: 'Veronica',
-    lastName: 'Mars'
-  },
-  {
-    email: 'adam@cps.gov.uk',
-    password: 'password123',
-    role: 'Paralegal officer',
-    firstName: 'Adam',
-    lastName: 'Silver'
-  },
-  {
     email: 'rachael@cps.gov.uk',
     password: 'password123',
     role: 'Paralegal officer',

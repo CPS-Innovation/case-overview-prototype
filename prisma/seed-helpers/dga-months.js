@@ -212,6 +212,7 @@ async function seedDGAMonths(prisma, defendants) {
         const newCase = await prisma.case.create({
           data: {
             reference: generateCaseReference(),
+            status: faker.helpers.arrayElement(['Sentenced', 'Not guilty']),
             complexity: faker.helpers.arrayElement(complexities),
             type: faker.helpers.arrayElement(types),
             unitId: cpsUnitId,

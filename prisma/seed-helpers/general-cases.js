@@ -73,7 +73,6 @@ async function seedGeneralCases(prisma, dependencies, config) {
     statuses.NOT_GUILTY,
     statuses.SENTENCED,
     statuses.NO_FURTHER_ACTION,
-    statuses.SENT_TO_CROWN_COURT,
   ]
 
   const usersWithDedicatedSeeds = [

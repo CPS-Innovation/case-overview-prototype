@@ -152,8 +152,6 @@ addFilter('caseStatusTagClass', (status) => {
       return 'govuk-tag--grey'
     case statuses.TRIAL_PREPARATION_NEEDED:
       return 'govuk-tag--purple'
-    case statuses.SENT_TO_CROWN_COURT:
-      return 'govuk-tag--grey'
     case statuses.PTPH_NEEDED:
       return 'govuk-tag--turquoise'
     case statuses.WAITING_FOR_PTPH_HEARING:

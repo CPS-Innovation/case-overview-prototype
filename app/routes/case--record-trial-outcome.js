@@ -1,10 +1,11 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const statuses = require('../data/case-statuses')
 
 const outcomeStatusMap = {
-  'not-guilty': 'Not guilty',
-  'found-guilty': 'Waiting for sentencing',
-  'pleads-guilty': 'Waiting for sentencing',
+  'not-guilty': statuses.NOT_GUILTY,
+  'found-guilty': statuses.WAITING_FOR_SENTENCING,
+  'pleads-guilty': statuses.WAITING_FOR_SENTENCING,
 }
 
 module.exports = (router) => {

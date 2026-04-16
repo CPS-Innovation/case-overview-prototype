@@ -20,7 +20,6 @@ const caseStatuses = [
   statuses.FIRST_HEARING_PREPARATION_NEEDED,
   statuses.WAITING_FOR_FIRST_HEARING,
   statuses.FIRST_HEARING_OUTCOME_NEEDED,
-  statuses.NO_FURTHER_ACTION,
   statuses.PTPH_NEEDED,
   statuses.WAITING_FOR_PTPH_HEARING,
   statuses.PTPH_HEARING_OUTCOME_NEEDED,
@@ -28,8 +27,10 @@ const caseStatuses = [
   statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
   statuses.TRIAL_OUTCOME_NEEDED,
   statuses.WAITING_FOR_SENTENCING,
+  statuses.SENTENCE_NEEDED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
+  statuses.NO_FURTHER_ACTION,
 ]
 
 function resetFilters(req) {
@@ -454,6 +455,9 @@ module.exports = (router) => {
       }
     }
 
+    // Snapshot where before adding status filter — used to derive available status options
+    const whereWithoutStatus = { AND: [...where.AND] }
+
     if (selectedStatusFilters?.length) {
       where.AND.push({ status: { in: selectedStatusFilters } })
     }
@@ -625,7 +629,16 @@ module.exports = (router) => {
       }
     })
 
-    let statusItems = caseStatuses.map((s) => ({ value: s, text: s }))
+    const whereForStatusLookup = whereWithoutStatus.AND.length ? whereWithoutStatus : {}
+    const distinctStatusRows = await prisma.case.findMany({
+      where: whereForStatusLookup,
+      select: { status: true },
+      distinct: ['status'],
+    })
+    const distinctStatuses = new Set(distinctStatusRows.map(c => c.status))
+    const statusItems = distinctStatuses.size > 1
+      ? caseStatuses.filter(s => distinctStatuses.has(s)).map(s => ({ value: s, text: s }))
+      : []
 
     let ctlItems = ['Has custody time limit', 'Does not have custody time limit'].map((ctl) => ({
       text: ctl,
