@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const statuses = require('../data/case-statuses')
 
 module.exports = (router) => {
   router.get('/cases/:caseId/add-first-hearing', async (req, res) => {
@@ -64,7 +65,7 @@ module.exports = (router) => {
 
     await prisma.case.update({
       where: { id: caseId },
-      data: { status: 'Waiting for first hearing' },
+      data: { status: statuses.WAITING_FOR_FIRST_HEARING },
     })
 
     await prisma.activityLog.create({

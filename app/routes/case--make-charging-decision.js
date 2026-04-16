@@ -1,10 +1,11 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
+const statuses = require('../data/case-statuses')
 
 const decisionStatusMap = {
-  'charge': 'Waiting for police to charge',
-  'no-further-action': 'No further action',
-  'request-more-information': 'Waiting for information for charging decision',
+  'charge': statuses.WAITING_FOR_POLICE_TO_CHARGE,
+  'no-further-action': statuses.NO_FURTHER_ACTION,
+  'request-more-information': statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
 }
 
 const decisionFlashMap = {
