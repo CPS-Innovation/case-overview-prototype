@@ -64,8 +64,8 @@ const CROWN_RASSO_CCU_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_
 
 // STL tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
 const ADMIN_STL_TASKS = [
-  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS },
-  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS }
+  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, status: statuses.TRIAGE_NEEDED },
+  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, status: statuses.WAITING_FOR_RESUBMISSION }
 ];
 
 // PACE clock tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
@@ -101,7 +101,7 @@ async function getAdminPoolTeamForUnit(prisma, unitId) {
 
 async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
   const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities, policeUnits, ukCities, availableOperationNames, documentNames, documentTypes } = config;
-  const { name, stlGenerator, units } = taskConfig;
+  const { name, stlGenerator, units, status: fixedStatus } = taskConfig;
 
   const unitId = faker.helpers.arrayElement(units);
   const statutoryTimeLimit = stlGenerator();
@@ -160,7 +160,7 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
       operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
-      status: faker.helpers.arrayElement(statusPool),
+      status: fixedStatus || faker.helpers.arrayElement(statusPool),
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
       defendants: { connect: { id: defendant.id } },

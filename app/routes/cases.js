@@ -28,8 +28,8 @@ const caseStatuses = [
   statuses.TRIAL_OUTCOME_NEEDED,
   statuses.WAITING_FOR_SENTENCING,
   statuses.SENTENCE_NEEDED,
-  statuses.NOT_GUILTY,
   statuses.SENTENCED,
+  statuses.NOT_GUILTY,
   statuses.NO_FURTHER_ACTION,
 ]
 
