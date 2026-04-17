@@ -9,15 +9,3 @@
     });
   </script>
 {% endif %}
-
-{% if _case.status == caseStatuses.PROSECUTOR_NEEDED %}
-  <script>
-    new App.ButtonMenu({
-      container: $(".app-button-menu").eq(1),
-      mq: "(min-width: 1000em)",
-      buttonText: "More actions",
-      buttonClasses: "govuk-button--secondary app-button-menu__toggle-button--secondary",
-      menuClasses: "app-button-menu__wrapper--right"
-    });
-  </script>
-{% endif %}
