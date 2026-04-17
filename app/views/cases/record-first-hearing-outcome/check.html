@@ -4,8 +4,8 @@
 {% set pageName = "Check details and record first hearing outcome" %}
 
 {% set outcomeLabels = {
-  "trial-in-magistrates-court": "Goes to trial in magistrates court",
-  "pleads-guilty": "Defendant pleads guilty — goes for sentencing",
+  "trial-in-magistrates-court": "Trial in magistrates court",
+  "pleads-guilty": "Sentencing",
   "sent-to-crown-court": "Trial in crown court"
 } %}
 
@@ -29,18 +29,51 @@
             value: { text: outcomeLabels[data.recordFirstHearingOutcome.outcome] },
             actions: {
               items: [{
-                href: "/cases/:caseId/record-first-hearing-outcome" | replace(':caseId', _case.id),
+                href: "/cases/" + _case.id + "/record-first-hearing-outcome",
                 text: "Change",
                 visuallyHiddenText: "outcome"
               }]
             }
           },
           {
-            key: { text: "Crown court" },
-            value: { text: crownCourtUnit.name },
+            key: { text: "Transfer unit" },
+            value: { text: "Yes" if data.recordFirstHearingOutcome.changeUnit == "Yes" else "No" },
             actions: {
               items: [{
-                href: "/cases/:caseId/record-first-hearing-outcome/select-crown-court-unit" | replace(':caseId', _case.id),
+                href: "/cases/" + _case.id + "/record-first-hearing-outcome/change-unit",
+                text: "Change",
+                visuallyHiddenText: "unit transfer"
+              }]
+            }
+          } if data.recordFirstHearingOutcome.changeUnit,
+          {
+            key: { text: "New unit" },
+            value: { text: newUnit.name },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/record-first-hearing-outcome/select-unit",
+                text: "Change",
+                visuallyHiddenText: "new unit"
+              }]
+            }
+          } if newUnit,
+          {
+            key: { text: "PTPH date" },
+            value: { text: data.recordFirstHearingOutcome.ptphDate | isoDateFromDateInput | govukDateTime },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/record-first-hearing-outcome/ptph-date",
+                text: "Change",
+                visuallyHiddenText: "PTPH hearing date"
+              }]
+            }
+          } if data.recordFirstHearingOutcome.outcome == "sent-to-crown-court",
+          {
+            key: { text: "Crown court" },
+            value: { text: data.recordFirstHearingOutcome.ptphVenue },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/record-first-hearing-outcome/ptph-venue",
                 text: "Change",
                 visuallyHiddenText: "crown court"
               }]

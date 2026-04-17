@@ -94,35 +94,65 @@
   ] %}
 {% elif _case.status == caseStatuses.PROSECUTOR_NEEDED %}
   {% if 'Crown Court' in _case.unit.name %}
-    {% set identityBarMenus = [
-      {
-        items: [
-          {
-            text: 'Assign prosecutor',
-            href: '/cases/' + _case.id + '/add-prosecutor'
-          }
-        ]
-      },
-      {
-        items: [
-          {
-            text: 'Assign paralegal officer',
-            href: '/cases/' + _case.id + '/add-paralegal-officer'
-          }
-        ]
-      }
-    ] %}
+    {% if not _case.prosecutors.length and not _case.paralegalOfficers.length %}
+      {% set identityBarMenus = [
+        {
+          items: [
+            {
+              text: 'Assign prosecutor',
+              href: '/cases/' + _case.id + '/add-prosecutor'
+            }
+          ]
+        },
+        {
+          items: [
+            {
+              text: 'Assign paralegal officer',
+              href: '/cases/' + _case.id + '/add-paralegal-officer'
+            }
+          ]
+        }
+      ] %}
+    {% elif not _case.prosecutors.length %}
+      {% set identityBarMenus = [
+        {
+          items: [
+            {
+              text: 'Assign prosecutor',
+              href: '/cases/' + _case.id + '/add-prosecutor'
+            }
+          ]
+        }
+      ] %}
+    {% elif not _case.paralegalOfficers.length %}
+      {% set identityBarMenus = [
+        {
+          items: [
+            {
+              text: 'Assign paralegal officer',
+              href: '/cases/' + _case.id + '/add-paralegal-officer'
+            }
+          ]
+        }
+      ] %}
+    {% else %}
+      {% set identityBarMenus = [] %}
+    {% endif %}
   {% else %}
-    {% set identityBarMenus = [
-      {
-        items: [
-          {
-            text: 'Assign prosecutor',
-            href: '/cases/' + _case.id + '/add-prosecutor'
-          }
-        ]
-      }
-    ] %}
+    {% if not _case.prosecutors.length %}
+      {% set identityBarMenus = [
+        {
+          items: [
+            {
+              text: 'Assign prosecutor',
+              href: '/cases/' + _case.id + '/add-prosecutor'
+            }
+          ]
+        }
+      ] %}
+    {% else %}
+      {% set identityBarMenus = [] %}
+    {% endif %}
   {% endif %}
 {% elif _case.status == caseStatuses.CHARGING_DECISION_NEEDED %}
   {% set identityBarMenus = [
@@ -131,6 +161,11 @@
         {
           text: 'Make charging decision',
           href: '/cases/' + _case.id + '/make-charging-decision'
+        },
+        {
+          text: 'Request more information',
+          href: '/cases/' + _case.id + '/request-more-information',
+          classes: 'govuk-button--secondary'
         }
       ]
     }

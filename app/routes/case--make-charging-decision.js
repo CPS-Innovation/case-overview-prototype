@@ -5,12 +5,10 @@ const statuses = require('../data/case-statuses')
 const decisionStatusMap = {
   'charge': statuses.WAITING_FOR_POLICE_TO_CHARGE,
   'no-further-action': statuses.NO_FURTHER_ACTION,
-  'request-more-information': statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
 }
 
 const decisionFlashMap = {
   'charge': 'Case charged',
-  'request-more-information': 'More information requested',
   'no-further-action': 'Case marked as no further action',
 }
 

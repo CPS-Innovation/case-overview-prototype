@@ -31,7 +31,7 @@ module.exports = (router) => {
       },
     })
 
-    req.flash('success', 'Further information requested')
+    req.flash('success', 'More information requested')
     res.redirect(`/cases/${caseId}`)
   })
 

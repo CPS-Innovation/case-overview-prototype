@@ -20,45 +20,118 @@ module.exports = (router) => {
     })
   })
 
-  router.post('/cases/:caseId/record-first-hearing-outcome', (req, res) => {
+  router.post('/cases/:caseId/record-first-hearing-outcome', async (req, res) => {
     const caseId = req.params.caseId
     req.session.data.recordFirstHearingOutcome = { outcome: req.body.outcome }
 
     if (req.body.outcome === 'sent-to-crown-court') {
-      res.redirect(`/cases/${caseId}/record-first-hearing-outcome/select-crown-court-unit`)
+      const _case = await prisma.case.findUnique({
+        where: { id: parseInt(caseId) },
+        include: { unit: true },
+      })
+
+      if (_case.unit.name.includes('Magistrates')) {
+        res.redirect(`/cases/${caseId}/record-first-hearing-outcome/select-unit`)
+      } else {
+        res.redirect(`/cases/${caseId}/record-first-hearing-outcome/change-unit`)
+      }
     } else {
       res.redirect(`/cases/${caseId}/record-first-hearing-outcome/check`)
     }
   })
 
-  router.get('/cases/:caseId/record-first-hearing-outcome/select-crown-court-unit', async (req, res) => {
+  // Only shown for cases already in a crown court unit
+  router.get('/cases/:caseId/record-first-hearing-outcome/change-unit', async (req, res) => {
+    const _case = await prisma.case.findUnique({
+      where: { id: parseInt(req.params.caseId) },
+      include: { defendants: true, unit: true },
+    })
+
+    res.render('cases/record-first-hearing-outcome/change-unit', {
+      _case,
+      selectedChangeUnit: req.session.data.recordFirstHearingOutcome?.changeUnit,
+    })
+  })
+
+  router.post('/cases/:caseId/record-first-hearing-outcome/change-unit', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.recordFirstHearingOutcome = {
+      ...req.session.data.recordFirstHearingOutcome,
+      changeUnit: req.body.changeUnit,
+    }
+
+    if (req.body.changeUnit === 'Yes') {
+      res.redirect(`/cases/${caseId}/record-first-hearing-outcome/select-unit`)
+    } else {
+      res.redirect(`/cases/${caseId}/record-first-hearing-outcome/ptph-date`)
+    }
+  })
+
+  // Shown for mags units (mandatory) and crown court units that want to change
+  router.get('/cases/:caseId/record-first-hearing-outcome/select-unit', async (req, res) => {
+    const _case = await prisma.case.findUnique({
+      where: { id: parseInt(req.params.caseId) },
+      include: { defendants: true, unit: true },
+    })
+
+    const units = await prisma.unit.findMany({
+      where: { NOT: { name: { contains: 'Magistrates' } } },
+      orderBy: { name: 'asc' },
+    })
+
+    const unitItems = units.map(unit => ({
+      value: `${unit.id}`,
+      text: unit.name,
+    }))
+
+    res.render('cases/record-first-hearing-outcome/select-unit', {
+      _case,
+      unitItems,
+      selectedUnitId: req.session.data.recordFirstHearingOutcome?.unitId,
+    })
+  })
+
+  router.post('/cases/:caseId/record-first-hearing-outcome/select-unit', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.recordFirstHearingOutcome = {
+      ...req.session.data.recordFirstHearingOutcome,
+      unitId: req.body.unitId,
+    }
+    res.redirect(`/cases/${caseId}/record-first-hearing-outcome/ptph-date`)
+  })
+
+  router.get('/cases/:caseId/record-first-hearing-outcome/ptph-date', async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
       include: { defendants: true },
     })
 
-    const crownCourtUnits = await prisma.unit.findMany({
-      where: { name: { contains: 'Crown Court' } },
-      orderBy: { name: 'asc' },
-    })
-
-    const crownCourtUnitItems = crownCourtUnits.map(unit => ({
-      value: `${unit.id}`,
-      text: unit.name,
-    }))
-
-    res.render('cases/record-first-hearing-outcome/select-crown-court-unit', {
-      _case,
-      crownCourtUnitItems,
-      selectedUnitId: req.session.data.recordFirstHearingOutcome?.crownCourtUnitId,
-    })
+    res.render('cases/record-first-hearing-outcome/ptph-date', { _case })
   })
 
-  router.post('/cases/:caseId/record-first-hearing-outcome/select-crown-court-unit', (req, res) => {
+  router.post('/cases/:caseId/record-first-hearing-outcome/ptph-date', (req, res) => {
     const caseId = req.params.caseId
     req.session.data.recordFirstHearingOutcome = {
       ...req.session.data.recordFirstHearingOutcome,
-      crownCourtUnitId: req.body.crownCourtUnitId,
+      ptphDate: req.body.recordFirstHearingOutcome?.ptphDate,
+    }
+    res.redirect(`/cases/${caseId}/record-first-hearing-outcome/ptph-venue`)
+  })
+
+  router.get('/cases/:caseId/record-first-hearing-outcome/ptph-venue', async (req, res) => {
+    const _case = await prisma.case.findUnique({
+      where: { id: parseInt(req.params.caseId) },
+      include: { defendants: true },
+    })
+
+    res.render('cases/record-first-hearing-outcome/ptph-venue', { _case })
+  })
+
+  router.post('/cases/:caseId/record-first-hearing-outcome/ptph-venue', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.recordFirstHearingOutcome = {
+      ...req.session.data.recordFirstHearingOutcome,
+      ptphVenue: req.body.recordFirstHearingOutcome?.ptphVenue,
     }
     res.redirect(`/cases/${caseId}/record-first-hearing-outcome/check`)
   })
@@ -66,38 +139,56 @@ module.exports = (router) => {
   router.get('/cases/:caseId/record-first-hearing-outcome/check', async (req, res) => {
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
-      include: { defendants: true },
+      include: { defendants: true, unit: true },
     })
 
-    const outcome = req.session.data.recordFirstHearingOutcome?.outcome
-    let crownCourtUnit = null
+    const { outcome, unitId } = req.session.data.recordFirstHearingOutcome || {}
+    let newUnit = null
 
-    if (outcome === 'sent-to-crown-court') {
-      const unitId = parseInt(req.session.data.recordFirstHearingOutcome?.crownCourtUnitId)
-      crownCourtUnit = await prisma.unit.findUnique({ where: { id: unitId } })
+    if (outcome === 'sent-to-crown-court' && unitId) {
+      newUnit = await prisma.unit.findUnique({ where: { id: parseInt(unitId) } })
     }
 
-    res.render('cases/record-first-hearing-outcome/check', { _case, crownCourtUnit })
+    res.render('cases/record-first-hearing-outcome/check', { _case, newUnit })
   })
 
   router.post('/cases/:caseId/record-first-hearing-outcome/check', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
-    const outcome = req.session.data.recordFirstHearingOutcome?.outcome
+    const { outcome, unitId, changeUnit, ptphDate, ptphVenue } = req.session.data.recordFirstHearingOutcome
 
     if (outcome === 'sent-to-crown-court') {
-      const unitId = parseInt(req.session.data.recordFirstHearingOutcome?.crownCourtUnitId)
+      // changeUnit is only set for cases already in a crown court unit (the optional step)
+      // For mags cases changeUnit is undefined, and changing unit is mandatory
+      const isChangingUnit = changeUnit !== 'No' && unitId
 
-      await prisma.caseProsecutor.deleteMany({ where: { caseId } })
-      await prisma.caseParalegalOfficer.deleteMany({ where: { caseId } })
-      await prisma.case.update({
-        where: { id: caseId },
-        data: { unitId, status: statuses.PROSECUTOR_NEEDED },
+      if (isChangingUnit) {
+        await prisma.caseProsecutor.deleteMany({ where: { caseId } })
+        await prisma.caseParalegalOfficer.deleteMany({ where: { caseId } })
+        await prisma.case.update({
+          where: { id: caseId },
+          data: { unitId: parseInt(unitId), status: statuses.PROSECUTOR_NEEDED },
+        })
+      } else {
+        await prisma.case.update({
+          where: { id: caseId },
+          data: { status: statuses.WAITING_FOR_PTPH_HEARING },
+        })
+      }
+
+      const startDate = new Date(ptphDate.year, ptphDate.month - 1, ptphDate.day)
+      await prisma.hearing.create({
+        data: {
+          caseId,
+          startDate,
+          status: 'Scheduled',
+          type: 'PTPH',
+          venue: ptphVenue,
+        },
       })
     } else {
-      const status = outcomeStatusMap[outcome]
       await prisma.case.update({
         where: { id: caseId },
-        data: { status },
+        data: { status: outcomeStatusMap[outcome] },
       })
     }
 
