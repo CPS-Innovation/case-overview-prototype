@@ -30,7 +30,7 @@ function addTimeLimitDates(_case) {
 
   const uniqueDefendantStatuses = [...new Set(_case.defendants.map(d => d.status).filter(Boolean))]
   if (uniqueDefendantStatuses.length > 1) {
-    _case.status = 'Multiple'
+    _case.status = 'Diverged'
     _case.defendantStatuses = uniqueDefendantStatuses
   } else {
     _case.defendantStatuses = []

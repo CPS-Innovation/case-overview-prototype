@@ -299,7 +299,7 @@ module.exports = (router) => {
 
     if (selectedDefendantFilters?.length) {
       selectedFilters.categories.push({
-        heading: { text: 'Defendants' },
+        heading: { text: 'Defendant statuses' },
         items: selectedDefendantFilters.map((value) => ({
           text: value,
           href: '/cases/remove-defendants/' + encodeURIComponent(value),
@@ -658,8 +658,8 @@ module.exports = (router) => {
 
     if (selectedDefendantFilters?.length) {
       cases = cases.filter((_case) => {
-        if (selectedDefendantFilters.includes('Single defendant') && _case.defendants.length === 1) return true
-        if (selectedDefendantFilters.includes('Multiple defendants') && _case.defendants.length > 1) return true
+        if (selectedDefendantFilters.includes('Diverged') && _case.status === 'Diverged') return true
+        if (selectedDefendantFilters.includes('Not diverged') && _case.status !== 'Diverged') return true
         return false
       })
     }
@@ -833,8 +833,8 @@ module.exports = (router) => {
     )
 
     const defendantItems = [
-      { value: 'Single defendant', text: 'Single defendant' },
-      { value: 'Multiple defendants', text: 'Multiple defendants' },
+      { value: 'Diverged', text: 'Diverged' },
+      { value: 'Not diverged', text: 'Not diverged' },
     ]
 
     res.render('cases/index', {
