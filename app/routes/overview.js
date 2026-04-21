@@ -12,8 +12,11 @@ module.exports = router => {
     const currentUser = req.session.data.user
     const userUnitIds = currentUser?.units?.map(uu => uu.unitId) || []
 
+    const unitFilter = userUnitIds.length ? { unitId: { in: userUnitIds } } : {}
+
     const unassignedCaseCount = await prisma.case.count({
       where: {
+        ...unitFilter,
         prosecutors: {
           none: {}
         }
@@ -21,43 +24,43 @@ module.exports = router => {
     })
 
     const triageCaseCount = await prisma.case.count({
-      where: { status: statuses.TRIAGE_NEEDED }
+      where: { ...unitFilter, status: statuses.TRIAGE_NEEDED }
     })
 
     const prosecutorNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.PROSECUTOR_NEEDED }
+      where: { ...unitFilter, status: statuses.PROSECUTOR_NEEDED }
     })
 
     const chargingDecisionNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.CHARGING_DECISION_NEEDED }
+      where: { ...unitFilter, status: statuses.CHARGING_DECISION_NEEDED }
     })
 
     const firstHearingPreparationNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.FIRST_HEARING_PREPARATION_NEEDED }
+      where: { ...unitFilter, status: statuses.FIRST_HEARING_PREPARATION_NEEDED }
     })
 
     const firstHearingOutcomeNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.FIRST_HEARING_OUTCOME_NEEDED }
+      where: { ...unitFilter, status: statuses.FIRST_HEARING_OUTCOME_NEEDED }
     })
 
     const ptphNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.PTPH_PREPARATION_NEEDED }
+      where: { ...unitFilter, status: statuses.PTPH_PREPARATION_NEEDED }
     })
 
     const ptphOutcomeNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.PTPH_HEARING_OUTCOME_NEEDED }
+      where: { ...unitFilter, status: statuses.PTPH_HEARING_OUTCOME_NEEDED }
     })
 
     const trialPreparationNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.TRIAL_PREPARATION_NEEDED }
+      where: { ...unitFilter, status: statuses.TRIAL_PREPARATION_NEEDED }
     })
 
     const trialOutcomeNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.TRIAL_OUTCOME_NEEDED }
+      where: { ...unitFilter, status: statuses.TRIAL_OUTCOME_NEEDED }
     })
 
     const sentenceNeededCaseCount = await prisma.case.count({
-      where: { status: statuses.SENTENCE_NEEDED }
+      where: { ...unitFilter, status: statuses.SENTENCE_NEEDED }
     })
 
     // Count prosecutors with incomplete profiles (no specialist, preferred, or restricted areas)

@@ -60,7 +60,7 @@ module.exports = (router) => {
 
   router.get('/cases/shortcut/prosecutor-needed', (req, res) => {
     resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=Prosecutor+needed')
+    res.redirect('/cases/?caseListFilters[statuses][]=Prosecution+team+needed')
   })
 
   router.get('/cases/shortcut/charging-decision-needed', (req, res) => {

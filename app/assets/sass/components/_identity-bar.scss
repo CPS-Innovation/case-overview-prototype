@@ -76,7 +76,7 @@
   @include govuk-media-query($from: tablet) {
     display: inline-block;
     vertical-align: middle;
-    margin-top: govuk-spacing(2);
+    // margin-top: govuk-spacing(1);
   }
 
 }

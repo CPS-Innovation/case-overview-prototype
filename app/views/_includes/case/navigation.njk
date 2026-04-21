@@ -7,6 +7,11 @@
     current: secondaryNavId == 'overview'
   },
   {
+    text: "Key evidence",
+    href: "/cases/:caseId/key-evidence" | replace(':caseId', _case.id),
+    current: secondaryNavId == 'key-evidence'
+  } if false,
+  {
     text: "Defendants",
     href: "/cases/:caseId/defendants" | replace(':caseId', _case.id),
     current: secondaryNavId == 'defendants'
