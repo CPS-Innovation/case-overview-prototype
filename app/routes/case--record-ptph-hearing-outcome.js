@@ -4,7 +4,7 @@ const statuses = require('../data/case-statuses')
 
 const outcomeStatusMap = {
   'goes-to-trial': statuses.TRIAL_PREPARATION_NEEDED,
-  'pleads-guilty': statuses.WAITING_FOR_SENTENCING,
+  'pleads-guilty': statuses.SENTENCING_HEARING_PENDING,
   'no-further-action': statuses.NO_FURTHER_ACTION,
 }
 

@@ -4,7 +4,7 @@ const statuses = require('../data/case-statuses')
 
 const outcomeStatusMap = {
   'trial-in-magistrates-court': statuses.TRIAL_PREPARATION_NEEDED,
-  'pleads-guilty': statuses.WAITING_FOR_SENTENCING,
+  'pleads-guilty': statuses.SENTENCING_HEARING_PENDING,
 }
 
 module.exports = (router) => {
@@ -171,7 +171,7 @@ module.exports = (router) => {
       } else {
         await prisma.case.update({
           where: { id: caseId },
-          data: { status: statuses.WAITING_FOR_PTPH_HEARING },
+          data: { status: statuses.PTPH_HEARING_PENDING },
         })
       }
 

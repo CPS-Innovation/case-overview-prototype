@@ -2,7 +2,7 @@ const { faker } = require('@faker-js/faker');
 const statuses = require('../../app/data/case-statuses');
 const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
-const { futureDateAtHearingTime } = require('./dates');
+const { hearingDateForStatus } = require('./dates');
 const { generatePendingTaskDates, generateDueTaskDates, generateOverdueTaskDates, generateEscalatedTaskDates } = require('./task-dates');
 const { prosecutionDirections, defenceDirections } = require('./directions');
 const { createCtlLogEntries } = require('./ctl-log-entries');
@@ -44,32 +44,32 @@ async function seedGeneralCases(prisma, dependencies, config) {
 
   const magsStatuses = [
     statuses.TRIAGE_NEEDED,
-    statuses.WAITING_FOR_RESUBMISSION,
+    statuses.POLICE_RESUBMISSION_PENDING,
     statuses.PROSECUTOR_NEEDED,
     statuses.CHARGING_DECISION_NEEDED,
-    statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
-    statuses.WAITING_FOR_POLICE_TO_CHARGE,
+    statuses.POLICE_CHARGING_INFORMATION_PENDING,
+    statuses.POLICE_AUTHORISED_CHARGE_PENDING,
     statuses.FIRST_HEARING_PREPARATION_NEEDED,
-    statuses.WAITING_FOR_FIRST_HEARING,
+    statuses.FIRST_HEARING_PENDING,
     statuses.FIRST_HEARING_OUTCOME_NEEDED,
     statuses.NO_FURTHER_ACTION,
     statuses.TRIAL_PREPARATION_NEEDED,
-    statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+    statuses.TRIAL_PENDING,
     statuses.TRIAL_OUTCOME_NEEDED,
-    statuses.WAITING_FOR_SENTENCING,
+    statuses.SENTENCING_HEARING_PENDING,
     statuses.NOT_GUILTY,
     statuses.SENTENCED,
   ]
 
   const crownCourtStatuses = [
     statuses.PROSECUTOR_NEEDED,
-    statuses.PTPH_NEEDED,
-    statuses.WAITING_FOR_PTPH_HEARING,
+    statuses.PTPH_PREPARATION_NEEDED,
+    statuses.PTPH_HEARING_PENDING,
     statuses.PTPH_HEARING_OUTCOME_NEEDED,
     statuses.TRIAL_PREPARATION_NEEDED,
-    statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+    statuses.TRIAL_PENDING,
     statuses.TRIAL_OUTCOME_NEEDED,
-    statuses.WAITING_FOR_SENTENCING,
+    statuses.SENTENCING_HEARING_PENDING,
     statuses.NOT_GUILTY,
     statuses.SENTENCED,
     statuses.NO_FURTHER_ACTION,
@@ -366,48 +366,43 @@ async function seedGeneralCases(prisma, dependencies, config) {
     }
 
     // -------------------- Hearings --------------------
-    // 50% of cases have 1 hearing, 50% have none
-    const hasHearing = faker.datatype.boolean();
+    const statusToHearing = {
+      [statuses.FIRST_HEARING_PREPARATION_NEEDED]: { type: 'First hearing', daysMin: 7, daysMax: 56, past: false },
+      [statuses.FIRST_HEARING_PENDING]: { type: 'First hearing', daysMin: 0, daysMax: 2, past: false },
+      [statuses.FIRST_HEARING_OUTCOME_NEEDED]: { type: 'First hearing', daysMin: 1, daysMax: 5, past: true },
+      [statuses.PTPH_PREPARATION_NEEDED]: { type: 'PTPH', daysMin: 7, daysMax: 56, past: false },
+      [statuses.PTPH_HEARING_PENDING]: { type: 'PTPH', daysMin: 0, daysMax: 2, past: false },
+      [statuses.PTPH_HEARING_OUTCOME_NEEDED]: { type: 'PTPH', daysMin: 1, daysMax: 5, past: true },
+      [statuses.TRIAL_PREPARATION_NEEDED]: { type: 'Trial', daysMin: 14, daysMax: 84, past: false },
+      [statuses.TRIAL_PENDING]: { type: 'Trial', daysMin: 0, daysMax: 2, past: false },
+      [statuses.TRIAL_OUTCOME_NEEDED]: { type: 'Trial', daysMin: 1, daysMax: 5, past: true },
+      [statuses.SENTENCING_HEARING_PENDING]: { type: 'Sentencing', daysMin: 7, daysMax: 42, past: false },
+    };
 
-    if (hasHearing) {
-      const hearingStatus = faker.helpers.arrayElement(['Fixed', 'Warned', 'Estimated']);
-      const hearingType = 'First hearing';
-      const hearingVenue = faker.helpers.arrayElement(venues);
+    const hearingConfig = statusToHearing[status];
+    if (hearingConfig) {
+      const days = faker.number.int({ min: hearingConfig.daysMin, max: hearingConfig.daysMax });
+      const hearingStartDate = new Date();
+      hearingStartDate.setDate(hearingStartDate.getDate() + (hearingConfig.past ? -days : days));
+      hearingStartDate.setUTCHours(10, 0, 0, 0);
 
-      // Distribution: 40% today, 40% tomorrow, 20% future dates
-      const dateChoice = faker.number.float({ min: 0, max: 1 });
-      let hearingStartDate;
+      const hearingStatus = hearingConfig.past
+        ? faker.helpers.arrayElement(['Fixed', 'Warned'])
+        : faker.helpers.arrayElement(['Fixed', 'Warned', 'Estimated']);
 
-      const hearingHour = faker.helpers.arrayElement([10, 11, 12]);
-
-      if (dateChoice < 0.4) {
-        hearingStartDate = new Date();
-        hearingStartDate.setUTCHours(hearingHour, 0, 0, 0);
-      } else if (dateChoice < 0.8) {
-        hearingStartDate = new Date();
-        hearingStartDate.setDate(hearingStartDate.getDate() + 1);
-        hearingStartDate.setUTCHours(hearingHour, 0, 0, 0);
-      } else {
-        hearingStartDate = futureDateAtHearingTime();
-      }
-
-      // 10% chance of multi-day hearing (has endDate)
-      const isMultiDay = faker.datatype.boolean({ probability: 0.10 });
+      const isMultiDay = hearingConfig.type === 'Trial' && faker.datatype.boolean({ probability: 0.25 });
       const hearingEndDate = isMultiDay
         ? new Date(hearingStartDate.getTime() + (faker.number.int({ min: 1, max: 5 }) * 24 * 60 * 60 * 1000))
         : null;
-
-      if (hearingEndDate) {
-        hearingEndDate.setUTCHours(16, 0, 0, 0); // End at 4pm
-      }
+      if (hearingEndDate) hearingEndDate.setUTCHours(16, 0, 0, 0);
 
       await prisma.hearing.create({
         data: {
           startDate: hearingStartDate,
           endDate: hearingEndDate,
           status: hearingStatus,
-          type: hearingType,
-          venue: hearingVenue,
+          type: hearingConfig.type,
+          venue: faker.helpers.arrayElement(venues),
           caseId: createdCase.id
         }
       });

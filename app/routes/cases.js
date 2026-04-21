@@ -12,21 +12,21 @@ const dgaStatuses = ['Awaiting outcome', 'Outcome recorded']
 
 const caseStatuses = [
   statuses.TRIAGE_NEEDED,
-  statuses.WAITING_FOR_RESUBMISSION,
+  statuses.POLICE_RESUBMISSION_PENDING,
   statuses.PROSECUTOR_NEEDED,
   statuses.CHARGING_DECISION_NEEDED,
-  statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
-  statuses.WAITING_FOR_POLICE_TO_CHARGE,
+  statuses.POLICE_CHARGING_INFORMATION_PENDING,
+  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
   statuses.FIRST_HEARING_PREPARATION_NEEDED,
-  statuses.WAITING_FOR_FIRST_HEARING,
+  statuses.FIRST_HEARING_PENDING,
   statuses.FIRST_HEARING_OUTCOME_NEEDED,
-  statuses.PTPH_NEEDED,
-  statuses.WAITING_FOR_PTPH_HEARING,
+  statuses.PTPH_PREPARATION_NEEDED,
+  statuses.PTPH_HEARING_PENDING,
   statuses.PTPH_HEARING_OUTCOME_NEEDED,
   statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+  statuses.TRIAL_PENDING,
   statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.WAITING_FOR_SENTENCING,
+  statuses.SENTENCING_HEARING_PENDING,
   statuses.SENTENCE_NEEDED,
   statuses.SENTENCED,
   statuses.NOT_GUILTY,
@@ -50,6 +50,56 @@ module.exports = (router) => {
   router.get('/cases/shortcut/unassigned', (req, res) => {
     resetFilters(req)
     res.redirect('/cases/?caseListFilters[prosecutors][]=Unassigned')
+  })
+
+  router.get('/cases/shortcut/triage', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=Triage+needed')
+  })
+
+  router.get('/cases/shortcut/prosecutor-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=Prosecutor+needed')
+  })
+
+  router.get('/cases/shortcut/charging-decision-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=Charging+decision+needed')
+  })
+
+  router.get('/cases/shortcut/first-hearing-preparation-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=First+hearing+preparation+needed')
+  })
+
+  router.get('/cases/shortcut/first-hearing-outcome-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=First+hearing+outcome+needed')
+  })
+
+  router.get('/cases/shortcut/ptph-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=PTPH+hearing+preparation+needed')
+  })
+
+  router.get('/cases/shortcut/ptph-outcome-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=PTPH+hearing+outcome+needed')
+  })
+
+  router.get('/cases/shortcut/trial-preparation-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=Trial+preparation+needed')
+  })
+
+  router.get('/cases/shortcut/trial-outcome-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=Trial+outcome+needed')
+  })
+
+  router.get('/cases/shortcut/sentence-needed', (req, res) => {
+    resetFilters(req)
+    res.redirect('/cases/?caseListFilters[statuses][]=Sentence+needed')
   })
 
   router.get('/cases/shortcut/dga', (req, res) => {

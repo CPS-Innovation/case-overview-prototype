@@ -1,11 +1,8 @@
 {% extends "_layouts/main.html" %}
-{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
-{% from "govuk/components/tag/macro.njk" import govukTag %}
 
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'hearings' %}
-{% set pageName = "Hearings (:total)" | replace(':total', _case.hearings.length | formatNumber) %}
+{% set pageName = "Hearings" %}
 
 {% block beforeContent %}
   {% include "_includes/case/identity-bar.njk" %}
@@ -19,36 +16,45 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      {{ govukButton({
-        text: "Add hearing",
-        href: "/cases/" + _case.id + "/hearings/add"
-      }) }}
+      {{
+        govukButton({
+          text: "Add hearing",
+          href: "/cases/" + _case.id + "/hearings/add"
+        })
+      }}
 
       {% if _case.hearings.length %}
         <div class="app-list">
           {% for hearing in _case.hearings %}
             <div class="app-list__item">
               <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-                <a href="/cases/{{ _case.id }}/hearings/{{ hearing.id }}" class="govuk-link--no-visited-state">{{ hearing.type }}</a>
+                <a
+                  href="/cases/{{ _case.id }}/hearings/{{ hearing.id }}"
+                  class="govuk-link--no-visited-state"
+                >
+                  {{ hearing.type }}
+                </a>
               </h3>
 
-              {{ govukSummaryList({
-                classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
-                rows: [
-                  {
-                    key: { text: 'Date' },
-                    value: { html: hearing.startDate | isoDateString | govukDateTime }
-                  },
-                  {
-                    key: { text: 'Venue' },
-                    value: { text: hearing.venue }
-                  },
-                  {
-                    key: { text: 'Status' },
-                    value: { text: hearing.status }
-                  }
-                ]
-              }) }}
+              {{
+                govukSummaryList({
+                  classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
+                  rows: [
+                    {
+                      key: { text: 'Date' },
+                      value: { html: hearing.startDate | isoDateString | govukDateTime }
+                    },
+                    {
+                      key: { text: 'Venue' },
+                      value: { text: hearing.venue }
+                    },
+                    {
+                      key: { text: 'Status' },
+                      value: { text: hearing.status }
+                    }
+                  ]
+                })
+              }}
             </div>
           {% endfor %}
         </div>

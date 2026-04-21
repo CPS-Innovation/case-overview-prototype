@@ -27,6 +27,7 @@ const {
 } = require('./pace-generators');
 const { createDirectionsForCase } = require('./directions');
 const { createCtlLogEntries } = require('./ctl-log-entries');
+const { hearingDateForStatus } = require('./dates');
 
 const BRUCE_UNITS = {
   WESSEX_CROWN_COURT: 3,
@@ -35,13 +36,13 @@ const BRUCE_UNITS = {
 
 const BRUCE_STATUSES = [
   statuses.PROSECUTOR_NEEDED,
-  statuses.PTPH_NEEDED,
-  statuses.WAITING_FOR_PTPH_HEARING,
+  statuses.PTPH_PREPARATION_NEEDED,
+  statuses.PTPH_HEARING_PENDING,
   statuses.PTPH_HEARING_OUTCOME_NEEDED,
   statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+  statuses.TRIAL_PENDING,
   statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.WAITING_FOR_SENTENCING,
+  statuses.SENTENCING_HEARING_PENDING,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
   statuses.NO_FURTHER_ACTION,
@@ -240,6 +241,32 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
     });
   }
 
+  const extraDefendants = [];
+  if (faker.datatype.boolean({ probability: 0.3 })) {
+    const extra = await prisma.defendant.create({
+      data: {
+        firstName: faker.helpers.arrayElement(firstNames),
+        lastName: faker.helpers.arrayElement(lastNames),
+        gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+        remandStatus: faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL', 'REMANDED_IN_CUSTODY']),
+        defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
+        charges: {
+          create: {
+            chargeCode: faker.helpers.arrayElement(charges).code,
+            description: faker.helpers.arrayElement(charges).description,
+            status: 'Charged',
+            offenceDate: faker.date.past(),
+            plea: faker.helpers.arrayElement(pleas),
+            particulars: faker.lorem.sentence(),
+            isCount: false
+          }
+        }
+      }
+    });
+    extraDefendants.push(extra);
+  }
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
@@ -248,7 +275,7 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
       status: faker.helpers.arrayElement(BRUCE_STATUSES),
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
-      defendants: { connect: { id: defendant.id } },
+      defendants: { connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))] },
       victims: { connect: victimIds },
       location: {
         create: {
@@ -309,6 +336,26 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
   return _case;
 }
 
+const BRUCE_HEARING_STATUSES = new Set([
+  statuses.PTPH_PREPARATION_NEEDED,
+  statuses.PTPH_HEARING_PENDING,
+  statuses.PTPH_HEARING_OUTCOME_NEEDED,
+  statuses.TRIAL_PREPARATION_NEEDED,
+  statuses.TRIAL_PENDING,
+  statuses.TRIAL_OUTCOME_NEEDED,
+  statuses.SENTENCING_HEARING_PENDING,
+]);
+
+const BRUCE_HEARING_TYPE = {
+  [statuses.PTPH_PREPARATION_NEEDED]: 'PTPH',
+  [statuses.PTPH_HEARING_PENDING]: 'PTPH',
+  [statuses.PTPH_HEARING_OUTCOME_NEEDED]: 'PTPH',
+  [statuses.TRIAL_PREPARATION_NEEDED]: 'Trial',
+  [statuses.TRIAL_PENDING]: 'Trial',
+  [statuses.TRIAL_OUTCOME_NEEDED]: 'Trial',
+  [statuses.SENTENCING_HEARING_PENDING]: 'Sentencing',
+};
+
 async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config) {
   const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, taskNames, policeUnits, ukCities, documentNames, documentTypes } = config;
 
@@ -336,6 +383,32 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
     }
   });
 
+  const extraDefendants = [];
+  if (faker.datatype.boolean({ probability: 0.3 })) {
+    const extra = await prisma.defendant.create({
+      data: {
+        firstName: faker.helpers.arrayElement(firstNames),
+        lastName: faker.helpers.arrayElement(lastNames),
+        gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+        remandStatus: faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL', 'REMANDED_IN_CUSTODY']),
+        defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
+        charges: {
+          create: {
+            chargeCode: faker.helpers.arrayElement(charges).code,
+            description: faker.helpers.arrayElement(charges).description,
+            status: 'Charged',
+            offenceDate: faker.date.past(),
+            plea: faker.helpers.arrayElement(pleas),
+            particulars: faker.lorem.sentence(),
+            isCount: false
+          }
+        }
+      }
+    });
+    extraDefendants.push(extra);
+  }
+
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
   const numDocuments = faker.number.int({ min: 3, max: 8 });
@@ -350,15 +423,17 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
     });
   }
 
+  const status = faker.helpers.arrayElement(BRUCE_STATUSES);
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
-      status: faker.helpers.arrayElement(BRUCE_STATUSES),
+      status,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
-      defendants: { connect: { id: defendant.id } },
+      defendants: { connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))] },
       victims: { connect: victimIds },
       location: {
         create: {
@@ -382,6 +457,20 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   await prisma.caseParalegalOfficer.create({
     data: { caseId: _case.id, userId: paralegalOfficer.id }
   });
+
+  if (BRUCE_HEARING_STATUSES.has(status)) {
+    const venue = unitId === BRUCE_UNITS.WESSEX_CROWN_COURT ? 'Wessex Crown Court' : 'Wessex RASSO';
+    await prisma.hearing.create({
+      data: {
+        startDate: hearingDateForStatus(status),
+        endDate: null,
+        status: 'Scheduled',
+        type: BRUCE_HEARING_TYPE[status],
+        venue,
+        caseId: _case.id
+      }
+    });
+  }
 
   const dueDate = faker.date.soon({ days: 30 });
   dueDate.setHours(23, 59, 59, 999);

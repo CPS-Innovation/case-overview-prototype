@@ -17,7 +17,7 @@ module.exports = (router) => {
 
     await prisma.case.update({
       where: { id: caseId },
-      data: { status: statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION },
+      data: { status: statuses.POLICE_CHARGING_INFORMATION_PENDING },
     })
 
     await prisma.activityLog.create({

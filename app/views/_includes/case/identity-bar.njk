@@ -68,7 +68,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.WAITING_FOR_RESUBMISSION %}
+{% elif _case.status == caseStatuses.POLICE_RESUBMISSION_PENDING %}
   {% set identityBarMenus = [
     {
       items: [
@@ -80,7 +80,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION %}
+{% elif _case.status == caseStatuses.POLICE_CHARGING_INFORMATION_PENDING %}
   {% set identityBarMenus = [
     {
       items: [
@@ -170,7 +170,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.WAITING_FOR_POLICE_TO_CHARGE %}
+{% elif _case.status == caseStatuses.POLICE_AUTHORISED_CHARGE_PENDING %}
   {% set identityBarMenus = [
     {
       items: [
@@ -193,7 +193,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.WAITING_FOR_FIRST_HEARING %}
+{% elif _case.status == caseStatuses.FIRST_HEARING_PENDING %}
   {% set identityBarMenus = [
     {
       items: [
@@ -216,7 +216,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.PTPH_NEEDED %}
+{% elif _case.status == caseStatuses.PTPH_PREPARATION_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [
@@ -227,7 +227,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.WAITING_FOR_PTPH_HEARING %}
+{% elif _case.status == caseStatuses.PTPH_HEARING_PENDING %}
   {% set identityBarMenus = [
     {
       items: [
@@ -261,7 +261,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.WAITING_FOR_OUTCOME_OF_TRIAL %}
+{% elif _case.status == caseStatuses.TRIAL_PENDING %}
   {% set identityBarMenus = [
     {
       items: [
@@ -284,7 +284,7 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.WAITING_FOR_SENTENCING %}
+{% elif _case.status == caseStatuses.SENTENCING_HEARING_PENDING %}
   {% set identityBarMenus = [
     {
       items: [

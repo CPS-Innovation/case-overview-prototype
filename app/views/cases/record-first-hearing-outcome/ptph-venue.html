@@ -4,10 +4,12 @@
 {% set pageName = "Crown court" %}
 
 {% block beforeContent %}
-  {{ govukBackLink({
-    text: 'Back',
-    href: 'javascript:history.back()'
-  }) }}
+  {{
+    govukBackLink({
+      text: 'Back',
+      href: 'javascript:history.back()'
+    })
+  }}
 {% endblock %}
 
 {% block content %}
@@ -16,19 +18,18 @@
       <span class="govuk-caption-l">{{ _case.reference }} – record first hearing outcome</span>
 
       <form method="post">
-        {{ govukInput({
-          label: {
-            text: pageName,
-            classes: "govuk-label--l",
-            isPageHeading: true
-          },
-          hint: {
-            text: "Enter the name of the crown court where the trial will take place"
-          },
-          id: "ptph-venue",
-          name: "recordFirstHearingOutcome[ptphVenue]",
-          value: data.recordFirstHearingOutcome.ptphVenue
-        }) }}
+        {{
+          govukInput({
+            label: {
+              text: pageName,
+              classes: "govuk-label--l",
+              isPageHeading: true
+            },
+            id: "ptph-venue",
+            name: "recordFirstHearingOutcome[ptphVenue]",
+            value: data.recordFirstHearingOutcome.ptphVenue
+          })
+        }}
 
         {{ govukButton({ text: "Continue" }) }}
       </form>

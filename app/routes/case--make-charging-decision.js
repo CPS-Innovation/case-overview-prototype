@@ -3,7 +3,7 @@ const prisma = new PrismaClient()
 const statuses = require('../data/case-statuses')
 
 const decisionStatusMap = {
-  'charge': statuses.WAITING_FOR_POLICE_TO_CHARGE,
+  'charge': statuses.POLICE_AUTHORISED_CHARGE_PENDING,
   'no-further-action': statuses.NO_FURTHER_ACTION,
 }
 

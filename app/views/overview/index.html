@@ -15,8 +15,9 @@
 
       {# {% include "_includes/overview/nav-links.njk" %} #}
 
+      {% include "_includes/overview/cases.njk" %}
+
       {% if data.user.role == "Manager" %}
-        {% include "_includes/overview/cases.njk" %}
         {% include "_includes/overview/dga-reporting.njk" %}
       {% endif %}
 
@@ -24,10 +25,10 @@
         {% include "_includes/overview/directions.njk" %}
       {% endif %}
 
-      {% if data.user.role == "Casework assistant" %}
+      {# {% if data.user.role == "Casework assistant" %}
         {% include "_includes/overview/unit-tasks.njk" %}
       {% endif %}
-      {% include "_includes/overview/tasks.njk" %}
+      {% include "_includes/overview/tasks.njk" %} #}
 
       {% if data.user.role == "Manager" %}
         {% include "_includes/overview/prosecutors.njk" %}

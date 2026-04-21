@@ -10,7 +10,7 @@
 | Status | Action |
 |---|---|
 | Triage needed | Accept / Reject |
-| Prosecutor needed | Assign prosecutor |
+| Prosecution team needed | Assign prosecution team |
 | Charging decision needed | Make charging decision |
 | First hearing preparation needed | Add first hearing |
 | First hearing outcome needed | Record outcome of first hearing |

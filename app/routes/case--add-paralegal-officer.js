@@ -136,7 +136,7 @@ module.exports = router => {
       if (unit.name.includes('Crown Court')) {
         const prosecutorCount = await prisma.caseProsecutor.count({ where: { caseId } })
         if (prosecutorCount > 0) {
-          await prisma.case.update({ where: { id: caseId }, data: { status: statuses.PTPH_NEEDED } })
+          await prisma.case.update({ where: { id: caseId }, data: { status: statuses.PTPH_PREPARATION_NEEDED } })
         }
       }
     }

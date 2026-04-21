@@ -1,7 +1,7 @@
 {% if recentCases.length > 0 %}
   <div class="app-overview-section">
     <h2 class="govuk-heading-m">Recently viewed cases</h2>
-    <ul class="govuk-list govuk-list--bullet">
+    <ul class="govuk-list govuk-list--bulle">
       {% for recentCase in recentCases %}
         <li>
           <a href="/cases/{{ recentCase.case.id }}" class="govuk-link--no-visited-state">

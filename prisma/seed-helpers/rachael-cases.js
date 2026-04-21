@@ -4,6 +4,7 @@ const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
 const { createDirectionsForCase } = require('./directions');
 const { createCtlLogEntries } = require('./ctl-log-entries');
+const { hearingDateForStatus } = require('./dates');
 
 const RACHAEL_UNITS = {
   WESSEX_CROWN_COURT: 3,
@@ -12,17 +13,34 @@ const RACHAEL_UNITS = {
 
 const RACHAEL_STATUSES = [
   statuses.PROSECUTOR_NEEDED,
-  statuses.PTPH_NEEDED,
-  statuses.WAITING_FOR_PTPH_HEARING,
+  statuses.CHARGING_DECISION_NEEDED,
+  statuses.POLICE_CHARGING_INFORMATION_PENDING,
+  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.FIRST_HEARING_PREPARATION_NEEDED,
+  statuses.FIRST_HEARING_PENDING,
+  statuses.FIRST_HEARING_OUTCOME_NEEDED,
+  statuses.PTPH_PREPARATION_NEEDED,
+  statuses.PTPH_HEARING_PENDING,
   statuses.PTPH_HEARING_OUTCOME_NEEDED,
   statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+  statuses.TRIAL_PENDING,
   statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.WAITING_FOR_SENTENCING,
+  statuses.SENTENCING_HEARING_PENDING,
+  statuses.SENTENCE_NEEDED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
   statuses.NO_FURTHER_ACTION,
 ];
+
+const HEARING_TYPE_TO_STATUSES = {
+  'First Hearing': [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.FIRST_HEARING_PENDING, statuses.FIRST_HEARING_OUTCOME_NEEDED],
+  'PTPH':          [statuses.PTPH_PREPARATION_NEEDED, statuses.PTPH_HEARING_PENDING, statuses.PTPH_HEARING_OUTCOME_NEEDED],
+  'Trial':         [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING, statuses.TRIAL_OUTCOME_NEEDED],
+  'Mention':       [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.PTPH_PREPARATION_NEEDED, statuses.TRIAL_PREPARATION_NEEDED],
+  'Section 28':    [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING],
+  'Sentence, with PSR': [statuses.SENTENCING_HEARING_PENDING],
+  'Sentencing':    [statuses.SENTENCING_HEARING_PENDING],
+};
 
 const RACHAEL_TASKS = [
   { name: 'Check new police info', hasCTL: true, hearingType: 'Mention' },
@@ -201,16 +219,44 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
     });
   }
 
+  const extraDefendants = [];
+  if (faker.datatype.boolean({ probability: 0.3 })) {
+    const extra = await prisma.defendant.create({
+      data: {
+        firstName: faker.helpers.arrayElement(firstNames),
+        lastName: faker.helpers.arrayElement(lastNames),
+        gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+        remandStatus: faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL', 'REMANDED_IN_CUSTODY']),
+        defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
+        charges: {
+          create: {
+            chargeCode: faker.helpers.arrayElement(charges).code,
+            description: faker.helpers.arrayElement(charges).description,
+            status: 'Charged',
+            offenceDate: faker.date.past(),
+            plea: faker.helpers.arrayElement(pleas),
+            particulars: faker.lorem.sentence(),
+            isCount: false
+          }
+        }
+      }
+    });
+    extraDefendants.push(extra);
+  }
+
+  const status = faker.helpers.arrayElement(HEARING_TYPE_TO_STATUSES[hearingType]);
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
       operationName,
-      status: faker.helpers.arrayElement(RACHAEL_STATUSES),
+      status,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
-      defendants: { connect: { id: defendant.id } },
+      defendants: { connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))] },
       victims: { connect: victimIds },
       location: {
         create: {
@@ -237,8 +283,7 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
   });
 
   // Create hearing
-  const hearingDate = faker.date.soon({ days: 30 });
-  hearingDate.setUTCHours(faker.helpers.arrayElement([10, 11, 12]), 0, 0, 0);
+  const hearingDate = hearingDateForStatus(status);
   const venue = unitId === RACHAEL_UNITS.WESSEX_CROWN_COURT ? 'Wessex Crown Court' : 'Wessex RASSO';
 
   await prisma.hearing.create({
@@ -336,6 +381,32 @@ async function createManyWitnessesCase(prisma, user, config) {
     }
   });
 
+  const extraDefendants = [];
+  if (faker.datatype.boolean({ probability: 0.3 })) {
+    const extra = await prisma.defendant.create({
+      data: {
+        firstName: faker.helpers.arrayElement(firstNames),
+        lastName: faker.helpers.arrayElement(lastNames),
+        gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+        remandStatus: faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL', 'REMANDED_IN_CUSTODY']),
+        defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
+        charges: {
+          create: {
+            chargeCode: faker.helpers.arrayElement(charges).code,
+            description: faker.helpers.arrayElement(charges).description,
+            status: 'Charged',
+            offenceDate: faker.date.past(),
+            plea: faker.helpers.arrayElement(pleas),
+            particulars: faker.lorem.sentence(),
+            isCount: false
+          }
+        }
+      }
+    });
+    extraDefendants.push(extra);
+  }
+
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
   const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
@@ -363,7 +434,7 @@ async function createManyWitnessesCase(prisma, user, config) {
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: RACHAEL_UNITS.WESSEX_CROWN_COURT } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
-      defendants: { connect: { id: defendant.id } },
+      defendants: { connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))] },
       victims: { connect: victimIds },
       location: {
         create: {

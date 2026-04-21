@@ -4,8 +4,8 @@ const statuses = require('../data/case-statuses')
 
 const outcomeStatusMap = {
   'not-guilty': statuses.NOT_GUILTY,
-  'found-guilty': statuses.WAITING_FOR_SENTENCING,
-  'pleads-guilty': statuses.WAITING_FOR_SENTENCING,
+  'found-guilty': statuses.SENTENCING_HEARING_PENDING,
+  'pleads-guilty': statuses.SENTENCING_HEARING_PENDING,
 }
 
 module.exports = (router) => {

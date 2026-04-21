@@ -17,7 +17,7 @@ module.exports = (router) => {
 
     await prisma.case.update({
       where: { id: caseId },
-      data: { status: statuses.WAITING_FOR_PTPH_HEARING },
+      data: { status: statuses.PTPH_HEARING_PENDING },
     })
 
     await prisma.activityLog.create({

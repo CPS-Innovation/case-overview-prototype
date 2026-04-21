@@ -4,6 +4,7 @@ const prisma = new PrismaClient()
 const { getTaskSeverity } = require('../helpers/taskState')
 const { addTimeLimitDates } = require('../helpers/timeLimit')
 const { getDateGroup, getPaceClockGroup } = require('../helpers/taskGrouping')
+const statuses = require('../data/case-statuses')
 
 module.exports = router => {
 
@@ -17,6 +18,46 @@ module.exports = router => {
           none: {}
         }
       }
+    })
+
+    const triageCaseCount = await prisma.case.count({
+      where: { status: statuses.TRIAGE_NEEDED }
+    })
+
+    const prosecutorNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.PROSECUTOR_NEEDED }
+    })
+
+    const chargingDecisionNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.CHARGING_DECISION_NEEDED }
+    })
+
+    const firstHearingPreparationNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.FIRST_HEARING_PREPARATION_NEEDED }
+    })
+
+    const firstHearingOutcomeNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.FIRST_HEARING_OUTCOME_NEEDED }
+    })
+
+    const ptphNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.PTPH_PREPARATION_NEEDED }
+    })
+
+    const ptphOutcomeNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.PTPH_HEARING_OUTCOME_NEEDED }
+    })
+
+    const trialPreparationNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.TRIAL_PREPARATION_NEEDED }
+    })
+
+    const trialOutcomeNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.TRIAL_OUTCOME_NEEDED }
+    })
+
+    const sentenceNeededCaseCount = await prisma.case.count({
+      where: { status: statuses.SENTENCE_NEEDED }
     })
 
     // Count prosecutors with incomplete profiles (no specialist, preferred, or restricted areas)
@@ -346,6 +387,16 @@ module.exports = router => {
 
     res.render('overview/index', {
       unassignedCaseCount,
+      triageCaseCount,
+      prosecutorNeededCaseCount,
+      chargingDecisionNeededCaseCount,
+      firstHearingPreparationNeededCaseCount,
+      firstHearingOutcomeNeededCaseCount,
+      ptphNeededCaseCount,
+      ptphOutcomeNeededCaseCount,
+      trialPreparationNeededCaseCount,
+      trialOutcomeNeededCaseCount,
+      sentenceNeededCaseCount,
       incompleteProfileCount,
       needsDGAReviewCount,
       latestDGAMonth,

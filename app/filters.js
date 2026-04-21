@@ -132,19 +132,19 @@ addFilter('caseStatusTagClass', (status) => {
   switch (status) {
     case statuses.TRIAGE_NEEDED:
       return 'govuk-tag--blue'
-    case statuses.WAITING_FOR_RESUBMISSION:
+    case statuses.POLICE_RESUBMISSION_PENDING:
       return 'govuk-tag--orange'
     case statuses.PROSECUTOR_NEEDED:
       return 'govuk-tag--turquoise'
     case statuses.CHARGING_DECISION_NEEDED:
       return 'govuk-tag--purple'
-    case statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION:
+    case statuses.POLICE_CHARGING_INFORMATION_PENDING:
       return 'govuk-tag--yellow'
-    case statuses.WAITING_FOR_POLICE_TO_CHARGE:
+    case statuses.POLICE_AUTHORISED_CHARGE_PENDING:
       return 'govuk-tag--yellow'
     case statuses.FIRST_HEARING_PREPARATION_NEEDED:
       return 'govuk-tag--green'
-    case statuses.WAITING_FOR_FIRST_HEARING:
+    case statuses.FIRST_HEARING_PENDING:
       return 'govuk-tag--yellow'
     case statuses.FIRST_HEARING_OUTCOME_NEEDED:
       return 'govuk-tag--blue'
@@ -152,15 +152,15 @@ addFilter('caseStatusTagClass', (status) => {
       return 'govuk-tag--grey'
     case statuses.TRIAL_PREPARATION_NEEDED:
       return 'govuk-tag--purple'
-    case statuses.PTPH_NEEDED:
+    case statuses.PTPH_PREPARATION_NEEDED:
       return 'govuk-tag--turquoise'
-    case statuses.WAITING_FOR_PTPH_HEARING:
+    case statuses.PTPH_HEARING_PENDING:
       return 'govuk-tag--yellow'
     case statuses.PTPH_HEARING_OUTCOME_NEEDED:
       return 'govuk-tag--blue'
-    case statuses.WAITING_FOR_SENTENCING:
+    case statuses.SENTENCING_HEARING_PENDING:
       return 'govuk-tag--orange'
-    case statuses.WAITING_FOR_OUTCOME_OF_TRIAL:
+    case statuses.TRIAL_PENDING:
       return 'govuk-tag--yellow'
     case statuses.TRIAL_OUTCOME_NEEDED:
       return 'govuk-tag--blue'

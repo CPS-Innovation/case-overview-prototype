@@ -11,6 +11,7 @@ const {
 } = require('./pace-generators');
 const { createDirectionsForCase } = require('./directions');
 const { createCtlLogEntries } = require('./ctl-log-entries');
+const { hearingDateForStatus } = require('./dates');
 
 const TONY_UNITS = {
   DORSET_MAGISTRATES: 1,
@@ -28,36 +29,53 @@ const CROWN_COURT_UNIT_IDS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_R
 
 const TONY_MAGS_STATUSES = [
   statuses.TRIAGE_NEEDED,
-  statuses.WAITING_FOR_RESUBMISSION,
+  statuses.POLICE_RESUBMISSION_PENDING,
   statuses.PROSECUTOR_NEEDED,
   statuses.CHARGING_DECISION_NEEDED,
-  statuses.WAITING_FOR_INFORMATION_FOR_CHARGING_DECISION,
-  statuses.WAITING_FOR_POLICE_TO_CHARGE,
+  statuses.POLICE_CHARGING_INFORMATION_PENDING,
+  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
   statuses.FIRST_HEARING_PREPARATION_NEEDED,
-  statuses.WAITING_FOR_FIRST_HEARING,
+  statuses.FIRST_HEARING_PENDING,
   statuses.FIRST_HEARING_OUTCOME_NEEDED,
   statuses.NO_FURTHER_ACTION,
   statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+  statuses.TRIAL_PENDING,
   statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.WAITING_FOR_SENTENCING,
+  statuses.SENTENCING_HEARING_PENDING,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
 ];
 
 const TONY_CROWN_STATUSES = [
   statuses.PROSECUTOR_NEEDED,
-  statuses.PTPH_NEEDED,
-  statuses.WAITING_FOR_PTPH_HEARING,
+  statuses.CHARGING_DECISION_NEEDED,
+  statuses.POLICE_CHARGING_INFORMATION_PENDING,
+  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.FIRST_HEARING_PREPARATION_NEEDED,
+  statuses.FIRST_HEARING_PENDING,
+  statuses.FIRST_HEARING_OUTCOME_NEEDED,
+  statuses.PTPH_PREPARATION_NEEDED,
+  statuses.PTPH_HEARING_PENDING,
   statuses.PTPH_HEARING_OUTCOME_NEEDED,
   statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.WAITING_FOR_OUTCOME_OF_TRIAL,
+  statuses.TRIAL_PENDING,
   statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.WAITING_FOR_SENTENCING,
+  statuses.SENTENCING_HEARING_PENDING,
+  statuses.SENTENCE_NEEDED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
   statuses.NO_FURTHER_ACTION,
 ];
+const HEARING_TYPE_TO_STATUSES = {
+  'First Hearing': [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.FIRST_HEARING_PENDING, statuses.FIRST_HEARING_OUTCOME_NEEDED],
+  'PTPH':          [statuses.PTPH_PREPARATION_NEEDED, statuses.PTPH_HEARING_PENDING, statuses.PTPH_HEARING_OUTCOME_NEEDED],
+  'Trial':         [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING, statuses.TRIAL_OUTCOME_NEEDED],
+  'Mention':       [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.PTPH_PREPARATION_NEEDED, statuses.TRIAL_PREPARATION_NEEDED],
+  'Section 28':    [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING],
+  'Sentence, with PSR': [statuses.SENTENCING_HEARING_PENDING],
+  'Sentencing':    [statuses.SENTENCING_HEARING_PENDING],
+};
+
 const MAGISTRATES_UNITS = [TONY_UNITS.DORSET_MAGISTRATES, TONY_UNITS.HAMPSHIRE_MAGISTRATES];
 const CROWN_RASSO_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_RASSO];
 const CROWN_RASSO_CCU_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_RASSO, TONY_UNITS.WESSEX_CCU];
@@ -65,7 +83,7 @@ const CROWN_RASSO_CCU_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_
 // STL tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
 const ADMIN_STL_TASKS = [
   { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, status: statuses.TRIAGE_NEEDED },
-  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, status: statuses.WAITING_FOR_RESUBMISSION }
+  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, status: statuses.POLICE_RESUBMISSION_PENDING }
 ];
 
 // PACE clock tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
@@ -362,17 +380,47 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
     });
   }
 
-  const statusPool = CROWN_COURT_UNIT_IDS.includes(unitId) ? TONY_CROWN_STATUSES : TONY_MAGS_STATUSES;
+  const extraDefendants = [];
+  if (faker.datatype.boolean({ probability: 0.3 })) {
+    const extra = await prisma.defendant.create({
+      data: {
+        firstName: faker.helpers.arrayElement(firstNames),
+        lastName: faker.helpers.arrayElement(lastNames),
+        gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+        dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+        remandStatus: faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL', 'REMANDED_IN_CUSTODY']),
+        defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
+        charges: {
+          create: {
+            chargeCode: faker.helpers.arrayElement(charges).code,
+            description: faker.helpers.arrayElement(charges).description,
+            status: 'Charged',
+            offenceDate: faker.date.past(),
+            plea: faker.helpers.arrayElement(pleas),
+            particulars: faker.lorem.sentence(),
+            isCount: false
+          }
+        }
+      }
+    });
+    extraDefendants.push(extra);
+  }
+
+  const statusPool = hearingType
+    ? HEARING_TYPE_TO_STATUSES[hearingType]
+    : (CROWN_COURT_UNIT_IDS.includes(unitId) ? TONY_CROWN_STATUSES : TONY_MAGS_STATUSES);
+  const status = faker.helpers.arrayElement(statusPool);
+
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
       operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
-      status: faker.helpers.arrayElement(statusPool),
+      status,
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
-      defendants: { connect: { id: defendant.id } },
+      defendants: { connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))] },
       victims: { connect: victimIds },
       location: {
         create: {
@@ -393,12 +441,10 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
 
   // Create hearing if applicable
   if (hearingType) {
-    const hearingDate = faker.date.soon({ days: 30 });
-    hearingDate.setUTCHours(faker.helpers.arrayElement([10, 11, 12]), 0, 0, 0);
     const unit = await prisma.unit.findUnique({ where: { id: unitId } });
     await prisma.hearing.create({
       data: {
-        startDate: hearingDate,
+        startDate: hearingDateForStatus(status),
         endDate: null,
         status: 'Scheduled',
         type: hearingType,

@@ -30,9 +30,30 @@ function getTomorrowDate() {
   return d;
 }
 
+function hearingDateForStatus(status) {
+  const d = new Date();
+
+  if (status.includes('outcome needed')) {
+    d.setDate(d.getDate() - faker.number.int({ min: 1, max: 5 }));
+  } else if (
+    status === 'First hearing pending' ||
+    status === 'PTPH hearing pending' ||
+    status === 'Trial pending' ||
+    status === 'Sentencing hearing pending'
+  ) {
+    d.setDate(d.getDate() + faker.number.int({ min: 0, max: 2 }));
+  } else {
+    d.setDate(d.getDate() + faker.number.int({ min: 14, max: 56 }));
+  }
+
+  d.setUTCHours(10, 0, 0, 0);
+  return d;
+}
+
 module.exports = {
   futureDateAtHearingTime,
   getOverdueDate,
   getTodayDate,
-  getTomorrowDate
+  getTomorrowDate,
+  hearingDateForStatus
 };
