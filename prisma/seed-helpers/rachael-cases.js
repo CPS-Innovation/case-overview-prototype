@@ -1,11 +1,11 @@
 const { faker } = require('@faker-js/faker');
 const statuses = require('../../app/data/case-statuses');
+const hearingStatuses = require('../../app/data/hearing-statuses');
 const { generateCaseReference } = require('./identifiers');
 const { createDivergedCase } = require('./diverged-cases');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
 const { createDirectionsForCase } = require('./directions');
 const { createCtlLogEntries } = require('./ctl-log-entries');
-const { hearingDateForStatus } = require('./dates');
 
 const RACHAEL_UNITS = {
   WESSEX_CROWN_COURT: 3,
@@ -13,35 +13,14 @@ const RACHAEL_UNITS = {
 };
 
 const RACHAEL_STATUSES = [
-  statuses.PROSECUTOR_NEEDED,
   statuses.CHARGING_DECISION_NEEDED,
   statuses.POLICE_CHARGING_INFORMATION_PENDING,
   statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-  statuses.FIRST_HEARING_PREPARATION_NEEDED,
-  statuses.FIRST_HEARING_PENDING,
-  statuses.FIRST_HEARING_OUTCOME_NEEDED,
-  statuses.PTPH_PREPARATION_NEEDED,
-  statuses.PTPH_HEARING_PENDING,
-  statuses.PTPH_HEARING_OUTCOME_NEEDED,
-  statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.TRIAL_PENDING,
-  statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.SENTENCING_HEARING_PENDING,
-  statuses.SENTENCE_NEEDED,
+  statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
   statuses.NO_FURTHER_ACTION,
 ];
-
-const HEARING_TYPE_TO_STATUSES = {
-  'First Hearing': [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.FIRST_HEARING_PENDING, statuses.FIRST_HEARING_OUTCOME_NEEDED],
-  'PTPH':          [statuses.PTPH_PREPARATION_NEEDED, statuses.PTPH_HEARING_PENDING, statuses.PTPH_HEARING_OUTCOME_NEEDED],
-  'Trial':         [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING, statuses.TRIAL_OUTCOME_NEEDED],
-  'Mention':       [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.PTPH_PREPARATION_NEEDED, statuses.TRIAL_PREPARATION_NEEDED],
-  'Section 28':    [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING],
-  'Sentence, with PSR': [statuses.SENTENCING_HEARING_PENDING],
-  'Sentencing':    [statuses.SENTENCING_HEARING_PENDING],
-};
 
 const RACHAEL_TASKS = [
   { name: 'Check new police info', hasCTL: true, hearingType: 'Mention' },
@@ -246,13 +225,10 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
     extraDefendants.push(extra);
   }
 
-  const status = faker.helpers.arrayElement(HEARING_TYPE_TO_STATUSES[hearingType]);
-
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
       operationName,
-      status,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -283,18 +259,29 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
     }
   });
 
+  // Set defendant status to Charged (all Rachael task cases are in hearing)
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: statuses.CHARGED }
+  });
+
   // Create hearing
-  const hearingDate = hearingDateForStatus(status);
   const venue = unitId === RACHAEL_UNITS.WESSEX_CROWN_COURT ? 'Wessex Crown Court' : 'Wessex RASSO';
+  const hearingStartDate = new Date();
+  hearingStartDate.setDate(hearingStartDate.getDate() + faker.number.int({ min: 7, max: 56 }));
+  hearingStartDate.setHours(10, 0, 0, 0);
 
   await prisma.hearing.create({
     data: {
-      startDate: hearingDate,
+      startDate: hearingStartDate,
       endDate: null,
-      status: 'Scheduled',
+      status: hearingStatuses.PREPARATION_NEEDED,
       type: hearingType,
       venue,
-      caseId: _case.id
+      caseId: _case.id,
+      defendants: {
+        connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))]
+      }
     }
   });
 
@@ -430,7 +417,6 @@ async function createManyWitnessesCase(prisma, user, config) {
     data: {
       reference: '99RH250001/1',
       operationName,
-      status: faker.helpers.arrayElement(RACHAEL_STATUSES),
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: RACHAEL_UNITS.WESSEX_CROWN_COURT } },
@@ -459,6 +445,11 @@ async function createManyWitnessesCase(prisma, user, config) {
       caseId: _case.id,
       userId: user.id
     }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: faker.helpers.arrayElement(RACHAEL_STATUSES) }
   });
 
   // Create 25 witnesses, each with 0-2 statements
@@ -538,7 +529,6 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
-      status: faker.helpers.arrayElement(RACHAEL_STATUSES),
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -566,6 +556,11 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
 
   await prisma.caseParalegalOfficer.create({
     data: { caseId: _case.id, userId: paralegalOfficer.id }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: faker.helpers.arrayElement(RACHAEL_STATUSES) }
   });
 
   const dueDate = faker.date.soon({ days: 30 });

@@ -15,8 +15,8 @@ module.exports = (router) => {
   router.post('/cases/:caseId/reject', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
 
-    await prisma.case.update({
-      where: { id: caseId },
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
       data: { status: statuses.POLICE_RESUBMISSION_PENDING },
     })
 
@@ -38,8 +38,8 @@ module.exports = (router) => {
   router.get('/cases/:caseId/accept-resubmission', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
 
-    await prisma.case.update({
-      where: { id: caseId },
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
       data: { status: statuses.TRIAGE_NEEDED },
     })
 

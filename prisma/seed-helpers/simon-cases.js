@@ -21,35 +21,19 @@ const SIMON_UNITS = {
 const SIMON_UNITS_ARRAY = Object.values(SIMON_UNITS);
 
 const statuses = require('../../app/data/case-statuses');
+const hearingStatuses = require('../../app/data/hearing-statuses');
 
 const SIMON_STATUSES = [
   statuses.TRIAGE_NEEDED,
   statuses.POLICE_RESUBMISSION_PENDING,
-  statuses.PROSECUTOR_NEEDED,
   statuses.CHARGING_DECISION_NEEDED,
   statuses.POLICE_CHARGING_INFORMATION_PENDING,
   statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-  statuses.FIRST_HEARING_PREPARATION_NEEDED,
-  statuses.FIRST_HEARING_PENDING,
-  statuses.FIRST_HEARING_OUTCOME_NEEDED,
-  statuses.NO_FURTHER_ACTION,
-  statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.TRIAL_PENDING,
-  statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.SENTENCING_HEARING_PENDING,
+  statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
+  statuses.NO_FURTHER_ACTION,
 ];
-
-const HEARING_TYPE_TO_STATUSES = {
-  'First Hearing': [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.FIRST_HEARING_PENDING, statuses.FIRST_HEARING_OUTCOME_NEEDED],
-  'PTPH':          [statuses.PTPH_PREPARATION_NEEDED, statuses.PTPH_HEARING_PENDING, statuses.PTPH_HEARING_OUTCOME_NEEDED],
-  'Trial':         [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING, statuses.TRIAL_OUTCOME_NEEDED],
-  'Mention':       [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.PTPH_PREPARATION_NEEDED, statuses.TRIAL_PREPARATION_NEEDED],
-  'Section 28':    [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING],
-  'Sentence, with PSR': [statuses.SENTENCING_HEARING_PENDING],
-  'Sentencing':    [statuses.SENTENCING_HEARING_PENDING],
-};
 
 // STL tasks (pre-charge, no hearing)
 const SIMON_STL_TASKS = [
@@ -234,7 +218,6 @@ async function createSTLCase(prisma, user, taskConfig, config) {
     data: {
       reference: generateCaseReference(),
       operationName,
-      status: faker.helpers.arrayElement(SIMON_STATUSES),
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -264,6 +247,11 @@ async function createSTLCase(prisma, user, taskConfig, config) {
       userId: user.id,
       isLead: true
     }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: statuses.POLICE_AUTHORISED_CHARGE_PENDING }
   });
 
   // Create task (no hearing for STL/pre-charge tasks)
@@ -362,13 +350,10 @@ async function createCTLCase(prisma, user, taskConfig, config) {
     extraDefendants.push(extra);
   }
 
-  const status = faker.helpers.arrayElement(HEARING_TYPE_TO_STATUSES[hearingType]);
-
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
       operationName,
-      status,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -400,15 +385,27 @@ async function createCTLCase(prisma, user, taskConfig, config) {
     }
   });
 
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: statuses.CHARGED }
+  });
+
   // Create hearing
+  const hearingStartDate = new Date();
+  hearingStartDate.setDate(hearingStartDate.getDate() + faker.number.int({ min: 7, max: 56 }));
+  hearingStartDate.setHours(10, 0, 0, 0);
+
   await prisma.hearing.create({
     data: {
-      startDate: hearingDateForStatus(status),
+      startDate: hearingStartDate,
       endDate: null,
-      status: 'Scheduled',
+      status: hearingStatuses.PREPARATION_NEEDED,
       type: hearingType,
       venue: 'Magistrates Court',
-      caseId: _case.id
+      caseId: _case.id,
+      defendants: {
+        connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))]
+      }
     }
   });
 
@@ -486,7 +483,6 @@ async function createManyStatementsCase(prisma, user, config) {
     data: {
       reference: '99SW100001/1',
       operationName,
-      status: faker.helpers.arrayElement(SIMON_STATUSES),
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: SIMON_UNITS.NORTH_YORKSHIRE_MAGISTRATES_COURT } },
@@ -516,6 +512,11 @@ async function createManyStatementsCase(prisma, user, config) {
       userId: user.id,
       isLead: true
     }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: faker.helpers.arrayElement(SIMON_STATUSES) }
   });
 
   const dueDate = faker.date.soon({ days: 14 });
@@ -647,7 +648,6 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
-      status: faker.helpers.arrayElement(SIMON_STATUSES),
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -675,6 +675,11 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
 
   await prisma.caseParalegalOfficer.create({
     data: { caseId: _case.id, userId: paralegalOfficer.id }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: faker.helpers.arrayElement(SIMON_STATUSES) }
   });
 
   const dueDate = faker.date.soon({ days: 30 });

@@ -13,24 +13,13 @@ const dgaStatuses = ['Awaiting outcome', 'Outcome recorded']
 const caseStatuses = [
   statuses.TRIAGE_NEEDED,
   statuses.POLICE_RESUBMISSION_PENDING,
-  statuses.PROSECUTOR_NEEDED,
   statuses.CHARGING_DECISION_NEEDED,
   statuses.POLICE_CHARGING_INFORMATION_PENDING,
   statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-  statuses.FIRST_HEARING_PREPARATION_NEEDED,
-  statuses.FIRST_HEARING_PENDING,
-  statuses.FIRST_HEARING_OUTCOME_NEEDED,
-  statuses.PTPH_PREPARATION_NEEDED,
-  statuses.PTPH_HEARING_PENDING,
-  statuses.PTPH_HEARING_OUTCOME_NEEDED,
-  statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.TRIAL_PENDING,
-  statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.SENTENCING_HEARING_PENDING,
-  statuses.SENTENCE_NEEDED,
-  statuses.SENTENCED,
+  statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.NO_FURTHER_ACTION,
+  statuses.SENTENCED,
 ]
 
 function resetFilters(req) {
@@ -68,39 +57,9 @@ module.exports = (router) => {
     res.redirect('/cases/?caseListFilters[statuses][]=Charging+decision+needed')
   })
 
-  router.get('/cases/shortcut/first-hearing-preparation-needed', (req, res) => {
+  router.get('/cases/shortcut/charged', (req, res) => {
     resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=First+hearing+preparation+needed')
-  })
-
-  router.get('/cases/shortcut/first-hearing-outcome-needed', (req, res) => {
-    resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=First+hearing+outcome+needed')
-  })
-
-  router.get('/cases/shortcut/ptph-needed', (req, res) => {
-    resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=PTPH+hearing+preparation+needed')
-  })
-
-  router.get('/cases/shortcut/ptph-outcome-needed', (req, res) => {
-    resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=PTPH+hearing+outcome+needed')
-  })
-
-  router.get('/cases/shortcut/trial-preparation-needed', (req, res) => {
-    resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=Trial+preparation+needed')
-  })
-
-  router.get('/cases/shortcut/trial-outcome-needed', (req, res) => {
-    resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=Trial+outcome+needed')
-  })
-
-  router.get('/cases/shortcut/sentence-needed', (req, res) => {
-    resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=Sentence+needed')
+    res.redirect('/cases/?caseListFilters[statuses][]=Charged')
   })
 
   router.get('/cases/shortcut/dga', (req, res) => {
@@ -521,7 +480,7 @@ module.exports = (router) => {
     const whereWithoutStatus = { AND: [...where.AND] }
 
     if (selectedStatusFilters?.length) {
-      where.AND.push({ status: { in: selectedStatusFilters } })
+      where.AND.push({ defendants: { some: { status: { in: selectedStatusFilters } } } })
     }
     if (selectedComplexityFilters?.length) {
       where.AND.push({ complexity: { in: selectedComplexityFilters } })
@@ -700,12 +659,12 @@ module.exports = (router) => {
     })
 
     const whereForStatusLookup = whereWithoutStatus.AND.length ? whereWithoutStatus : {}
-    const distinctStatusRows = await prisma.case.findMany({
-      where: whereForStatusLookup,
+    const distinctStatusRows = await prisma.defendant.findMany({
+      where: { cases: { some: whereForStatusLookup } },
       select: { status: true },
       distinct: ['status'],
     })
-    const distinctStatuses = new Set(distinctStatusRows.map(c => c.status))
+    const distinctStatuses = new Set(distinctStatusRows.map(d => d.status).filter(Boolean))
     const statusItems = distinctStatuses.size > 1
       ? caseStatuses.filter(s => distinctStatuses.has(s)).map(s => ({ value: s, text: s }))
       : []

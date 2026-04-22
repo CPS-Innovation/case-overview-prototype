@@ -23,7 +23,8 @@ module.exports = router => {
     _case = addTimeLimitDates(_case)
 
     const hearing = await prisma.hearing.findUnique({
-      where: { id: parseInt(req.params.hearingId) }
+      where: { id: parseInt(req.params.hearingId) },
+      include: { defendants: true }
     })
 
     res.render('cases/hearings/show', { _case, hearing })

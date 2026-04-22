@@ -24,43 +24,15 @@ module.exports = router => {
     })
 
     const triageCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.TRIAGE_NEEDED }
-    })
-
-    const prosecutorNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.PROSECUTOR_NEEDED }
+      where: { ...unitFilter, defendants: { some: { status: statuses.TRIAGE_NEEDED } } }
     })
 
     const chargingDecisionNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.CHARGING_DECISION_NEEDED }
+      where: { ...unitFilter, defendants: { some: { status: statuses.CHARGING_DECISION_NEEDED } } }
     })
 
-    const firstHearingPreparationNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.FIRST_HEARING_PREPARATION_NEEDED }
-    })
-
-    const firstHearingOutcomeNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.FIRST_HEARING_OUTCOME_NEEDED }
-    })
-
-    const ptphNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.PTPH_PREPARATION_NEEDED }
-    })
-
-    const ptphOutcomeNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.PTPH_HEARING_OUTCOME_NEEDED }
-    })
-
-    const trialPreparationNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.TRIAL_PREPARATION_NEEDED }
-    })
-
-    const trialOutcomeNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.TRIAL_OUTCOME_NEEDED }
-    })
-
-    const sentenceNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, status: statuses.SENTENCE_NEEDED }
+    const chargedCaseCount = await prisma.case.count({
+      where: { ...unitFilter, defendants: { some: { status: statuses.CHARGED } } }
     })
 
     // Count prosecutors with incomplete profiles (no specialist, preferred, or restricted areas)
@@ -391,15 +363,8 @@ module.exports = router => {
     res.render('overview/index', {
       unassignedCaseCount,
       triageCaseCount,
-      prosecutorNeededCaseCount,
       chargingDecisionNeededCaseCount,
-      firstHearingPreparationNeededCaseCount,
-      firstHearingOutcomeNeededCaseCount,
-      ptphNeededCaseCount,
-      ptphOutcomeNeededCaseCount,
-      trialPreparationNeededCaseCount,
-      trialOutcomeNeededCaseCount,
-      sentenceNeededCaseCount,
+      chargedCaseCount,
       incompleteProfileCount,
       needsDGAReviewCount,
       latestDGAMonth,

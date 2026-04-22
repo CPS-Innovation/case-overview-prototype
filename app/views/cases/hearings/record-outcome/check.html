@@ -1,0 +1,45 @@
+{% extends "_layouts/main.html" %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% set navId = 'cases' %}
+{% set pageName = "Check and record outcome" %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: 'Back',
+    href: '/cases/' + _case.id + '/hearings/' + hearing.id + '/record-outcome'
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+      {{ govukSummaryList({
+        rows: [
+          {
+            key: { text: "Hearing" },
+            value: { text: hearing.type }
+          },
+          {
+            key: { text: "Outcome" },
+            value: { text: data.recordHearingOutcome.outcome | replace("-", " ") | capitalize },
+            actions: {
+              items: [{
+                href: "/cases/" + _case.id + "/hearings/" + hearing.id + "/record-outcome",
+                text: "Change",
+                visuallyHiddenText: "outcome"
+              }]
+            }
+          }
+        ]
+      }) }}
+
+      <form method="post">
+        {{ govukButton({ text: "Record outcome" }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -46,8 +46,8 @@ module.exports = (router) => {
 
     const status = decisionStatusMap[decision]
     if (status) {
-      await prisma.case.update({
-        where: { id: caseId },
+      await prisma.defendant.updateMany({
+        where: { cases: { some: { id: caseId } } },
         data: { status },
       })
     }

@@ -12,7 +12,7 @@ const {
 } = require('./pace-generators');
 const { createDirectionsForCase } = require('./directions');
 const { createCtlLogEntries } = require('./ctl-log-entries');
-const { hearingDateForStatus } = require('./dates');
+const hearingStatuses = require('../../app/data/hearing-statuses');
 
 const TONY_UNITS = {
   DORSET_MAGISTRATES: 1,
@@ -28,54 +28,17 @@ const ALL_TONY_UNITS = Object.values(TONY_UNITS);
 
 const CROWN_COURT_UNIT_IDS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_RASSO];
 
-const TONY_MAGS_STATUSES = [
+const TONY_STATUSES = [
   statuses.TRIAGE_NEEDED,
   statuses.POLICE_RESUBMISSION_PENDING,
-  statuses.PROSECUTOR_NEEDED,
   statuses.CHARGING_DECISION_NEEDED,
   statuses.POLICE_CHARGING_INFORMATION_PENDING,
   statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-  statuses.FIRST_HEARING_PREPARATION_NEEDED,
-  statuses.FIRST_HEARING_PENDING,
-  statuses.FIRST_HEARING_OUTCOME_NEEDED,
-  statuses.NO_FURTHER_ACTION,
-  statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.TRIAL_PENDING,
-  statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.SENTENCING_HEARING_PENDING,
+  statuses.CHARGED,
   statuses.NOT_GUILTY,
+  statuses.NO_FURTHER_ACTION,
   statuses.SENTENCED,
 ];
-
-const TONY_CROWN_STATUSES = [
-  statuses.PROSECUTOR_NEEDED,
-  statuses.CHARGING_DECISION_NEEDED,
-  statuses.POLICE_CHARGING_INFORMATION_PENDING,
-  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-  statuses.FIRST_HEARING_PREPARATION_NEEDED,
-  statuses.FIRST_HEARING_PENDING,
-  statuses.FIRST_HEARING_OUTCOME_NEEDED,
-  statuses.PTPH_PREPARATION_NEEDED,
-  statuses.PTPH_HEARING_PENDING,
-  statuses.PTPH_HEARING_OUTCOME_NEEDED,
-  statuses.TRIAL_PREPARATION_NEEDED,
-  statuses.TRIAL_PENDING,
-  statuses.TRIAL_OUTCOME_NEEDED,
-  statuses.SENTENCING_HEARING_PENDING,
-  statuses.SENTENCE_NEEDED,
-  statuses.NOT_GUILTY,
-  statuses.SENTENCED,
-  statuses.NO_FURTHER_ACTION,
-];
-const HEARING_TYPE_TO_STATUSES = {
-  'First Hearing': [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.FIRST_HEARING_PENDING, statuses.FIRST_HEARING_OUTCOME_NEEDED],
-  'PTPH':          [statuses.PTPH_PREPARATION_NEEDED, statuses.PTPH_HEARING_PENDING, statuses.PTPH_HEARING_OUTCOME_NEEDED],
-  'Trial':         [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING, statuses.TRIAL_OUTCOME_NEEDED],
-  'Mention':       [statuses.FIRST_HEARING_PREPARATION_NEEDED, statuses.PTPH_PREPARATION_NEEDED, statuses.TRIAL_PREPARATION_NEEDED],
-  'Section 28':    [statuses.TRIAL_PREPARATION_NEEDED, statuses.TRIAL_PENDING],
-  'Sentence, with PSR': [statuses.SENTENCING_HEARING_PENDING],
-  'Sentencing':    [statuses.SENTENCING_HEARING_PENDING],
-};
 
 const MAGISTRATES_UNITS = [TONY_UNITS.DORSET_MAGISTRATES, TONY_UNITS.HAMPSHIRE_MAGISTRATES];
 const CROWN_RASSO_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_RASSO];
@@ -83,8 +46,8 @@ const CROWN_RASSO_CCU_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_
 
 // STL tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
 const ADMIN_STL_TASKS = [
-  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, status: statuses.TRIAGE_NEEDED },
-  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, status: statuses.POLICE_RESUBMISSION_PENDING }
+  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.TRIAGE_NEEDED },
+  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.POLICE_RESUBMISSION_PENDING }
 ];
 
 // PACE clock tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
@@ -120,7 +83,7 @@ async function getAdminPoolTeamForUnit(prisma, unitId) {
 
 async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
   const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities, policeUnits, ukCities, availableOperationNames, documentNames, documentTypes } = config;
-  const { name, stlGenerator, units, status: fixedStatus } = taskConfig;
+  const { name, stlGenerator, units, fixedStatus } = taskConfig;
 
   const unitId = faker.helpers.arrayElement(units);
   const statutoryTimeLimit = stlGenerator();
@@ -172,14 +135,12 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
     });
   }
 
-  const statusPool = CROWN_COURT_UNIT_IDS.includes(unitId) ? TONY_CROWN_STATUSES : TONY_MAGS_STATUSES;
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
       operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
-      status: fixedStatus || faker.helpers.arrayElement(statusPool),
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
       defendants: { connect: { id: defendant.id } },
@@ -199,6 +160,11 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
         },
       },
     }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: fixedStatus || faker.helpers.arrayElement(TONY_STATUSES) }
   });
 
   // Create task assigned to admin pool team (not to a user)
@@ -276,14 +242,12 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
     });
   }
 
-  const statusPool = CROWN_COURT_UNIT_IDS.includes(unitId) ? TONY_CROWN_STATUSES : TONY_MAGS_STATUSES;
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
       operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
-      status: faker.helpers.arrayElement(statusPool),
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
       defendants: { connect: { id: defendant.id } },
@@ -303,6 +267,11 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
         },
       },
     }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: faker.helpers.arrayElement(TONY_STATUSES) }
   });
 
   // Create task assigned to admin pool team (not to a user)
@@ -407,18 +376,12 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
     extraDefendants.push(extra);
   }
 
-  const statusPool = hearingType
-    ? HEARING_TYPE_TO_STATUSES[hearingType]
-    : (CROWN_COURT_UNIT_IDS.includes(unitId) ? TONY_CROWN_STATUSES : TONY_MAGS_STATUSES);
-  const status = faker.helpers.arrayElement(statusPool);
-
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
       operationName,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
-      status,
       unit: { connect: { id: unitId } },
       policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
       defendants: { connect: [{ id: defendant.id }, ...extraDefendants.map(d => ({ id: d.id }))] },
@@ -440,17 +403,26 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
     }
   });
 
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: hearingType ? statuses.CHARGED : faker.helpers.arrayElement(TONY_STATUSES) }
+  });
+
   // Create hearing if applicable
   if (hearingType) {
     const unit = await prisma.unit.findUnique({ where: { id: unitId } });
+    const allDefendants = [defendant, ...extraDefendants];
+    const hearingDate = faker.date.soon({ days: 30 });
+    hearingDate.setHours(10, 0, 0, 0);
     await prisma.hearing.create({
       data: {
-        startDate: hearingDateForStatus(status),
+        startDate: hearingDate,
         endDate: null,
-        status: 'Scheduled',
+        status: hearingStatuses.PREPARATION_NEEDED,
         type: hearingType,
         venue: unit?.name || 'Court',
-        caseId: _case.id
+        caseId: _case.id,
+        defendants: { connect: allDefendants.map(d => ({ id: d.id })) }
       }
     });
   }
@@ -485,8 +457,6 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, taskNames, policeUnits, ukCities, documentNames, documentTypes } = config;
 
   const unitId = faker.helpers.arrayElement(ALL_TONY_UNITS);
-  const isCrown = CROWN_COURT_UNIT_IDS.includes(unitId);
-  const statusPool = isCrown ? TONY_CROWN_STATUSES : TONY_MAGS_STATUSES;
 
   const defendant = await prisma.defendant.create({
     data: {
@@ -527,7 +497,6 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
-      status: faker.helpers.arrayElement(statusPool),
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },
@@ -547,6 +516,11 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
         createMany: { data: documentsData }
       }
     }
+  });
+
+  await prisma.defendant.updateMany({
+    where: { cases: { some: { id: _case.id } } },
+    data: { status: faker.helpers.arrayElement(TONY_STATUSES) }
   });
 
   await prisma.caseProsecutor.create({
@@ -625,7 +599,7 @@ async function seedTonyCases(prisma, dependencies, config) {
 
   const tonyStark = await prisma.user.findFirst({ where: { firstName: 'Tony', lastName: 'Stark' } });
   if (tonyStark) {
-    await createDivergedCase(prisma, tonyStark, faker.helpers.arrayElement(ALL_TONY_UNITS), TONY_MAGS_STATUSES, fullConfig);
+    await createDivergedCase(prisma, tonyStark, faker.helpers.arrayElement(ALL_TONY_UNITS), TONY_STATUSES, fullConfig);
     count++;
   }
 

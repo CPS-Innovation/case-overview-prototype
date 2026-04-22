@@ -26,14 +26,22 @@
       {% if _case.hearings.length %}
         <div class="app-list">
           {% for hearing in _case.hearings %}
+            {% if hearing.defendants.length == _case.defendants.length %}
+              {% set hearingDefendantNames = 'All' %}
+            {% else %}
+              {% set hearingDefendantNames %}{% for d in hearing.defendants %}{{ d.firstName }} {{ d.lastName }}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
+            {% endif %}
             <div class="app-list__item">
               <h3 class="govuk-heading-s govuk-!-margin-bottom-1">
-                <a
-                  href="/cases/{{ _case.id }}/hearings/{{ hearing.id }}"
-                  class="govuk-link--no-visited-state"
-                >
-                  {{ hearing.type }}
-                </a>
+                <div>
+                  <a
+                    href="/cases/{{ _case.id }}/hearings/{{ hearing.id }}"
+                    class="govuk-link--no-visited-state"
+                  >
+                    {{ hearing.type }}
+                  </a>
+                </div>
+                <div class="app-list__tag">{{ govukTag({ text: hearing.status }) }}</div>
               </h3>
 
               {{
@@ -49,9 +57,9 @@
                       value: { text: hearing.venue }
                     },
                     {
-                      key: { text: 'Status' },
-                      value: { text: hearing.status }
-                    }
+                      key: { text: 'Defendants' },
+                      value: { text: hearingDefendantNames }
+                    } if _case.defendants.length > 1
                   ]
                 })
               }}

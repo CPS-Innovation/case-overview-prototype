@@ -6,9 +6,9 @@ module.exports = (router) => {
   router.get('/cases/:caseId/mark-charges-received', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
 
-    await prisma.case.update({
-      where: { id: caseId },
-      data: { status: statuses.FIRST_HEARING_PREPARATION_NEEDED },
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
+      data: { status: statuses.CHARGED },
     })
 
     await prisma.activityLog.create({
@@ -17,7 +17,7 @@ module.exports = (router) => {
         model: 'Case',
         recordId: caseId,
         action: 'UPDATE',
-        title: 'First hearing preparation',
+        title: 'Charges received',
         caseId,
       },
     })

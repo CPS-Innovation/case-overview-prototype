@@ -8,7 +8,8 @@ module.exports = router => {
       where: { id: parseInt(req.params.caseId) },
       include: {
         hearings: {
-          orderBy: { startDate: 'asc' }
+          orderBy: { startDate: 'asc' },
+          include: { defendants: true }
         },
         unit: true,
         prosecutors: { include: { user: true } },

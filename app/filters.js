@@ -136,42 +136,32 @@ addFilter('caseStatusTagClass', (status) => {
       return 'govuk-tag--blue'
     case statuses.POLICE_RESUBMISSION_PENDING:
       return 'govuk-tag--orange'
-    case statuses.PROSECUTOR_NEEDED:
-      return 'govuk-tag--turquoise'
     case statuses.CHARGING_DECISION_NEEDED:
       return 'govuk-tag--purple'
     case statuses.POLICE_CHARGING_INFORMATION_PENDING:
       return 'govuk-tag--yellow'
     case statuses.POLICE_AUTHORISED_CHARGE_PENDING:
       return 'govuk-tag--yellow'
-    case statuses.FIRST_HEARING_PREPARATION_NEEDED:
+    case statuses.CHARGED:
       return 'govuk-tag--green'
-    case statuses.FIRST_HEARING_PENDING:
-      return 'govuk-tag--yellow'
-    case statuses.FIRST_HEARING_OUTCOME_NEEDED:
-      return 'govuk-tag--blue'
     case statuses.NO_FURTHER_ACTION:
       return 'govuk-tag--grey'
-    case statuses.TRIAL_PREPARATION_NEEDED:
-      return 'govuk-tag--purple'
-    case statuses.PTPH_PREPARATION_NEEDED:
-      return 'govuk-tag--turquoise'
-    case statuses.PTPH_HEARING_PENDING:
-      return 'govuk-tag--yellow'
-    case statuses.PTPH_HEARING_OUTCOME_NEEDED:
-      return 'govuk-tag--blue'
-    case statuses.SENTENCING_HEARING_PENDING:
-      return 'govuk-tag--orange'
-    case statuses.TRIAL_PENDING:
-      return 'govuk-tag--yellow'
-    case statuses.TRIAL_OUTCOME_NEEDED:
-      return 'govuk-tag--blue'
     case statuses.NOT_GUILTY:
       return 'govuk-tag--grey'
     case statuses.SENTENCED:
       return 'govuk-tag--grey'
     default:
       return ''
+  }
+})
+
+addFilter('hearingStatusTagClass', (status) => {
+  switch (status) {
+    case 'Preparation needed': return 'govuk-tag--blue'
+    case 'Pending':            return 'govuk-tag--yellow'
+    case 'Outcome needed':     return 'govuk-tag--orange'
+    case 'Complete':           return 'govuk-tag--green'
+    default:                   return ''
   }
 })
 

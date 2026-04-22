@@ -15,8 +15,8 @@ module.exports = (router) => {
   router.post('/cases/:caseId/no-further-action', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
 
-    await prisma.case.update({
-      where: { id: caseId },
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
       data: { status: statuses.NO_FURTHER_ACTION },
     })
 

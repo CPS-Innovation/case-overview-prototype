@@ -1,7 +1,6 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
-const statuses = require('../data/case-statuses')
 
 module.exports = router => {
 
@@ -127,19 +126,6 @@ module.exports = router => {
         meta: { paralegalOfficer }
       }
     })
-
-    const _case = await prisma.case.findUnique({ where: { id: caseId }, select: { status: true, unitId: true } })
-
-    if (_case.status === statuses.PROSECUTOR_NEEDED) {
-      const unit = await prisma.unit.findUnique({ where: { id: _case.unitId } })
-
-      if (unit.name.includes('Crown Court')) {
-        const prosecutorCount = await prisma.caseProsecutor.count({ where: { caseId } })
-        if (prosecutorCount > 0) {
-          await prisma.case.update({ where: { id: caseId }, data: { status: statuses.PTPH_PREPARATION_NEEDED } })
-        }
-      }
-    }
 
     delete req.session.data.assignParalegalOfficer
 

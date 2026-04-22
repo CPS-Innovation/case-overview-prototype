@@ -1,5 +1,6 @@
 const { faker } = require('@faker-js/faker');
 const statuses = require('../../app/data/case-statuses');
+const hearingStatuses = require('../../app/data/hearing-statuses');
 const { generateCaseReference } = require('./identifiers');
 const { generateUKMobileNumber, generateUKLandlineNumber, generateUKPhoneNumber } = require('./phone-numbers');
 const { hearingDateForStatus } = require('./dates');
@@ -42,37 +43,16 @@ async function seedGeneralCases(prisma, dependencies, config) {
   const magsUnitIds = allUnits.filter(u => u.name.includes('Magistrates Court')).map(u => u.id)
   const crownCourtUnitIds = allUnits.filter(u => u.name.includes('Crown Court')).map(u => u.id)
 
-  const magsStatuses = [
+  const defendantStatusPool = [
     statuses.TRIAGE_NEEDED,
     statuses.POLICE_RESUBMISSION_PENDING,
-    statuses.PROSECUTOR_NEEDED,
     statuses.CHARGING_DECISION_NEEDED,
     statuses.POLICE_CHARGING_INFORMATION_PENDING,
     statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-    statuses.FIRST_HEARING_PREPARATION_NEEDED,
-    statuses.FIRST_HEARING_PENDING,
-    statuses.FIRST_HEARING_OUTCOME_NEEDED,
-    statuses.NO_FURTHER_ACTION,
-    statuses.TRIAL_PREPARATION_NEEDED,
-    statuses.TRIAL_PENDING,
-    statuses.TRIAL_OUTCOME_NEEDED,
-    statuses.SENTENCING_HEARING_PENDING,
+    statuses.CHARGED,
     statuses.NOT_GUILTY,
-    statuses.SENTENCED,
-  ]
-
-  const crownCourtStatuses = [
-    statuses.PROSECUTOR_NEEDED,
-    statuses.PTPH_PREPARATION_NEEDED,
-    statuses.PTPH_HEARING_PENDING,
-    statuses.PTPH_HEARING_OUTCOME_NEEDED,
-    statuses.TRIAL_PREPARATION_NEEDED,
-    statuses.TRIAL_PENDING,
-    statuses.TRIAL_OUTCOME_NEEDED,
-    statuses.SENTENCING_HEARING_PENDING,
-    statuses.NOT_GUILTY,
-    statuses.SENTENCED,
     statuses.NO_FURTHER_ACTION,
+    statuses.SENTENCED,
   ]
 
   const usersWithDedicatedSeeds = [
@@ -115,9 +95,8 @@ async function seedGeneralCases(prisma, dependencies, config) {
     );
 
     const isCrownCourtCase = faker.datatype.boolean({ probability: 0.3 })
-    const statusPool = isCrownCourtCase ? crownCourtStatuses : magsStatuses
     const unitPool = isCrownCourtCase ? crownCourtUnitIds : magsUnitIds
-    const status = faker.helpers.arrayElement(statusPool)
+    const status = faker.helpers.arrayElement(defendantStatusPool)
     const caseUnitId = faker.helpers.arrayElement(unitPool)
 
     // Pick between 0 and 5 unique standard task names
@@ -273,7 +252,6 @@ async function seedGeneralCases(prisma, dependencies, config) {
     const createdCase = await prisma.case.create({
       data: {
         reference: generateCaseReference(),
-        status,
         type: faker.helpers.arrayElement(types),
         complexity: faker.helpers.arrayElement(complexities),
         unit: { connect: { id: caseUnitId } },
@@ -310,7 +288,7 @@ async function seedGeneralCases(prisma, dependencies, config) {
     // Assign defendant statuses — 30% of multi-defendant cases have diverged statuses
     const isDiverged = assignedDefendants.length > 1 && faker.datatype.boolean({ probability: 0.3 })
     for (const defendant of assignedDefendants) {
-      const defendantStatus = isDiverged ? faker.helpers.arrayElement(statusPool) : status
+      const defendantStatus = isDiverged ? faker.helpers.arrayElement(defendantStatusPool) : status
       await prisma.defendant.update({
         where: { id: defendant.id },
         data: { status: defendantStatus }
@@ -376,46 +354,37 @@ async function seedGeneralCases(prisma, dependencies, config) {
     }
 
     // -------------------- Hearings --------------------
-    const statusToHearing = {
-      [statuses.FIRST_HEARING_PREPARATION_NEEDED]: { type: 'First hearing', daysMin: 7, daysMax: 56, past: false },
-      [statuses.FIRST_HEARING_PENDING]: { type: 'First hearing', daysMin: 0, daysMax: 2, past: false },
-      [statuses.FIRST_HEARING_OUTCOME_NEEDED]: { type: 'First hearing', daysMin: 1, daysMax: 5, past: true },
-      [statuses.PTPH_PREPARATION_NEEDED]: { type: 'PTPH', daysMin: 7, daysMax: 56, past: false },
-      [statuses.PTPH_HEARING_PENDING]: { type: 'PTPH', daysMin: 0, daysMax: 2, past: false },
-      [statuses.PTPH_HEARING_OUTCOME_NEEDED]: { type: 'PTPH', daysMin: 1, daysMax: 5, past: true },
-      [statuses.TRIAL_PREPARATION_NEEDED]: { type: 'Trial', daysMin: 14, daysMax: 84, past: false },
-      [statuses.TRIAL_PENDING]: { type: 'Trial', daysMin: 0, daysMax: 2, past: false },
-      [statuses.TRIAL_OUTCOME_NEEDED]: { type: 'Trial', daysMin: 1, daysMax: 5, past: true },
-      [statuses.SENTENCING_HEARING_PENDING]: { type: 'Sentencing', daysMin: 7, daysMax: 42, past: false },
-    };
+    if (status === statuses.CHARGED) {
+      const hearingTypes = isCrownCourtCase
+        ? ['PTPH', 'Trial', 'Sentencing']
+        : ['First hearing', 'Trial', 'Sentencing']
 
-    const hearingConfig = statusToHearing[status];
-    if (hearingConfig) {
-      const days = faker.number.int({ min: hearingConfig.daysMin, max: hearingConfig.daysMax });
-      const hearingStartDate = new Date();
-      hearingStartDate.setDate(hearingStartDate.getDate() + (hearingConfig.past ? -days : days));
-      hearingStartDate.setUTCHours(10, 0, 0, 0);
+      const hearingType = faker.helpers.arrayElement(hearingTypes)
+      const hearingStatusValue = faker.helpers.weightedArrayElement([
+        { weight: 30, value: hearingStatuses.PREPARATION_NEEDED },
+        { weight: 30, value: hearingStatuses.PENDING },
+        { weight: 30, value: hearingStatuses.OUTCOME_NEEDED },
+        { weight: 10, value: hearingStatuses.COMPLETE },
+      ])
 
-      const hearingStatus = hearingConfig.past
-        ? faker.helpers.arrayElement(['Fixed', 'Warned'])
-        : faker.helpers.arrayElement(['Fixed', 'Warned', 'Estimated']);
-
-      const isMultiDay = hearingConfig.type === 'Trial' && faker.datatype.boolean({ probability: 0.25 });
-      const hearingEndDate = isMultiDay
-        ? new Date(hearingStartDate.getTime() + (faker.number.int({ min: 1, max: 5 }) * 24 * 60 * 60 * 1000))
-        : null;
-      if (hearingEndDate) hearingEndDate.setUTCHours(16, 0, 0, 0);
+      const isPast = hearingStatusValue === hearingStatuses.OUTCOME_NEEDED || hearingStatusValue === hearingStatuses.COMPLETE
+      const days = faker.number.int({ min: 1, max: 56 })
+      const hearingStartDate = new Date()
+      hearingStartDate.setDate(hearingStartDate.getDate() + (isPast ? -days : days))
+      hearingStartDate.setHours(10, 0, 0, 0)
 
       await prisma.hearing.create({
         data: {
           startDate: hearingStartDate,
-          endDate: hearingEndDate,
-          status: hearingStatus,
-          type: hearingConfig.type,
+          status: hearingStatusValue,
+          type: hearingType,
           venue: faker.helpers.arrayElement(venues),
-          caseId: createdCase.id
+          caseId: createdCase.id,
+          defendants: {
+            connect: assignedDefendants.map(d => ({ id: d.id }))
+          }
         }
-      });
+      })
     }
 
     // -------------------- Witnesses --------------------

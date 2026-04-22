@@ -212,7 +212,6 @@ async function seedDGAMonths(prisma, defendants) {
         const newCase = await prisma.case.create({
           data: {
             reference: generateCaseReference(),
-            status: faker.helpers.arrayElement(['Sentenced', 'Not guilty']),
             complexity: faker.helpers.arrayElement(complexities),
             type: faker.helpers.arrayElement(types),
             unitId: cpsUnitId,
@@ -228,6 +227,11 @@ async function seedDGAMonths(prisma, defendants) {
               },
             },
           }
+        });
+
+        await prisma.defendant.updateMany({
+          where: { cases: { some: { id: newCase.id } } },
+          data: { status: faker.helpers.arrayElement(['Sentenced', 'Not guilty']) }
         });
 
         // Set review date to random day in the month

@@ -135,7 +135,6 @@ model Case {
   id                Int                      @id @default(autoincrement())
   reference         String                   @unique
   operationName     String?
-  status            String                   @default("Triage needed")
   complexity        String?
   type              String?
   unitId            Int
@@ -275,6 +274,7 @@ model Defendant {
   cases            Case[]         @relation("CaseDefendants")
   charges          Charge[]
   directions       Direction[]
+  hearings         Hearing[]      @relation("HearingDefendants")
 }
 
 model DefenceLawyer {
@@ -315,14 +315,15 @@ enum Plea {
 }
 
 model Hearing {
-  id        Int       @id @default(autoincrement())
-  startDate DateTime
-  endDate   DateTime?
-  status    String
-  type      String
-  venue     String
-  case      Case      @relation(fields: [caseId], references: [id])
-  caseId    Int
+  id         Int         @id @default(autoincrement())
+  startDate  DateTime
+  endDate    DateTime?
+  status     String
+  type       String
+  venue      String
+  case       Case        @relation(fields: [caseId], references: [id])
+  caseId     Int
+  defendants Defendant[] @relation("HearingDefendants")
 }
 
 model Location {

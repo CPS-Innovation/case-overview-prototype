@@ -15,8 +15,8 @@ module.exports = (router) => {
   router.post('/cases/:caseId/request-more-information', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
 
-    await prisma.case.update({
-      where: { id: caseId },
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
       data: { status: statuses.POLICE_CHARGING_INFORMATION_PENDING },
     })
 
@@ -38,8 +38,8 @@ module.exports = (router) => {
   router.get('/cases/:caseId/mark-information-received', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
 
-    await prisma.case.update({
-      where: { id: caseId },
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
       data: { status: statuses.CHARGING_DECISION_NEEDED },
     })
 

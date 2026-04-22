@@ -21,7 +21,7 @@
 {% endset %}
 
 {% set descriptionHtml %}
-  
+
   {% if _case.custodyTimeLimit %}
     <span class="govuk-!-display-block">Custody time limit ends {{ _case.custodyTimeLimit | isoDateString | govukDate }} ({{ _case.custodyTimeLimit | timeLimitStatus }})</span>
   {% endif %}
@@ -75,7 +75,7 @@
         {
           text: 'Resubmitted',
           href: '/cases/' + _case.id + '/accept-resubmission',
-          classes: 'app-button--prototype'
+          classes: 'app-button--blue'
         }
       ]
     }
@@ -87,73 +87,11 @@
         {
           text: 'Information received',
           href: '/cases/' + _case.id + '/mark-information-received',
-          classes: 'app-button--prototype'
+          classes: 'app-button--blue'
         }
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.PROSECUTOR_NEEDED %}
-  {% if 'Crown Court' in _case.unit.name %}
-    {% if not _case.prosecutors.length and not _case.paralegalOfficers.length %}
-      {% set identityBarMenus = [
-        {
-          items: [
-            {
-              text: 'Assign prosecutor',
-              href: '/cases/' + _case.id + '/add-prosecutor'
-            }
-          ]
-        },
-        {
-          items: [
-            {
-              text: 'Assign paralegal officer',
-              href: '/cases/' + _case.id + '/add-paralegal-officer'
-            }
-          ]
-        }
-      ] %}
-    {% elif not _case.prosecutors.length %}
-      {% set identityBarMenus = [
-        {
-          items: [
-            {
-              text: 'Assign prosecutor',
-              href: '/cases/' + _case.id + '/add-prosecutor'
-            }
-          ]
-        }
-      ] %}
-    {% elif not _case.paralegalOfficers.length %}
-      {% set identityBarMenus = [
-        {
-          items: [
-            {
-              text: 'Assign paralegal officer',
-              href: '/cases/' + _case.id + '/add-paralegal-officer'
-            }
-          ]
-        }
-      ] %}
-    {% else %}
-      {% set identityBarMenus = [] %}
-    {% endif %}
-  {% else %}
-    {% if not _case.prosecutors.length %}
-      {% set identityBarMenus = [
-        {
-          items: [
-            {
-              text: 'Assign prosecutor',
-              href: '/cases/' + _case.id + '/add-prosecutor'
-            }
-          ]
-        }
-      ] %}
-    {% else %}
-      {% set identityBarMenus = [] %}
-    {% endif %}
-  {% endif %}
 {% elif _case.status == caseStatuses.CHARGING_DECISION_NEEDED %}
   {% set identityBarMenus = [
     {
@@ -177,136 +115,13 @@
         {
           text: 'Charges received',
           href: '/cases/' + _case.id + '/mark-charges-received',
-          classes: 'app-button--prototype'
+          classes: 'app-button--blue'
         }
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.FIRST_HEARING_PREPARATION_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Mark first hearing preparation as complete',
-          href: '/cases/' + _case.id + '/mark-first-hearing-preparation-complete'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.FIRST_HEARING_PENDING %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'First hearing started',
-          href: '/cases/' + _case.id + '/mark-first-hearing-happened',
-          classes: 'app-button--prototype'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.FIRST_HEARING_OUTCOME_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Record outcome of first hearing',
-          href: '/cases/' + _case.id + '/record-first-hearing-outcome'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.PTPH_PREPARATION_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Mark PTPH preparation as complete',
-          href: '/cases/' + _case.id + '/mark-ptph-preparation-complete'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.PTPH_HEARING_PENDING %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Mark PTPH as happened',
-          href: '/cases/' + _case.id + '/mark-ptph-happened',
-          classes: 'app-button--prototype'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.PTPH_HEARING_OUTCOME_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Record PTPH hearing outcome',
-          href: '/cases/' + _case.id + '/record-ptph-hearing-outcome'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.TRIAL_PREPARATION_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Mark trial preparation as complete',
-          href: '/cases/' + _case.id + '/mark-trial-preparation-complete'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.TRIAL_PENDING %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Trial started',
-          href: '/cases/' + _case.id + '/mark-trial-concluded',
-          classes: 'app-button--prototype'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.TRIAL_OUTCOME_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Record trial outcome',
-          href: '/cases/' + _case.id + '/record-trial-outcome'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.SENTENCING_HEARING_PENDING %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Sentencing hearing started',
-          href: '/cases/' + _case.id + '/mark-sentencing-hearing-started',
-          classes: 'app-button--prototype'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.SENTENCE_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Record sentence',
-          href: '/cases/' + _case.id + '/record-sentence'
-        }
-      ]
-    }
-  ] %}
+{% else %}
+  {% set identityBarMenus = [] %}
 {% endif %}
 
 {{ appIdentityBar({

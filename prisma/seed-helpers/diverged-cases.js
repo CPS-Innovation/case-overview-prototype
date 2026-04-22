@@ -59,7 +59,6 @@ async function createDivergedCase(prisma, user, unitId, statusPool, config) {
   const _case = await prisma.case.create({
     data: {
       reference: generateCaseReference(),
-      status: status1,
       type: faker.helpers.arrayElement(types),
       complexity: faker.helpers.arrayElement(complexities),
       unit: { connect: { id: unitId } },

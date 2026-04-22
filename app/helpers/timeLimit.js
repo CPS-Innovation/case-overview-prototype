@@ -33,6 +33,7 @@ function addTimeLimitDates(_case) {
     _case.status = 'Diverged'
     _case.defendantStatuses = uniqueDefendantStatuses
   } else {
+    _case.status = uniqueDefendantStatuses[0] || null
     _case.defendantStatuses = []
   }
 

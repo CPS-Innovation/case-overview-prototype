@@ -1,7 +1,6 @@
 const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
-const statuses = require('../data/case-statuses')
 
 async function getRecommendedProsecutor(excludedIds = []) {
   const excludeFilter = excludedIds.length ? { NOT: { id: { in: excludedIds } } } : {}
@@ -259,21 +258,6 @@ module.exports = (router) => {
         isLead: existingCount === 0,
       },
     })
-
-    const _case = await prisma.case.findUnique({ where: { id: caseId }, select: { status: true, unitId: true } })
-
-    if (_case.status === statuses.PROSECUTOR_NEEDED) {
-      const unit = await prisma.unit.findUnique({ where: { id: _case.unitId } })
-
-      if (unit.name.includes('Crown Court')) {
-        const paralegalCount = await prisma.caseParalegalOfficer.count({ where: { caseId } })
-        if (paralegalCount > 0) {
-          await prisma.case.update({ where: { id: caseId }, data: { status: statuses.PTPH_PREPARATION_NEEDED } })
-        }
-      } else {
-        await prisma.case.update({ where: { id: caseId }, data: { status: statuses.CHARGING_DECISION_NEEDED } })
-      }
-    }
 
     const prosecutor = await prisma.user.findUnique({
       where: { id: prosecutorId },
