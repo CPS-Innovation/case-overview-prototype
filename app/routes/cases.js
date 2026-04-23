@@ -34,6 +34,7 @@ function resetFilters(req) {
   _.set(req, 'session.data.caseListFilters.paralegalOfficers', null)
   _.set(req, 'session.data.caseListFilters.statuses', null)
   _.set(req, 'session.data.caseListFilters.defendants', null)
+  _.set(req, 'session.data.caseListFilters.hearingStatuses', null)
 }
 
 module.exports = (router) => {
@@ -60,6 +61,57 @@ module.exports = (router) => {
   router.get('/cases/shortcut/charged', (req, res) => {
     resetFilters(req)
     res.redirect('/cases/?caseListFilters[statuses][]=Charged')
+  })
+
+  router.get('/cases/shortcut/mags-needs-prosecutor', async (req, res) => {
+    resetFilters(req)
+    const userUnitIds = req.session.data.user?.units?.map(uu => uu.unitId) || []
+    const magsUnits = await prisma.unit.findMany({
+      where: { name: { contains: 'Magistrates' }, id: { in: userUnitIds } }
+    })
+    _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
+    _.set(req.session.data.caseListFilters, 'unit', magsUnits.map(u => u.id.toString()))
+    _.set(req.session.data.caseListFilters, 'statuses', [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ])
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/crown-needs-prosecutor', async (req, res) => {
+    resetFilters(req)
+    const userUnitIds = req.session.data.user?.units?.map(uu => uu.unitId) || []
+    const crownUnits = await prisma.unit.findMany({
+      where: { name: { contains: 'Crown Court' }, id: { in: userUnitIds } }
+    })
+    _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
+    _.set(req.session.data.caseListFilters, 'unit', crownUnits.map(u => u.id.toString()))
+    _.set(req.session.data.caseListFilters, 'statuses', [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ])
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/crown-needs-paralegal-officer', async (req, res) => {
+    resetFilters(req)
+    const userUnitIds = req.session.data.user?.units?.map(uu => uu.unitId) || []
+    const crownUnits = await prisma.unit.findMany({
+      where: { name: { contains: 'Crown Court' }, id: { in: userUnitIds } }
+    })
+    _.set(req.session.data.caseListFilters, 'paralegalOfficers', ['Unassigned'])
+    _.set(req.session.data.caseListFilters, 'unit', crownUnits.map(u => u.id.toString()))
+    _.set(req.session.data.caseListFilters, 'statuses', [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ])
+    res.redirect('/cases')
   })
 
   router.get('/cases/shortcut/dga', (req, res) => {
@@ -130,6 +182,7 @@ module.exports = (router) => {
 
     let selectedStatusFilters = _.get(req.session.data.caseListFilters, 'statuses', [])
     let selectedDefendantFilters = _.get(req.session.data.caseListFilters, 'defendants', [])
+    let selectedHearingStatusFilters = _.get(req.session.data.caseListFilters, 'hearingStatuses', [])
     let selectedDgaFilters = _.get(req.session.data.caseListFilters, 'dga', [])
     let selectedDgaMonthFilters = _.get(req.session.data.caseListFilters, 'dgaMonth', [])
     let selectedCtlFilters = _.get(req.session.data.caseListFilters, 'isCTL', [])
@@ -253,6 +306,16 @@ module.exports = (router) => {
         items: selectedStatusFilters.map(function (value) {
           return { text: value, href: '/cases/remove-status/' + value }
         }),
+      })
+    }
+
+    if (selectedHearingStatusFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'Hearing status' },
+        items: selectedHearingStatusFilters.map((value) => ({
+          text: value,
+          href: '/cases/remove-hearing-status/' + encodeURIComponent(value),
+        })),
       })
     }
 
@@ -479,6 +542,10 @@ module.exports = (router) => {
     // Snapshot where before adding status filter — used to derive available status options
     const whereWithoutStatus = { AND: [...where.AND] }
 
+    if (selectedHearingStatusFilters?.length) {
+      where.AND.push({ hearings: { some: { status: { in: selectedHearingStatusFilters } } } })
+    }
+
     if (selectedStatusFilters?.length) {
       where.AND.push({ defendants: { some: { status: { in: selectedStatusFilters } } } })
     }
@@ -617,8 +684,8 @@ module.exports = (router) => {
 
     if (selectedDefendantFilters?.length) {
       cases = cases.filter((_case) => {
-        if (selectedDefendantFilters.includes('Diverged') && _case.status === 'Diverged') return true
-        if (selectedDefendantFilters.includes('Not diverged') && _case.status !== 'Diverged') return true
+        if (selectedDefendantFilters.includes('Mixed') && _case.status === 'Mixed') return true
+        if (selectedDefendantFilters.includes('Not mixed') && _case.status !== 'Mixed') return true
         return false
       })
     }
@@ -791,9 +858,16 @@ module.exports = (router) => {
       c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null),
     )
 
+    const hearingStatusItems = [
+      'Preparation needed',
+      'Pending',
+      'Outcome needed',
+      'Complete',
+    ].map((s) => ({ value: s, text: s }))
+
     const defendantItems = [
-      { value: 'Diverged', text: 'Diverged' },
-      { value: 'Not diverged', text: 'Not diverged' },
+      { value: 'Mixed', text: 'Mixed' },
+      { value: 'Not mixed', text: 'Not mixed' },
     ]
 
     res.render('cases/index', {
@@ -801,6 +875,8 @@ module.exports = (router) => {
       cases,
       statusItems,
       selectedStatusFilters,
+      hearingStatusItems,
+      selectedHearingStatusFilters,
       defendantItems,
       selectedDefendantFilters,
       dgaItems,
@@ -828,6 +904,12 @@ module.exports = (router) => {
   router.get('/cases/remove-status/:status', (req, res) => {
     const currentFilters = _.get(req, 'session.data.caseListFilters.statuses', [])
     _.set(req, 'session.data.caseListFilters.statuses', _.pull(currentFilters, req.params.status))
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/remove-hearing-status/:value', (req, res) => {
+    const current = _.get(req, 'session.data.caseListFilters.hearingStatuses', [])
+    _.set(req, 'session.data.caseListFilters.hearingStatuses', _.pull(current, decodeURIComponent(req.params.value)))
     res.redirect('/cases')
   })
 

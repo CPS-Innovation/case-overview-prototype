@@ -50,6 +50,17 @@ router.get('/cases/:caseId*', async (req, res, next) => {
   next()
 })
 
+// Make first hearings available to all case pages (used by identity bar)
+router.use('/cases/:caseId*', async (req, res, next) => {
+  const caseId = parseInt(req.params.caseId)
+  if (!isNaN(caseId)) {
+    res.locals.firstHearings = await prisma.hearing.findMany({
+      where: { caseId, type: 'First hearing' }
+    })
+  }
+  next()
+})
+
 // Case routes
 require('./routes/cases')(router)
 // require('./routes/cases--select-all')(router)
@@ -101,5 +112,6 @@ require('./routes/case--witness-statement--mark-as-section9')(router)
 require('./routes/case--witness-statement--unmark-as-section9')(router)
 require('./routes/case--hearings')(router)
 require('./routes/case--hearings--add')(router)
+require('./routes/case--add-first-hearing')(router)
 require('./routes/case--hearing')(router)
 require('./routes/case--key-evidence')(router)

@@ -1,4 +1,4 @@
-{% set anyCasesNeedAction = triageCaseCount or chargingDecisionNeededCaseCount or chargedCaseCount %}
+{% set anyCasesNeedAction = triageCaseCount or chargingDecisionNeededCaseCount or chargedCaseCount or magsNeedsProsecutorCount or crownNeedsProsecutorCount or crownNeedsParalegalOfficerCount %}
 
 {% if anyCasesNeedAction %}
   <div class="app-overview-section">
@@ -20,8 +20,29 @@
       {% endif %}
       {% if chargedCaseCount > 0 %}
         <li>
-          <a href="/cases?caseListFilters[statuses][]=Charged" class="govuk-link--no-visited-state">
-            {{ chargedCaseCount }} {{ chargedCaseCount | pluralize("case is", "cases are") }} charged and in hearing
+          <a href="/cases/shortcut/charged" class="govuk-link--no-visited-state">
+            {{ chargedCaseCount }} {{ chargedCaseCount | pluralize("case is", "cases are") }} charged
+          </a>
+        </li>
+      {% endif %}
+      {% if magsNeedsProsecutorCount > 0 %}
+        <li>
+          <a href="/cases/shortcut/mags-needs-prosecutor" class="govuk-link--no-visited-state">
+            {{ magsNeedsProsecutorCount }} magistrates {{ magsNeedsProsecutorCount | pluralize("case needs", "cases need") }} a prosecutor
+          </a>
+        </li>
+      {% endif %}
+      {% if crownNeedsProsecutorCount > 0 %}
+        <li>
+          <a href="/cases/shortcut/crown-needs-prosecutor" class="govuk-link--no-visited-state">
+            {{ crownNeedsProsecutorCount }} crown court {{ crownNeedsProsecutorCount | pluralize("case needs", "cases need") }} a prosecutor
+          </a>
+        </li>
+      {% endif %}
+      {% if crownNeedsParalegalOfficerCount > 0 %}
+        <li>
+          <a href="/cases/shortcut/crown-needs-paralegal-officer" class="govuk-link--no-visited-state">
+            {{ crownNeedsParalegalOfficerCount }} crown court {{ crownNeedsParalegalOfficerCount | pluralize("case needs", "cases need") }} a paralegal officer
           </a>
         </li>
       {% endif %}

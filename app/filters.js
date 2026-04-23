@@ -130,7 +130,7 @@ addFilter('completionStatusTagClass', (status) => {
 
 addFilter('caseStatusTagClass', (status) => {
   switch (status) {
-    case 'Diverged':
+    case 'Mixed':
       return 'govuk-tag--yellow'
     case statuses.TRIAGE_NEEDED:
       return 'govuk-tag--blue'
@@ -180,4 +180,12 @@ addFilter('policeRequestStatusTagClass', (status) => {
 
 addFilter('pluralize', (count, singular, plural) => {
   return count === 1 ? singular : plural || singular + 's'
+})
+
+addFilter('allCharged', (defendants) => {
+  return defendants && defendants.length > 0 && defendants.every(d => d.status === statuses.CHARGED)
+})
+
+addFilter('hasFirstHearing', (hearings) => {
+  return hearings && hearings.some(h => h.type === 'First hearing')
 })

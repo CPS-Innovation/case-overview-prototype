@@ -60,6 +60,11 @@
             {{ govukButton({ text: 'Simulate: Charges received', classes: 'app-button--blue' }) }}
           </form>
 
+        {% elif defendant.status == 'Charged' %}
+          {% if not (firstHearings | hasFirstHearing) %}
+            {{ govukButton({ text: 'Add first hearing', href: '/cases/' + _case.id + '/add-first-hearing' }) }}
+          {% endif %}
+
         {% endif %}
       </div>
 

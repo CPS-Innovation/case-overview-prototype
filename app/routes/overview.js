@@ -35,6 +35,51 @@ module.exports = router => {
       where: { ...unitFilter, defendants: { some: { status: statuses.CHARGED } } }
     })
 
+    const magsNeedsProsecutorCount = await prisma.case.count({
+      where: {
+        ...unitFilter,
+        unit: { name: { contains: 'Magistrates' } },
+        prosecutors: { none: {} },
+        defendants: {
+          some: {
+            status: {
+              in: [
+                statuses.CHARGING_DECISION_NEEDED,
+                statuses.POLICE_CHARGING_INFORMATION_PENDING,
+                statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+                statuses.CHARGED
+              ]
+            }
+          }
+        }
+      }
+    })
+
+    const crownActiveStatuses = [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ]
+
+    const crownNeedsProsecutorCount = await prisma.case.count({
+      where: {
+        ...unitFilter,
+        unit: { name: { contains: 'Crown Court' } },
+        prosecutors: { none: {} },
+        defendants: { some: { status: { in: crownActiveStatuses } } }
+      }
+    })
+
+    const crownNeedsParalegalOfficerCount = await prisma.case.count({
+      where: {
+        ...unitFilter,
+        unit: { name: { contains: 'Crown Court' } },
+        paralegalOfficers: { none: {} },
+        defendants: { some: { status: { in: crownActiveStatuses } } }
+      }
+    })
+
     // Count prosecutors with incomplete profiles (no specialist, preferred, or restricted areas)
     const allProsecutors = await prisma.user.findMany({
       where: {
@@ -365,6 +410,9 @@ module.exports = router => {
       triageCaseCount,
       chargingDecisionNeededCaseCount,
       chargedCaseCount,
+      magsNeedsProsecutorCount,
+      crownNeedsProsecutorCount,
+      crownNeedsParalegalOfficerCount,
       incompleteProfileCount,
       needsDGAReviewCount,
       latestDGAMonth,

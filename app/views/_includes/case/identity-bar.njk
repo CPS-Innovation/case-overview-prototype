@@ -38,7 +38,18 @@
   {% endif %}
 {% endset %}
 
-{% if _case.status == caseStatuses.TRIAGE_NEEDED %}
+{% if (_case.defendants | allCharged) and not (firstHearings | hasFirstHearing) %}
+  {% set identityBarMenus = [
+    {
+      items: [
+        {
+          text: 'Add first hearing',
+          href: '/cases/' + _case.id + '/add-first-hearing'
+        }
+      ]
+    }
+  ] %}
+{% elif _case.status == caseStatuses.TRIAGE_NEEDED %}
   {% set identityBarMenus = [
     {
       items: [

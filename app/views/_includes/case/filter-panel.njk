@@ -15,12 +15,26 @@
   }) if statusItems.length }}
 
   {{ govukCheckboxes({
+    idPrefix: "caseListFilters[hearingStatuses]",
+    name: "caseListFilters[hearingStatuses]",
+    classes: "govuk-checkboxes--small",
+    fieldset: {
+      legend: {
+        text: "Hearing status",
+        classes: "govuk-fieldset__legend--s"
+      }
+    },
+    items: hearingStatusItems,
+    values: selectedHearingStatusFilters
+  }) }}
+
+  {{ govukCheckboxes({
     idPrefix: "caseListFilters[defendants]",
     name: "caseListFilters[defendants]",
     classes: "govuk-checkboxes--small",
     fieldset: {
       legend: {
-        text: "Defendant statuses",
+        text: "Mixed statuses",
         classes: "govuk-fieldset__legend--s"
       }
     },
