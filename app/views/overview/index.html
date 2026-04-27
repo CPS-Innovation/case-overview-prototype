@@ -21,10 +21,6 @@
         {% include "_includes/overview/dga-reporting.njk" %}
       {% endif %}
 
-      {% if data.user.role == "Prosecutor" or data.user.role == "Paralegal officer" %}
-        {% include "_includes/overview/directions.njk" %}
-      {% endif %}
-
       {# {% if data.user.role == "Casework assistant" %}
         {% include "_includes/overview/unit-tasks.njk" %}
       {% endif %}
@@ -33,6 +29,13 @@
       {% if data.user.role == "Manager" %}
         {% include "_includes/overview/prosecutors.njk" %}
       {% endif %}
+
+      {% include "_includes/overview/unit-breakdown.njk" %}
+
+      {% if data.user.role == "Prosecutor" or data.user.role == "Paralegal officer" %}
+        {% include "_includes/overview/directions.njk" %}
+      {% endif %}
+
       {% include "_includes/overview/recent-cases.njk" %}
     </div>
   </div>

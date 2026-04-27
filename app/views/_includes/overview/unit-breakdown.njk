@@ -1,0 +1,70 @@
+{% if unitBreakdown.length > 1 %}
+  <div class="app-overview-section">
+    <h2 class="govuk-heading-m">Cases by unit</h2>
+    <table class="govuk-table">
+      <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+          <th scope="col" class="govuk-table__header">Unit</th>
+          <th scope="col" class="govuk-table__header govuk-table__header--numeric">Needs triage</th>
+          <th scope="col" class="govuk-table__header govuk-table__header--numeric">Needs prosecutor</th>
+          {% if unitBreakdownHasCrownUnits %}
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Needs paralegal officer</th>
+          {% endif %}
+          <th scope="col" class="govuk-table__header govuk-table__header--numeric">Needs charging decision</th>
+          <th scope="col" class="govuk-table__header govuk-table__header--numeric">Needs first hearing</th>
+        </tr>
+      </thead>
+      <tbody class="govuk-table__body">
+        {% for row in unitBreakdown %}
+          <tr class="govuk-table__row">
+            <th scope="row" class="govuk-table__header">{{ row.unit.name }}</th>
+
+            <td class="govuk-table__cell govuk-table__cell--numeric">
+              {% if row.counts.triage > 0 %}
+                <a href="/cases/shortcut/unit-breakdown/{{ row.unit.id }}/triage" class="govuk-link--no-visited-state">{{ row.counts.triage }}</a>
+              {% else %}
+                0
+              {% endif %}
+            </td>
+
+            <td class="govuk-table__cell govuk-table__cell--numeric">
+              {% if row.counts.needsProsecutor > 0 %}
+                <a href="/cases/shortcut/unit-breakdown/{{ row.unit.id }}/needs-prosecutor" class="govuk-link--no-visited-state">{{ row.counts.needsProsecutor }}</a>
+              {% else %}
+                0
+              {% endif %}
+            </td>
+
+            {% if unitBreakdownHasCrownUnits %}
+              <td class="govuk-table__cell govuk-table__cell--numeric">
+                {% if row.counts.needsParalegalOfficer == null %}
+                  0
+                {% elif row.counts.needsParalegalOfficer > 0 %}
+                  <a href="/cases/shortcut/unit-breakdown/{{ row.unit.id }}/needs-paralegal-officer" class="govuk-link--no-visited-state">{{ row.counts.needsParalegalOfficer }}</a>
+                {% else %}
+                  0
+                {% endif %}
+              </td>
+            {% endif %}
+
+            <td class="govuk-table__cell govuk-table__cell--numeric">
+              {% if row.counts.chargingDecision > 0 %}
+                <a href="/cases/shortcut/unit-breakdown/{{ row.unit.id }}/charging-decision" class="govuk-link--no-visited-state">{{ row.counts.chargingDecision }}</a>
+              {% else %}
+                0
+              {% endif %}
+            </td>
+
+            <td class="govuk-table__cell govuk-table__cell--numeric">
+              {% if row.counts.firstHearingNeeded > 0 %}
+                <a href="/cases/shortcut/unit-breakdown/{{ row.unit.id }}/first-hearing" class="govuk-link--no-visited-state">{{ row.counts.firstHearingNeeded }}</a>
+              {% else %}
+                0
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}

@@ -133,6 +133,41 @@ module.exports = (router) => {
     res.redirect('/cases')
   })
 
+  const unitBreakdownActiveStatuses = [
+    statuses.CHARGING_DECISION_NEEDED,
+    statuses.POLICE_CHARGING_INFORMATION_PENDING,
+    statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+    statuses.CHARGED
+  ]
+
+  router.get('/cases/shortcut/unit-breakdown/:unitId/:category', (req, res) => {
+    resetFilters(req)
+    const { unitId, category } = req.params
+    _.set(req.session.data.caseListFilters, 'unit', [unitId])
+
+    switch (category) {
+      case 'triage':
+        _.set(req.session.data.caseListFilters, 'statuses', [statuses.TRIAGE_NEEDED])
+        break
+      case 'needs-prosecutor':
+        _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
+        _.set(req.session.data.caseListFilters, 'statuses', unitBreakdownActiveStatuses)
+        break
+      case 'needs-paralegal-officer':
+        _.set(req.session.data.caseListFilters, 'paralegalOfficers', ['Unassigned'])
+        _.set(req.session.data.caseListFilters, 'statuses', unitBreakdownActiveStatuses)
+        break
+      case 'charging-decision':
+        _.set(req.session.data.caseListFilters, 'statuses', [statuses.CHARGING_DECISION_NEEDED])
+        break
+      case 'first-hearing':
+        _.set(req.session.data.caseListFilters, 'firstHearing', ['Needs set up'])
+        break
+    }
+
+    res.redirect('/cases')
+  })
+
   router.get('/cases/shortcut/dga', (req, res) => {
     resetFilters(req)
     res.redirect('/cases/?caseListFilters[dga][]=Awaiting outcome')

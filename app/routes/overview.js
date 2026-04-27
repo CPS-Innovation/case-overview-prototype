@@ -412,6 +412,37 @@ module.exports = router => {
       })
     }
 
+    const unitBreakdownActiveStatuses = [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ]
+
+    let unitBreakdown = []
+    if (userUnitIds.length > 1) {
+      unitBreakdown = await Promise.all(
+        currentUser.units.map(async ({ unit }) => {
+          const f = { unitId: unit.id }
+          const isCrownCourt = unit.name.includes('Crown Court')
+
+          const [triage, needsProsecutor, needsParalegalOfficer, chargingDecision, firstHearingNeeded] = await Promise.all([
+            prisma.case.count({ where: { ...f, defendants: { some: { status: statuses.TRIAGE_NEEDED } } } }),
+            prisma.case.count({ where: { ...f, prosecutors: { none: {} }, defendants: { some: { status: { in: unitBreakdownActiveStatuses } } } } }),
+            isCrownCourt
+              ? prisma.case.count({ where: { ...f, paralegalOfficers: { none: {} }, defendants: { some: { status: { in: unitBreakdownActiveStatuses } } } } })
+              : Promise.resolve(null),
+            prisma.case.count({ where: { ...f, defendants: { some: { status: statuses.CHARGING_DECISION_NEEDED } } } }),
+            prisma.case.count({ where: { ...f, defendants: { some: { status: statuses.CHARGED, hearings: { none: { type: 'First hearing' } } } } } }),
+          ])
+
+          return { unit, isCrownCourt, counts: { triage, needsProsecutor, needsParalegalOfficer, chargingDecision, firstHearingNeeded } }
+        })
+      )
+    }
+
+    const unitBreakdownHasCrownUnits = unitBreakdown.some(row => row.isCrownCourt)
+
     const recentCases = await prisma.recentCase.findMany({
       where: { userId: currentUser.id },
       orderBy: { openedAt: 'desc' },
@@ -455,7 +486,9 @@ module.exports = router => {
       overdueDirectionCount,
       prosecutorCaseCount,
       paralegalOfficerCaseCount,
-      recentCases
+      recentCases,
+      unitBreakdown,
+      unitBreakdownHasCrownUnits
     })
   })
 
