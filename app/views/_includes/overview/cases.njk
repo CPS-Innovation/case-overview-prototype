@@ -1,16 +1,23 @@
-{% set anyCasesNeedAction = triageCaseCount or chargingDecisionNeededCaseCount or chargedCaseCount or firstHearingNeededCount or magsNeedsProsecutorCount or crownNeedsProsecutorCount or crownNeedsParalegalOfficerCount or hearingPrepNeededCaseCount or hearingOutcomeNeededCaseCount %}
+{% set anyLinksNeeded = magsNeedsProsecutorCount or crownNeedsProsecutorCount or crownNeedsParalegalOfficerCount or hearingPrepNeededCaseCount or hearingOutcomeNeededCaseCount %}
 
-{% if anyCasesNeedAction %}
-  <div class="app-overview-section">
-    {# <h2 class="govuk-heading-m">Cases</h2> #}
-    <ul class="govuk-list govuk-list--bulle">
-      {% if triageCaseCount > 0 %}
-        <li>
-          <a href="/cases/shortcut/triage" class="govuk-link--no-visited-state">
-            {{ triageCaseCount }} {{ triageCaseCount | pluralize("case needs", "cases need") }} triage
-          </a>
-        </li>
-      {% endif %}
+<div class="app-overview-section">
+  <div class="app-overview-cards govuk-!-margin-bottom-4">
+    <a href="/cases/shortcut/triage" class="app-overview-card app-overview-card--blue">
+      <span class="app-overview-card__count">{{ triageCaseCount }}</span>
+      <span class="app-overview-card__status">{{ triageCaseCount | pluralize("case needs", "cases need") }} triage</span>
+    </a>
+    <a href="/cases/shortcut/charging-decision-needed" class="app-overview-card app-overview-card--purple">
+      <span class="app-overview-card__count">{{ chargingDecisionNeededCaseCount }}</span>
+      <span class="app-overview-card__status">{{ chargingDecisionNeededCaseCount | pluralize("case needs", "cases need") }} a charging decision</span>
+    </a>
+    <a href="/cases/shortcut/first-hearing-needed" class="app-overview-card app-overview-card--green">
+      <span class="app-overview-card__count">{{ firstHearingNeededCount }}</span>
+      <span class="app-overview-card__status">{{ firstHearingNeededCount | pluralize("case needs", "cases need") }} a first hearing set up</span>
+    </a>
+  </div>
+
+  {% if anyLinksNeeded %}
+    <ul class="govuk-list">
       {% if magsNeedsProsecutorCount > 0 %}
         <li>
           <a href="/cases/shortcut/mags-needs-prosecutor" class="govuk-link--no-visited-state">
@@ -29,31 +36,6 @@
         <li>
           <a href="/cases/shortcut/crown-needs-paralegal-officer" class="govuk-link--no-visited-state">
             {{ crownNeedsParalegalOfficerCount }} crown court {{ crownNeedsParalegalOfficerCount | pluralize("case needs", "cases need") }} a paralegal officer
-          </a>
-        </li>
-      {% endif %}
-      {% if chargingDecisionNeededCaseCount > 0 %}
-        <li>
-          <a href="/cases/shortcut/charging-decision-needed" class="govuk-link--no-visited-state">
-            {{ chargingDecisionNeededCaseCount }} {{ chargingDecisionNeededCaseCount | pluralize("case needs", "cases need") }} a charging decision
-          </a>
-        </li>
-      {% endif %}
-      {% if chargedCaseCount > 0 and false %}
-        <li>
-          <a href="/cases/shortcut/charged" class="govuk-link--no-visited-state">
-            {{ chargedCaseCount }} {{ chargedCaseCount | pluralize("case is", "cases are") }} charged
-          </a>
-        </li>
-      {% endif %}
-      {% if firstHearingNeededCount > 0 %}
-        <li>
-          <a href="/cases/shortcut/first-hearing-needed" class="govuk-link--no-visited-state">
-            {% if firstHearingNeededCount == 1 %}
-              1 case needs a first hearing set up
-            {% else %}
-              {{ firstHearingNeededCount }} cases need a first hearing set up
-            {% endif %}
           </a>
         </li>
       {% endif %}
@@ -80,5 +62,5 @@
         </li>
       {% endif %}
     </ul>
-  </div>
-{% endif %}
+  {% endif %}
+</div>

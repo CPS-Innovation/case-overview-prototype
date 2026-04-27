@@ -43,6 +43,7 @@ h1 .govuk-tag {
 }
 
 .app-overview-card {
+  display: block;
   background-color: govuk-colour("light-grey");
   padding: govuk-spacing(2);
   text-decoration: none;
@@ -81,49 +82,49 @@ h1 .govuk-tag {
 
 $statuses: (
   "grey": (
-    "colour":            govuk-shade(govuk-colour("dark-grey"), 30),
-    "background-colour": govuk-tint(govuk-colour("dark-grey"), 90),
-    "hover":             govuk-tint(govuk-colour("dark-grey"), 80)
+    "colour":            #0b0c0c,
+    "background-colour": #cecece,
+    "hover":             #b8b8b8
   ),
   "turquoise": (
-    "colour":            govuk-shade(govuk-colour("turquoise"), 60),
-    "background-colour": govuk-tint(govuk-colour("turquoise"), 70),
-    "hover":             govuk-tint(govuk-colour("turquoise"), 57),
+    "colour":            #0b4144,
+    "background-colour": #d0e6e7,
+    "hover":             #b8d8da
   ),
   "blue": (
-    "colour":            govuk-shade(govuk-colour("blue"), 30),
-    "background-colour": govuk-tint(govuk-colour("blue"), 80),
-    "hover":             govuk-tint(govuk-colour("blue"), 70)
+    "colour":            #0f385c,
+    "background-colour": #d2e2f1,
+    "hover":             #bad0e5
   ),
   "yellow": (
-    "colour":            govuk-shade(govuk-colour("yellow"), 65),
-    "background-colour": govuk-tint(govuk-colour("yellow"), 75),
-    "hover":             govuk-tint(govuk-colour("yellow"), 60)
+    "colour":            #7a3c1c,
+    "background-colour": #ffee80,
+    "hover":             #f0e070
   ),
   "red": (
-    "colour":            govuk-shade(govuk-colour("red"), 30),
-    "background-colour": govuk-tint(govuk-colour("red"), 80),
-    "hover":             govuk-tint(govuk-colour("red"), 70)
+    "colour":            #651b1b,
+    "background-colour": #f4d7d7,
+    "hover":             #e8c3c3
   ),
   "purple": (
-    "colour":            govuk-shade(govuk-colour("purple"), 20),
-    "background-colour": govuk-tint(govuk-colour("purple"), 80),
-    "hover":             govuk-tint(govuk-colour("purple"), 70)
+    "colour":            #2a1950,
+    "background-colour": #ddd6ec,
+    "hover":             #cfc6e0
   ),
   "orange": (
-    "colour":            govuk-shade(govuk-colour("orange"), 55),
-    "background-colour": govuk-tint(govuk-colour("orange"), 70),
-    "hover":             govuk-tint(govuk-colour("orange"), 55)
+    "colour":            #7a3c1c,
+    "background-colour": #fde4d7,
+    "hover":             #f2d0c0
   ),
   "green": (
-    "colour":            govuk-shade(govuk-colour("green"), 20),
-    "background-colour": govuk-tint(govuk-colour("green"), 80),
-    "hover":             govuk-tint(govuk-colour("green"), 70)
+    "colour":            #083d29,
+    "background-colour": #cfe4dc,
+    "hover":             #bdd8cf
   ),
   "pink": (
-    "colour":            govuk-shade(govuk-colour("pink"), 30),
-    "background-colour": govuk-tint(govuk-colour("pink"), 80),
-    "hover":             govuk-tint(govuk-colour("pink"), 70)
+    "colour":            #651b3e,
+    "background-colour": #f4d7e5,
+    "hover":             #e8c3d4
   ),
 );
 
