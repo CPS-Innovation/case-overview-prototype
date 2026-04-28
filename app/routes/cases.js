@@ -121,6 +121,30 @@ module.exports = (router) => {
     res.redirect('/cases')
   })
 
+  router.get('/cases/shortcut/needs-prosecutor', (req, res) => {
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
+    _.set(req.session.data.caseListFilters, 'statuses', [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ])
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/needs-paralegal-officer', (req, res) => {
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'paralegalOfficers', ['Unassigned'])
+    _.set(req.session.data.caseListFilters, 'statuses', [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ])
+    res.redirect('/cases')
+  })
+
   router.get('/cases/shortcut/hearing-prep-needed', (req, res) => {
     resetFilters(req)
     _.set(req.session.data.caseListFilters, 'hearingStatuses', ['Hearing preparation needed'])

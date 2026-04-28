@@ -8,7 +8,6 @@ module.exports = router => {
       where: { id: parseInt(req.params.caseId) },
       include: {
         hearings: {
-          orderBy: { startDate: 'asc' },
           include: { defendants: true }
         },
         unit: true,
@@ -22,6 +21,15 @@ module.exports = router => {
     })
 
     _case = addTimeLimitDates(_case)
+
+    const now = new Date()
+    const future = _case.hearings
+      .filter(h => new Date(h.startDate) >= now)
+      .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    const past = _case.hearings
+      .filter(h => new Date(h.startDate) < now)
+      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+    _case.hearings = [...future, ...past]
 
     res.render('cases/hearings/index', { _case })
   })

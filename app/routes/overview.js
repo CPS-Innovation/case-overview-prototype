@@ -55,6 +55,29 @@ module.exports = router => {
       where: { ...unitFilter, hearings: { some: { status: 'Hearing outcome needed' } } }
     })
 
+    const activeStatuses = [
+      statuses.CHARGING_DECISION_NEEDED,
+      statuses.POLICE_CHARGING_INFORMATION_PENDING,
+      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.CHARGED
+    ]
+
+    const needsProsecutorCount = await prisma.case.count({
+      where: {
+        ...unitFilter,
+        prosecutors: { none: {} },
+        defendants: { some: { status: { in: activeStatuses } } }
+      }
+    })
+
+    const needsParalegalOfficerCount = await prisma.case.count({
+      where: {
+        ...unitFilter,
+        paralegalOfficers: { none: {} },
+        defendants: { some: { status: { in: activeStatuses } } }
+      }
+    })
+
     const magsNeedsProsecutorCount = await prisma.case.count({
       where: {
         ...unitFilter,
@@ -75,19 +98,12 @@ module.exports = router => {
       }
     })
 
-    const crownActiveStatuses = [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-      statuses.CHARGED
-    ]
-
     const crownNeedsProsecutorCount = await prisma.case.count({
       where: {
         ...unitFilter,
         unit: { name: { contains: 'Crown Court' } },
         prosecutors: { none: {} },
-        defendants: { some: { status: { in: crownActiveStatuses } } }
+        defendants: { some: { status: { in: activeStatuses } } }
       }
     })
 
@@ -96,7 +112,7 @@ module.exports = router => {
         ...unitFilter,
         unit: { name: { contains: 'Crown Court' } },
         paralegalOfficers: { none: {} },
-        defendants: { some: { status: { in: crownActiveStatuses } } }
+        defendants: { some: { status: { in: activeStatuses } } }
       }
     })
 
@@ -464,6 +480,8 @@ module.exports = router => {
       firstHearingNeededCount,
       hearingPrepNeededCaseCount,
       hearingOutcomeNeededCaseCount,
+      needsProsecutorCount,
+      needsParalegalOfficerCount,
       magsNeedsProsecutorCount,
       crownNeedsProsecutorCount,
       crownNeedsParalegalOfficerCount,
