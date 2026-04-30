@@ -21,7 +21,6 @@ function addTimeLimitDates(_case) {
   _case.statutoryTimeLimit = stlDates.length > 0 ? new Date(Math.min(...stlDates)) : null
   _case.paceClock = paceClockDates.length > 0 ? new Date(Math.min(...paceClockDates)) : null
 
-  return _case
 }
 
 module.exports = {

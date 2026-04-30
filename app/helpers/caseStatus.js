@@ -7,7 +7,6 @@ function addCaseStatus(_case) {
     _case.status = uniqueDefendantStatuses[0] || null
     _case.defendantStatuses = []
   }
-  return _case
 }
 
 module.exports = {

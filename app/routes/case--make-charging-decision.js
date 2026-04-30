@@ -19,6 +19,10 @@ module.exports = (router) => {
       include: { defendants: true },
     })
 
+    if (req.query.referrer) {
+      req.session.data.chargingDecision = { ...req.session.data.chargingDecision, referrer: req.query.referrer }
+    }
+
     res.render('cases/make-charging-decision/index', {
       _case,
       selectedDecision: req.session.data.chargingDecision?.decision,
@@ -27,7 +31,7 @@ module.exports = (router) => {
 
   router.post('/cases/:caseId/make-charging-decision', async (req, res) => {
     const caseId = req.params.caseId
-    req.session.data.chargingDecision = { decision: req.body.decision }
+    req.session.data.chargingDecision = { referrer: req.session.data.chargingDecision?.referrer, decision: req.body.decision }
 
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(caseId) },
@@ -106,9 +110,10 @@ module.exports = (router) => {
       },
     })
 
+    const referrer = req.session.data.chargingDecision?.referrer
     delete req.session.data.chargingDecision
 
     req.flash('success', decisionFlashMap[decision] || 'Charging decision recorded')
-    res.redirect(`/cases/${caseId}`)
+    res.redirect(referrer || `/cases/${caseId}`)
   })
 }

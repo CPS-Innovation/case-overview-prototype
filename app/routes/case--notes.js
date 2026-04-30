@@ -23,8 +23,7 @@ module.exports = router => {
       }
     })
 
-    // Add time limit info
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     // Fetch notes

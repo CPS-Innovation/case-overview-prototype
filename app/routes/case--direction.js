@@ -39,7 +39,7 @@ module.exports = router => {
       },
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     const direction = await prisma.direction.findUnique({

@@ -35,6 +35,7 @@ function resetFilters(req) {
   _.set(req, 'session.data.caseListFilters.paralegalOfficers', null)
   _.set(req, 'session.data.caseListFilters.statuses', null)
   _.set(req, 'session.data.caseListFilters.defendants', null)
+  _.set(req, 'session.data.caseListFilters.statusMix', null)
   _.set(req, 'session.data.caseListFilters.firstHearing', null)
   _.set(req, 'session.data.caseListFilters.hearingStatuses', null)
 }
@@ -261,6 +262,7 @@ module.exports = (router) => {
 
     let selectedStatusFilters = _.get(req.session.data.caseListFilters, 'statuses', [])
     let selectedDefendantFilters = _.get(req.session.data.caseListFilters, 'defendants', [])
+    let selectedStatusMixFilters = _.get(req.session.data.caseListFilters, 'statusMix', [])
     let selectedFirstHearingFilters = _.get(req.session.data.caseListFilters, 'firstHearing', [])
     let selectedHearingStatusFilters = _.get(req.session.data.caseListFilters, 'hearingStatuses', [])
     let selectedDgaFilters = _.get(req.session.data.caseListFilters, 'dga', [])
@@ -415,6 +417,16 @@ module.exports = (router) => {
         items: selectedDefendantFilters.map((value) => ({
           text: value,
           href: '/cases/remove-defendants/' + encodeURIComponent(value),
+        })),
+      })
+    }
+
+    if (selectedStatusMixFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'Status mix' },
+        items: selectedStatusMixFilters.map((value) => ({
+          text: value,
+          href: '/cases/remove-status-mix/' + encodeURIComponent(value),
         })),
       })
     }
@@ -761,8 +773,10 @@ module.exports = (router) => {
         ? new Date(Math.min(...c.hearings.map(h => new Date(h.startDate))))
         : null
 
+      addCaseStatus(c)
+      addTimeLimitDates(c)
       return {
-        ...addTimeLimitDates(addCaseStatus(c)),
+        ...c,
         needsDgaOutcome:
           c.dga?.failureReasons?.some((fr) => fr.didPoliceDisputeFailure === null) ?? false,
         outstandingRequestDeadline,
@@ -847,9 +861,16 @@ module.exports = (router) => {
 
     if (selectedDefendantFilters?.length) {
       cases = cases.filter((_case) => {
-        if (selectedDefendantFilters.includes('Multiple defendants') && _case.defendants.length > 1) return true
-        if (selectedDefendantFilters.includes('Multiple statuses') && _case.status === 'Multiple statuses') return true
-        if (selectedDefendantFilters.includes('Not mixed') && _case.status !== 'Multiple statuses') return true
+        if (selectedDefendantFilters.includes('Multiple') && _case.defendants.length > 1) return true
+        if (selectedDefendantFilters.includes('Single defendant') && _case.defendants.length === 1) return true
+        return false
+      })
+    }
+
+    if (selectedStatusMixFilters?.length) {
+      cases = cases.filter((_case) => {
+        if (selectedStatusMixFilters.includes('Mixed') && _case.status === 'Multiple statuses') return true
+        if (selectedStatusMixFilters.includes('Not mixed') && _case.status !== 'Multiple statuses') return true
         return false
       })
     }
@@ -1032,8 +1053,12 @@ module.exports = (router) => {
     ].map((s) => ({ value: s, text: s }))
 
     const defendantItems = [
-      { value: 'Multiple defendants', text: 'Multiple defendants' },
-      { value: 'Multiple statuses', text: 'Multiple statuses' },
+      { value: 'Multiple', text: 'Multiple' },
+      { value: 'Single defendant', text: 'Single defendant' },
+    ]
+
+    const statusMixItems = [
+      { value: 'Mixed', text: 'Mixed' },
       { value: 'Not mixed', text: 'Not mixed' },
     ]
 
@@ -1048,6 +1073,8 @@ module.exports = (router) => {
       selectedHearingStatusFilters,
       defendantItems,
       selectedDefendantFilters,
+      statusMixItems,
+      selectedStatusMixFilters,
       dgaItems,
       dgaMonthItems,
       selectedDgaMonthFilters,
@@ -1091,6 +1118,12 @@ module.exports = (router) => {
   router.get('/cases/remove-defendants/:value', (req, res) => {
     const current = _.get(req, 'session.data.caseListFilters.defendants', [])
     _.set(req, 'session.data.caseListFilters.defendants', _.pull(current, decodeURIComponent(req.params.value)))
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/remove-status-mix/:value', (req, res) => {
+    const current = _.get(req, 'session.data.caseListFilters.statusMix', [])
+    _.set(req, 'session.data.caseListFilters.statusMix', _.pull(current, decodeURIComponent(req.params.value)))
     res.redirect('/cases')
   })
 

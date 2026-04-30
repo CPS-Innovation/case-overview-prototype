@@ -17,11 +17,12 @@
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
       <form method="post">
+        <input type="hidden" name="referrer" value="{{ referrer }}">
         {{ govukButton({
           text: "Accept case"
         }) }}
       </form>
-      <p><a href="/cases/{{ _case.id }}">Cancel</a></p>
+      <p><a href="{{ referrer or '/cases/' + _case.id }}">Cancel</a></p>
     </div>
   </div>
 {% endblock %}

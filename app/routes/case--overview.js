@@ -38,7 +38,7 @@ module.exports = router => {
       },
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     res.render("cases/overview/index", { _case })
@@ -80,7 +80,7 @@ module.exports = router => {
       },
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     res.render("cases/complexity-calculation/index", { _case })

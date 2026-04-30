@@ -9,7 +9,7 @@ module.exports = (router) => {
       include: { defendants: true },
     })
 
-    res.render('cases/accept/index', { _case })
+    res.render('cases/accept/index', { _case, referrer: req.query.referrer })
   })
 
   router.post('/cases/:caseId/accept', async (req, res) => {
@@ -32,6 +32,6 @@ module.exports = (router) => {
     })
 
     req.flash('success', 'Case accepted')
-    res.redirect(`/cases/${caseId}`)
+    res.redirect(req.body.referrer || `/cases/${caseId}`)
   })
 }

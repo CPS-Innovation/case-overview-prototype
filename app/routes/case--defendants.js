@@ -32,7 +32,7 @@ module.exports = router => {
     const defendantId = parseInt(req.params.defendantId)
 
     let _case = await getCaseForDefendant(caseId)
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     const defendant = _case.defendants.find(d => d.id === defendantId)
@@ -356,7 +356,7 @@ module.exports = router => {
       }
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     res.render('cases/defendants/index', { _case })

@@ -21,7 +21,7 @@ module.exports = router => {
       }
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     const hearing = await prisma.hearing.findUnique({

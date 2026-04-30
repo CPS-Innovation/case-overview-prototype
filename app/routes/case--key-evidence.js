@@ -61,7 +61,7 @@ module.exports = router => {
       }
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     res.render('cases/key-evidence/index', { _case, evidence })

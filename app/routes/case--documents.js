@@ -61,7 +61,7 @@ module.exports = router => {
       }
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     // Fetch documents with filters

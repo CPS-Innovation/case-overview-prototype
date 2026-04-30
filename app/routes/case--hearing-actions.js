@@ -318,10 +318,12 @@ module.exports = (router) => {
     const hearingId = parseInt(req.params.hearingId)
     const { outcome, nextHearingDate, nextHearingVenue, unitId, changeUnit } = req.session.data.recordHearingOutcome
 
-    const hearing = await prisma.hearing.findUnique({
-      where: { id: hearingId },
-      include: { defendants: true },
-    })
+    const [hearing, _case] = await Promise.all([
+      prisma.hearing.findUnique({ where: { id: hearingId }, include: { defendants: true } }),
+      prisma.case.findUnique({ where: { id: caseId }, include: { defendants: true } }),
+    ])
+
+    const defendants = hearing.defendants.length > 0 ? hearing.defendants : _case.defendants
 
     await prisma.hearing.update({
       where: { id: hearingId },
@@ -330,7 +332,7 @@ module.exports = (router) => {
 
     const newDefendantStatus = defendantStatusMap[outcome]
     if (newDefendantStatus) {
-      const defendantIds = hearing.defendants.map(d => d.id)
+      const defendantIds = defendants.map(d => d.id)
       await prisma.defendant.updateMany({
         where: { id: { in: defendantIds } },
         data: { status: newDefendantStatus },
@@ -345,7 +347,7 @@ module.exports = (router) => {
             action: 'UPDATE',
             title: 'Sentenced',
             meta: {
-              defendants: hearing.defendants.map(d => ({ firstName: d.firstName, lastName: d.lastName })),
+              defendants: defendants.map(d => ({ firstName: d.firstName, lastName: d.lastName })),
               hearingDate: hearing.startDate,
               venue: hearing.venue,
             },
@@ -377,6 +379,9 @@ module.exports = (router) => {
           status: hearingStatuses.PREPARATION_NEEDED,
           type: nextHearingType,
           venue: nextHearingVenue,
+          defendants: {
+            connect: defendants.map(d => ({ id: d.id })),
+          },
         },
       })
     }
@@ -393,7 +398,7 @@ module.exports = (router) => {
           hearingType: hearing.type,
           hearingDate: hearing.startDate,
           venue: hearing.venue,
-          defendants: hearing.defendants.map(d => ({ firstName: d.firstName, lastName: d.lastName })),
+          defendants: defendants.map(d => ({ firstName: d.firstName, lastName: d.lastName })),
           outcome,
           outcomeLabel: outcomeLabelMap[outcome],
           nextHearingType: nextHearingType || null,

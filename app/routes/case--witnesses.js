@@ -31,7 +31,7 @@ module.exports = router => {
       }
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     _case.witnesses = _case.witnesses.map(witness => ({

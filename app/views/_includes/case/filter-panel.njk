@@ -57,6 +57,20 @@
   }) }}
 
   {{ govukCheckboxes({
+    idPrefix: "caseListFilters[statusMix]",
+    name: "caseListFilters[statusMix]",
+    classes: "govuk-checkboxes--small",
+    fieldset: {
+      legend: {
+        text: "Status mix",
+        classes: "govuk-fieldset__legend--s"
+      }
+    },
+    items: statusMixItems,
+    values: selectedStatusMixFilters
+  }) }}
+
+  {{ govukCheckboxes({
     idPrefix: "caseListFilters[policeRequests]",
     name: "caseListFilters[policeRequests]",
     classes: "govuk-checkboxes--small",

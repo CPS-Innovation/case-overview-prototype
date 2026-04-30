@@ -65,6 +65,9 @@ module.exports = (router) => {
         status: 'Scheduled',
         type: 'PTPH',
         venue,
+        defendants: {
+          connect: _case.defendants.map(d => ({ id: d.id })),
+        },
       },
     })
 

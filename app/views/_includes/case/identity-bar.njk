@@ -61,7 +61,7 @@
       items: [
         {
           text: 'Accept case',
-          href: '/cases/' + _case.id + '/accept'
+          href: '/cases/' + _case.id + '/accept?referrer=' + path
         },
         {
           text: 'Reject case',
@@ -90,7 +90,7 @@
     {
       items: [
         {
-          text: 'Resubmitted',
+          text: 'Simulate: Resubmitted',
           href: '/cases/' + _case.id + '/accept-resubmission?referrer=' + path,
           classes: 'app-button--blue'
         }
@@ -102,7 +102,7 @@
     {
       items: [
         {
-          text: 'Information received',
+          text: 'Simulate: Information received',
           href: '/cases/' + _case.id + '/mark-information-received?referrer=' + path,
           classes: 'app-button--blue'
         }
@@ -115,7 +115,7 @@
       items: [
         {
           text: 'Make charging decision',
-          href: '/cases/' + _case.id + '/make-charging-decision'
+          href: '/cases/' + _case.id + '/make-charging-decision?referrer=' + path
         },
         {
           text: 'Request more information',
@@ -130,7 +130,7 @@
     {
       items: [
         {
-          text: 'Charges received',
+          text: 'Simulate: Charges received',
           href: '/cases/' + _case.id + '/mark-charges-received?referrer=' + path,
           classes: 'app-button--blue'
         }

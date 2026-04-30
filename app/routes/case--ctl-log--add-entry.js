@@ -20,7 +20,7 @@ module.exports = router => {
       }
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     res.render('cases/ctl-log/new/index', { _case })
@@ -45,7 +45,7 @@ module.exports = router => {
       }
     })
 
-    _case = addTimeLimitDates(_case)
+    addTimeLimitDates(_case)
     addCaseStatus(_case)
 
     const { description, otherDescription } = req.session.data.addCtlLogEntry || {}
