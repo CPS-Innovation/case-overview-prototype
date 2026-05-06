@@ -6,6 +6,7 @@ const types = require('../data/types')
 const complexities = require('../data/complexities')
 const { addTimeLimitDates } = require('../helpers/timeLimit')
 const { addCaseStatus } = require('../helpers/caseStatus')
+const { getDateGroup, getPaceClockGroup } = require('../helpers/caseGrouping')
 const Validator = require('../helpers/validator')
 const rules = require('../helpers/rules')
 const statuses = require('../data/case-statuses')
@@ -26,7 +27,9 @@ const caseStatuses = [
 function resetFilters(req) {
   _.set(req, 'session.data.caseListFilters.dga', null)
   _.set(req, 'session.data.caseListFilters.dgaMonth', null)
-  _.set(req, 'session.data.caseListFilters.isCTL', null)
+  _.set(req, 'session.data.caseListFilters.custodyTimeLimitRange', null)
+  _.set(req, 'session.data.caseListFilters.statutoryTimeLimitRange', null)
+  _.set(req, 'session.data.caseListFilters.paceClockRange', null)
   _.set(req, 'session.data.caseListFilters.unit', null)
   _.set(req, 'session.data.caseListFilters.policeUnit', null)
   _.set(req, 'session.data.caseListFilters.complexities', null)
@@ -38,6 +41,7 @@ function resetFilters(req) {
   _.set(req, 'session.data.caseListFilters.statusMix', null)
   _.set(req, 'session.data.caseListFilters.firstHearing', null)
   _.set(req, 'session.data.caseListFilters.hearingStatuses', null)
+  _.set(req, 'session.data.caseListFilters.hearingPrepDateRange', null)
 }
 
 module.exports = (router) => {
@@ -159,6 +163,171 @@ module.exports = (router) => {
     res.redirect('/cases')
   })
 
+  router.get('/cases/shortcut/hearing-prep-overdue', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'hearingStatuses', ['Hearing preparation needed'])
+    _.set(req.session.data.caseListFilters, 'hearingPrepDateRange', ['overdue'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/hearing-prep-today', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'hearingStatuses', ['Hearing preparation needed'])
+    _.set(req.session.data.caseListFilters, 'hearingPrepDateRange', ['today'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/hearing-prep-tomorrow', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'hearingStatuses', ['Hearing preparation needed'])
+    _.set(req.session.data.caseListFilters, 'hearingPrepDateRange', ['tomorrow'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/hearing-prep-this-week', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'hearingStatuses', ['Hearing preparation needed'])
+    _.set(req.session.data.caseListFilters, 'hearingPrepDateRange', ['thisWeek'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/hearing-prep-next-week', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'hearingStatuses', ['Hearing preparation needed'])
+    _.set(req.session.data.caseListFilters, 'hearingPrepDateRange', ['nextWeek'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/ctl-overdue', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'custodyTimeLimitRange', ['overdue'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/ctl-today', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'custodyTimeLimitRange', ['today'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/ctl-tomorrow', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'custodyTimeLimitRange', ['tomorrow'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/stl-overdue', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'statutoryTimeLimitRange', ['overdue'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/stl-today', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'statutoryTimeLimitRange', ['today'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/stl-tomorrow', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'statutoryTimeLimitRange', ['tomorrow'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/pace-expired', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'paceClockRange', ['expired'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/pace-less-than-1-hour', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'paceClockRange', ['lessThan1Hour'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/pace-less-than-2-hours', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'paceClockRange', ['lessThan2Hours'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/pace-less-than-3-hours', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'paceClockRange', ['lessThan3Hours'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/shortcut/pace-more-than-3-hours', (req, res) => {
+    const currentUser = req.session.data.user
+    resetFilters(req)
+    _.set(req.session.data.caseListFilters, 'paceClockRange', ['moreThan3Hours'])
+    if (currentUser.role === 'Prosecutor') {
+      _.set(req.session.data.caseListFilters, 'prosecutors', [currentUser.id.toString()])
+    }
+    res.redirect('/cases')
+  })
+
   const unitBreakdownActiveStatuses = [
     statuses.CHARGING_DECISION_NEEDED,
     statuses.POLICE_CHARGING_INFORMATION_PENDING,
@@ -265,9 +434,12 @@ module.exports = (router) => {
     let selectedStatusMixFilters = _.get(req.session.data.caseListFilters, 'statusMix', [])
     let selectedFirstHearingFilters = _.get(req.session.data.caseListFilters, 'firstHearing', [])
     let selectedHearingStatusFilters = _.get(req.session.data.caseListFilters, 'hearingStatuses', [])
+    let selectedHearingPrepDateRangeFilters = _.get(req.session.data.caseListFilters, 'hearingPrepDateRange', [])
     let selectedDgaFilters = _.get(req.session.data.caseListFilters, 'dga', [])
     let selectedDgaMonthFilters = _.get(req.session.data.caseListFilters, 'dgaMonth', [])
-    let selectedCtlFilters = _.get(req.session.data.caseListFilters, 'isCTL', [])
+    let selectedCustodyTimeLimitRangeFilters = _.get(req.session.data.caseListFilters, 'custodyTimeLimitRange', [])
+    let selectedStatutoryTimeLimitRangeFilters = _.get(req.session.data.caseListFilters, 'statutoryTimeLimitRange', [])
+    let selectedPaceClockRangeFilters = _.get(req.session.data.caseListFilters, 'paceClockRange', [])
     let selectedUnitFilters = _.get(req.session.data.caseListFilters, 'unit', [])
     let selectedPoliceUnitFilters = _.get(req.session.data.caseListFilters, 'policeUnit', [])
     let selectedPoliceRequestsFilters = _.get(req.session.data.caseListFilters, 'policeRequests', [])
@@ -411,6 +583,21 @@ module.exports = (router) => {
       })
     }
 
+    const hearingPrepDateRangeDisplayText = {
+      overdue: 'Passed', today: 'Today', tomorrow: 'Tomorrow',
+      thisWeek: 'This week', nextWeek: 'Next week', later: 'Later'
+    }
+
+    if (selectedHearingPrepDateRangeFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'Hearing date' },
+        items: selectedHearingPrepDateRangeFilters.map(r => ({
+          text: hearingPrepDateRangeDisplayText[r] || r,
+          href: '/cases/remove-hearing-prep-date-range/' + r
+        }))
+      })
+    }
+
     if (selectedDefendantFilters?.length) {
       selectedFilters.categories.push({
         heading: { text: 'Defendants' },
@@ -455,13 +642,43 @@ module.exports = (router) => {
       })
     }
 
-    // CTL filter display
-    if (selectedCtlFilters?.length) {
+    const timeLimitRangeDisplayText = {
+      overdue: 'Expired', today: 'Ends today', tomorrow: 'Ends tomorrow',
+      thisWeek: 'Ends this week', nextWeek: 'Ends next week', later: 'Ends later'
+    }
+    const paceClockRangeDisplayText = {
+      expired: 'Expired', lessThan1Hour: 'Ends in less than 1 hour',
+      lessThan2Hours: 'Ends in less than 2 hours', lessThan3Hours: 'Ends in less than 3 hours',
+      moreThan3Hours: 'Ends in more than 3 hours'
+    }
+
+    if (selectedCustodyTimeLimitRangeFilters?.length) {
       selectedFilters.categories.push({
         heading: { text: 'Custody time limit' },
-        items: selectedCtlFilters.map(function (label) {
-          return { text: label, href: '/cases/remove-ctl/' + label }
-        }),
+        items: selectedCustodyTimeLimitRangeFilters.map(r => ({
+          text: timeLimitRangeDisplayText[r] || r,
+          href: '/cases/remove-custody-time-limit-range/' + r
+        }))
+      })
+    }
+
+    if (selectedStatutoryTimeLimitRangeFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'Statutory time limit' },
+        items: selectedStatutoryTimeLimitRangeFilters.map(r => ({
+          text: timeLimitRangeDisplayText[r] || r,
+          href: '/cases/remove-statutory-time-limit-range/' + r
+        }))
+      })
+    }
+
+    if (selectedPaceClockRangeFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'PACE clock' },
+        items: selectedPaceClockRangeFilters.map(r => ({
+          text: paceClockRangeDisplayText[r] || r,
+          href: '/cases/remove-pace-clock-range/' + r
+        }))
       })
     }
 
@@ -583,42 +800,6 @@ module.exports = (router) => {
         }
       })
       where.AND.push({ OR: monthRangeFilters })
-    }
-
-    if (selectedCtlFilters?.length) {
-      const ctlFilters = []
-
-      if (selectedCtlFilters.includes('Has custody time limit')) {
-        ctlFilters.push({
-          defendants: {
-            some: {
-              charges: {
-                some: {
-                  custodyTimeLimit: { not: null },
-                },
-              },
-            },
-          },
-        })
-      }
-
-      if (selectedCtlFilters.includes('Does not have custody time limit')) {
-        ctlFilters.push({
-          defendants: {
-            every: {
-              charges: {
-                every: {
-                  custodyTimeLimit: null,
-                },
-              },
-            },
-          },
-        })
-      }
-
-      if (ctlFilters.length) {
-        where.AND.push({ OR: ctlFilters })
-      }
     }
 
     if (selectedPoliceRequestsFilters?.length) {
@@ -875,6 +1056,40 @@ module.exports = (router) => {
       })
     }
 
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (selectedCustodyTimeLimitRangeFilters?.length) {
+      cases = cases.filter(_case => {
+        const group = getDateGroup(_case.custodyTimeLimit, today)
+        return group !== 'noDate' && selectedCustodyTimeLimitRangeFilters.includes(group)
+      })
+    }
+
+    if (selectedStatutoryTimeLimitRangeFilters?.length) {
+      cases = cases.filter(_case => {
+        const group = getDateGroup(_case.statutoryTimeLimit, today)
+        return group !== 'noDate' && selectedStatutoryTimeLimitRangeFilters.includes(group)
+      })
+    }
+
+    if (selectedPaceClockRangeFilters?.length) {
+      cases = cases.filter(_case => {
+        const group = getPaceClockGroup(_case.paceClock)
+        return group !== 'noPaceClock' && selectedPaceClockRangeFilters.includes(group)
+      })
+    }
+
+    if (selectedHearingPrepDateRangeFilters?.length) {
+      cases = cases.filter(_case => {
+        return _case.hearings.some(h => {
+          if (h.status !== 'Hearing preparation needed') return false
+          const group = getDateGroup(new Date(h.startDate), today)
+          return selectedHearingPrepDateRangeFilters.includes(group)
+        })
+      })
+    }
+
     let dgaItems = dgaStatuses.map((dgaStatus) => ({
       text: dgaStatus,
       value: dgaStatus,
@@ -921,10 +1136,40 @@ module.exports = (router) => {
       ? caseStatuses.filter(s => distinctStatuses.has(s)).map(s => ({ value: s, text: s }))
       : []
 
-    let ctlItems = ['Has custody time limit', 'Does not have custody time limit'].map((ctl) => ({
-      text: ctl,
-      value: ctl,
-    }))
+    const custodyTimeLimitRangeItems = [
+      { text: 'Expired', value: 'overdue' },
+      { text: 'Ends today', value: 'today' },
+      { text: 'Ends tomorrow', value: 'tomorrow' },
+      { text: 'Ends this week', value: 'thisWeek' },
+      { text: 'Ends next week', value: 'nextWeek' },
+      { text: 'Ends later', value: 'later' }
+    ]
+
+    const statutoryTimeLimitRangeItems = [
+      { text: 'Expired', value: 'overdue' },
+      { text: 'Ends today', value: 'today' },
+      { text: 'Ends tomorrow', value: 'tomorrow' },
+      { text: 'Ends this week', value: 'thisWeek' },
+      { text: 'Ends next week', value: 'nextWeek' },
+      { text: 'Ends later', value: 'later' }
+    ]
+
+    const paceClockRangeItems = [
+      { text: 'Expired', value: 'expired' },
+      { text: 'Ends in less than 1 hour', value: 'lessThan1Hour' },
+      { text: 'Ends in less than 2 hours', value: 'lessThan2Hours' },
+      { text: 'Ends in less than 3 hours', value: 'lessThan3Hours' },
+      { text: 'Ends in more than 3 hours', value: 'moreThan3Hours' }
+    ]
+
+    const hearingPrepDateRangeItems = [
+      { text: 'Passed', value: 'overdue' },
+      { text: 'Today', value: 'today' },
+      { text: 'Tomorrow', value: 'tomorrow' },
+      { text: 'This week', value: 'thisWeek' },
+      { text: 'Next week', value: 'nextWeek' },
+      { text: 'Later', value: 'later' }
+    ]
 
     let policeRequestsItems = [
       'Has pending requests',
@@ -1078,7 +1323,14 @@ module.exports = (router) => {
       dgaItems,
       dgaMonthItems,
       selectedDgaMonthFilters,
-      ctlItems,
+      custodyTimeLimitRangeItems,
+      selectedCustodyTimeLimitRangeFilters,
+      statutoryTimeLimitRangeItems,
+      selectedStatutoryTimeLimitRangeFilters,
+      paceClockRangeItems,
+      selectedPaceClockRangeFilters,
+      hearingPrepDateRangeItems,
+      selectedHearingPrepDateRangeFilters,
       policeRequestsItems,
       unitItems,
       policeUnitItems,
@@ -1115,6 +1367,12 @@ module.exports = (router) => {
     res.redirect('/cases')
   })
 
+  router.get('/cases/remove-hearing-prep-date-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.caseListFilters.hearingPrepDateRange', [])
+    _.set(req, 'session.data.caseListFilters.hearingPrepDateRange', _.pull(currentFilters, req.params.range))
+    res.redirect('/cases')
+  })
+
   router.get('/cases/remove-defendants/:value', (req, res) => {
     const current = _.get(req, 'session.data.caseListFilters.defendants', [])
     _.set(req, 'session.data.caseListFilters.defendants', _.pull(current, decodeURIComponent(req.params.value)))
@@ -1139,9 +1397,21 @@ module.exports = (router) => {
     res.redirect('/cases')
   })
 
-  router.get('/cases/remove-ctl/:ctl', (req, res) => {
-    const currentFilters = _.get(req, 'session.data.caseListFilters.isCTL', [])
-    _.set(req, 'session.data.caseListFilters.isCTL', _.pull(currentFilters, req.params.ctl))
+  router.get('/cases/remove-custody-time-limit-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.caseListFilters.custodyTimeLimitRange', [])
+    _.set(req, 'session.data.caseListFilters.custodyTimeLimitRange', _.pull(currentFilters, req.params.range))
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/remove-statutory-time-limit-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.caseListFilters.statutoryTimeLimitRange', [])
+    _.set(req, 'session.data.caseListFilters.statutoryTimeLimitRange', _.pull(currentFilters, req.params.range))
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/remove-pace-clock-range/:range', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.caseListFilters.paceClockRange', [])
+    _.set(req, 'session.data.caseListFilters.paceClockRange', _.pull(currentFilters, req.params.range))
     res.redirect('/cases')
   })
 

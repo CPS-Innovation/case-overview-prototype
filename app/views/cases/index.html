@@ -298,9 +298,9 @@
                                 html: 'Hearing date'
                               },
                               value: {
-                                html: _case.hearings[0].startDate | isoDateString | govukDateTime
+                                html: _case.nextHearingDate | isoDateString | govukDateTime
                               }
-                            } if _case.hearings and _case.hearings.length > 0 and 1 == 2,
+                            } if _case.nextHearingDate,
                             {
                               key: { html: 'Custody time limit' },
                               value: { html: (_case.custodyTimeLimit | isoDateString | govukDate) + ' (' + (_case.custodyTimeLimit | timeLimitStatus) + ')' }
