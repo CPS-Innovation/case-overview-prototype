@@ -32,9 +32,8 @@
 
       {% include "_includes/overview/unit-breakdown.njk" %}
 
-      {% if data.user.role == "Prosecutor" or data.user.role == "Paralegal officer" %}
-        {% include "_includes/overview/directions.njk" %}
-      {% endif %}
+      {% include "_includes/overview/priority-cases.njk" %}
+
 
       {% include "_includes/overview/recent-cases.njk" %}
     </div>

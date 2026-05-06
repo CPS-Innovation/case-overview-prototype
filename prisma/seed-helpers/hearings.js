@@ -30,71 +30,54 @@ function completePastDates(count) {
   return dates
 }
 
-// For CHARGED sequences: previous hearings are all COMPLETE (past),
-// the final hearing's date depends on its status
-function assignChargedDates(sequence) {
+function chargedFirstHearingDate() {
   const now = new Date()
-  const lastIdx = sequence.length - 1
-  const lastStatus = sequence[lastIdx].status
-  const dates = new Array(sequence.length)
+  now.setHours(0, 0, 0, 0)
+  const daysToEndOfWeek = 7 - now.getDay()
 
-  const lastDate = new Date(now)
-  if (lastStatus === hearingStatuses.OUTCOME_NEEDED) {
-    lastDate.setDate(lastDate.getDate() - faker.number.int({ min: 1, max: 7 }))
-  } else if (lastStatus === hearingStatuses.COMPLETE) {
-    lastDate.setDate(lastDate.getDate() - faker.number.int({ min: 7, max: 29 }))
-  } else {
-    lastDate.setDate(lastDate.getDate() + faker.number.int({ min: 7, max: 56 }))
+  const group = faker.helpers.weightedArrayElement([
+    { weight: 10, value: 'overdue' },
+    { weight: 20, value: 'today' },
+    { weight: 20, value: 'tomorrow' },
+    { weight: 20, value: 'thisWeek' },
+    { weight: 15, value: 'nextWeek' },
+    { weight: 15, value: 'later' },
+  ])
+
+  const d = new Date(now)
+  switch (group) {
+    case 'overdue':
+      d.setDate(d.getDate() - faker.number.int({ min: 1, max: 14 }))
+      break
+    case 'tomorrow':
+      d.setDate(d.getDate() + 1)
+      break
+    case 'thisWeek': {
+      const offset = daysToEndOfWeek >= 2
+        ? faker.number.int({ min: 2, max: daysToEndOfWeek })
+        : faker.number.int({ min: daysToEndOfWeek + 1, max: daysToEndOfWeek + 7 })
+      d.setDate(d.getDate() + offset)
+      break
+    }
+    case 'nextWeek':
+      d.setDate(d.getDate() + faker.number.int({ min: daysToEndOfWeek + 1, max: daysToEndOfWeek + 7 }))
+      break
+    case 'later':
+      d.setDate(d.getDate() + faker.number.int({ min: daysToEndOfWeek + 8, max: daysToEndOfWeek + 35 }))
+      break
+    // 'today': no change
   }
-  lastDate.setHours(10, 0, 0, 0)
-  dates[lastIdx] = lastDate
-
-  // Work backwards from 30 days ago for all complete prior hearings
-  const anchor = new Date(now)
-  anchor.setDate(anchor.getDate() - 30)
-  for (let i = lastIdx - 1; i >= 0; i--) {
-    anchor.setDate(anchor.getDate() - faker.number.int({ min: 30, max: 90 }))
-    const d = new Date(anchor)
-    d.setHours(10, 0, 0, 0)
-    dates[i] = d
-  }
-
-  return sequence.map((h, i) => ({ ...h, date: dates[i] }))
+  d.setHours(10, 0, 0, 0)
+  return d
 }
 
-function buildChargedSequence(isCrownCourt) {
-  const sequence = []
-
-  if (isCrownCourt) {
-    const ptphStatus = randomHearingStatus()
-    sequence.push({ type: 'First hearing', status: hearingStatuses.COMPLETE })
-    sequence.push({ type: 'PTPH', status: ptphStatus })
-
-    if (ptphStatus === hearingStatuses.COMPLETE && faker.datatype.boolean({ probability: 0.5 })) {
-      const trialStatus = randomHearingStatus()
-      sequence.push({ type: 'Trial', status: trialStatus })
-
-      if (trialStatus === hearingStatuses.COMPLETE && faker.datatype.boolean({ probability: 0.5 })) {
-        sequence.push({ type: 'Sentencing', status: randomHearingStatus() })
-      }
-    }
-  } else {
-    if (!faker.datatype.boolean({ probability: 0.5 })) return []
-
-    const firstStatus = randomHearingStatus()
-    sequence.push({ type: 'First hearing', status: firstStatus })
-
-    if (firstStatus === hearingStatuses.COMPLETE && faker.datatype.boolean({ probability: 0.5 })) {
-      const trialStatus = randomHearingStatus()
-      sequence.push({ type: 'Trial', status: trialStatus })
-
-      if (trialStatus === hearingStatuses.COMPLETE && faker.datatype.boolean({ probability: 0.5 })) {
-        sequence.push({ type: 'Sentencing', status: randomHearingStatus() })
-      }
-    }
-  }
-
-  return assignChargedDates(sequence)
+function buildChargedSequence() {
+  if (faker.datatype.boolean({ probability: 0.5 })) return []
+  return [{
+    type: 'First hearing',
+    status: hearingStatuses.PREPARATION_NEEDED,
+    date: chargedFirstHearingDate()
+  }]
 }
 
 function buildNotGuiltySequence(isCrownCourt) {
@@ -129,7 +112,7 @@ function buildSentencedSequence(isCrownCourt) {
 }
 
 function buildHearingSequence(status, isCrownCourt) {
-  if (status === statuses.CHARGED) return buildChargedSequence(isCrownCourt)
+  if (status === statuses.CHARGED) return buildChargedSequence()
   if (status === statuses.NOT_GUILTY) return buildNotGuiltySequence(isCrownCourt)
   if (status === statuses.SENTENCED) return buildSentencedSequence(isCrownCourt)
   return []

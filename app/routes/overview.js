@@ -5,6 +5,7 @@ const { getTaskSeverity } = require('../helpers/taskState')
 const { addTimeLimitDates } = require('../helpers/timeLimit')
 const { addCaseStatus } = require('../helpers/caseStatus')
 const { getDateGroup, getPaceClockGroup } = require('../helpers/taskGrouping')
+const { getDateGroup: getCaseDateGroup, getPaceClockGroup: getCasePaceClockGroup } = require('../helpers/caseGrouping')
 const statuses = require('../data/case-statuses')
 
 module.exports = router => {
@@ -342,6 +343,45 @@ module.exports = router => {
       }
     })
 
+    // Fetch cases for high priority section — role scoped
+    const casePriorityWhere = { unitId: { in: userUnitIds } }
+    if (currentUser.role === 'Prosecutor') {
+      casePriorityWhere.prosecutors = { some: { userId: currentUser.id } }
+    }
+
+    const priorityCases = await prisma.case.findMany({
+      where: casePriorityWhere,
+      include: {
+        defendants: { include: { charges: true } },
+        hearings: { select: { status: true, startDate: true } }
+      }
+    })
+
+    const caseCTLCountsByRange = { overdue: 0, today: 0, tomorrow: 0 }
+    const caseSTLCountsByRange = { overdue: 0, today: 0, tomorrow: 0 }
+    const casePaceClockCountsByRange = { expired: 0, lessThan1Hour: 0, lessThan2Hours: 0, lessThan3Hours: 0, moreThan3Hours: 0 }
+    const caseHearingPrepCountsByRange = { overdue: 0, today: 0, tomorrow: 0, thisWeek: 0, nextWeek: 0 }
+
+    const overviewToday = new Date()
+    overviewToday.setHours(0, 0, 0, 0)
+
+    priorityCases.forEach(_case => {
+      addTimeLimitDates(_case)
+      const ctlGroup = getCaseDateGroup(_case.custodyTimeLimit, overviewToday)
+      if (caseCTLCountsByRange[ctlGroup] !== undefined) caseCTLCountsByRange[ctlGroup]++
+      const stlGroup = getCaseDateGroup(_case.statutoryTimeLimit, overviewToday)
+      if (caseSTLCountsByRange[stlGroup] !== undefined) caseSTLCountsByRange[stlGroup]++
+      const paceGroup = getCasePaceClockGroup(_case.paceClock)
+      if (casePaceClockCountsByRange[paceGroup] !== undefined) casePaceClockCountsByRange[paceGroup]++
+
+      const prepHearings = _case.hearings.filter(h => h.status === 'Hearing preparation needed')
+      if (prepHearings.length) {
+        const nearestPrep = new Date(Math.min(...prepHearings.map(h => new Date(h.startDate))))
+        const prepGroup = getCaseDateGroup(nearestPrep, overviewToday)
+        if (caseHearingPrepCountsByRange[prepGroup] !== undefined) caseHearingPrepCountsByRange[prepGroup]++
+      }
+    })
+
     // Fetch directions for cases assigned to current user (as prosecutor or paralegal officer)
     // Only include directions assigned to Prosecution
     const directionWhere = {
@@ -508,7 +548,11 @@ module.exports = router => {
       paralegalOfficerCaseCount,
       recentCases,
       unitBreakdown,
-      unitBreakdownHasCrownUnits
+      unitBreakdownHasCrownUnits,
+      caseCTLCountsByRange,
+      caseSTLCountsByRange,
+      casePaceClockCountsByRange,
+      caseHearingPrepCountsByRange
     })
   })
 
