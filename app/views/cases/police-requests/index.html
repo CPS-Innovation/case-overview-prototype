@@ -8,15 +8,33 @@
 {% endblock %}
 
 {% block content %}
+  {% include "_includes/success-banner.njk" %}
   {% include "_includes/case/navigation.njk" %}
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
+      {{
+        govukButton({
+          text: "Create request",
+          href: "/cases/" + _case.id + "/police-requests/new"
+        })
+      }}
+
       {% if policeRequests.length %}
         <div class="app-list">
           {% for request in policeRequests %}
+            {% set descriptionPreview %}
+              {% if request.description and request.description.length > 75 %}
+                {{ request.description | truncate(75) }}
+              {% elif request.description %}
+                {{ request.description }}
+              {% else %}
+                Request sent {{ request.sentDate | isoDateString | govukDate }}
+              {% endif %}
+            {% endset %}
+
             <div class="app-list__item">
               <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
                 <div>
@@ -24,7 +42,7 @@
                     href="/cases/{{ _case.id }}/police-requests/{{ request.id }}"
                     class="govuk-link--no-visited-state"
                   >
-                    Request sent {{ request.sentDate | isoDateString | govukDate }}
+                    {{ descriptionPreview | trim }}
                   </a>
                 </div>
                 <div class="app-list__tag">
@@ -37,12 +55,12 @@
                   classes: 'govuk-summary-list--no-border app-summary-list--compact app-summary-list--small-text',
                   rows: [
                     {
-                      key: { text: 'Deadline' },
-                      value: { text: request.deadline | isoDateString | govukDate }
+                      key: { text: 'Sent date' },
+                      value: { text: request.sentDate | isoDateString | govukDateTime }
                     },
                     {
                       key: { text: 'Items' },
-                      value: { text: request.receivedCount + ' of ' + request.items.length + ' received' }
+                      value: { text: request.items.length | string }
                     }
                   ]
                 })
@@ -51,12 +69,6 @@
           {% endfor %}
         </div>
       {% else %}
-        {{
-          govukButton({
-            text: "Create request"
-          })
-        }}
-
         <p class="govuk-body">There are no police requests for this case.</p>
       {% endif %}
     </div>

@@ -16,6 +16,9 @@
 @import "components/button-menu.scss";
 @import "components/identity-bar.scss";
 
+// Page header
+@import "components/page-header.scss";
+
 // Lists
 @import "components/list.scss";
 @import "components/prosecutor-cards.scss";
@@ -246,6 +249,17 @@ $statuses: (
     background-color: #15558a;
     box-shadow: 0 2px 0 #14507d;
   }
+}
+
+.app-button--link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  @include govuk-font($size: 19);
+  @include govuk-link-common;
+  @include govuk-link-style-default;
 }
 
 .govuk-service-navigation__item {

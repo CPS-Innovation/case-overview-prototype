@@ -18,6 +18,32 @@ const ITEM_DESCRIPTIONS = [
   'Missing MG11s'
 ];
 
+const REQUEST_DESCRIPTIONS = [
+  'Several documents are missing from the file. Please supply them before the deadline.',
+  'The file received is incomplete. Outstanding items are listed below.',
+  'Further information is required to progress this case. Please provide the items listed.',
+  'The initial submission was missing key evidence. Please supply the outstanding documents.',
+  'This is a follow-up request for items not received in response to our previous letter.',
+];
+
+const ITEM_CATEGORIES = [
+  'Documents and forms',
+  'Footage',
+  'Statements',
+  'Forensic evidence',
+  'Medical evidence',
+  'Records',
+  'Exhibits',
+  'Other',
+];
+
+const CANCEL_REASONS = [
+  'Evidence is no longer required following a change in charging decision.',
+  'The case has been discontinued — this item is no longer needed.',
+  'We obtained this document through other means.',
+  'The defendant has pleaded guilty and this item is no longer required.',
+];
+
 function daysAgo(n) {
   const d = new Date();
   d.setDate(d.getDate() - n);
@@ -32,7 +58,7 @@ function daysFromNow(n) {
 
 async function seedPoliceRequests(prisma) {
   const allCases = await prisma.case.findMany({
-    select: { id: true },
+    select: { id: true, defendants: { select: { id: true } } },
     skip: 50,
     take: 200,
   });
@@ -44,55 +70,78 @@ async function seedPoliceRequests(prisma) {
 
   for (let i = 0; i < selectedCases.length; i++) {
     const caseId = selectedCases[i].id;
+    const caseDefs = selectedCases[i].defendants;
     const scenario = i % 5;
+    const description = faker.helpers.arrayElement(REQUEST_DESCRIPTIONS);
+
+    const randomDefendants = () => {
+      if (!caseDefs.length) return undefined;
+      const picked = faker.helpers.arrayElements(caseDefs, faker.number.int({ min: 1, max: Math.min(2, caseDefs.length) }));
+      return { connect: picked.map(d => ({ id: d.id })) };
+    };
 
     if (scenario === 0) {
-      // Sent: future deadline, no items received
+      // Pending: future due dates, no items received
       const sentDate = daysAgo(faker.number.int({ min: 5, max: 14 }));
-      const deadline = daysFromNow(faker.number.int({ min: 7, max: 21 }));
-      const items = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
+      const itemDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
 
       await prisma.policeRequest.create({
         data: {
           caseId,
           sentDate,
-          deadline,
-          items: { create: items.map(description => ({ description })) },
+          description,
+          items: {
+            create: itemDescriptions.map((desc) => ({
+              description: desc,
+              defendants: randomDefendants(),
+              category: faker.helpers.arrayElement(ITEM_CATEGORIES),
+              dueDate: daysFromNow(faker.number.int({ min: 7, max: 21 })),
+            })),
+          },
         },
       });
       count++;
     } else if (scenario === 1) {
-      // Overdue: past deadline, no items received
+      // Pending overdue: past due dates, no items received
       const sentDate = daysAgo(faker.number.int({ min: 28, max: 56 }));
-      const deadline = daysAgo(faker.number.int({ min: 7, max: 21 }));
-      const items = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 5 }));
+      const itemDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 5 }));
 
       await prisma.policeRequest.create({
         data: {
           caseId,
           sentDate,
-          deadline,
-          items: { create: items.map(description => ({ description })) },
+          description,
+          items: {
+            create: itemDescriptions.map((desc) => ({
+              description: desc,
+              defendants: randomDefendants(),
+              category: faker.helpers.arrayElement(ITEM_CATEGORIES),
+              dueDate: daysAgo(faker.number.int({ min: 7, max: 21 })),
+            })),
+          },
         },
       });
       count++;
     } else if (scenario === 2) {
-      // Partially received
+      // Mix of received and pending, one cancelled
       const sentDate = daysAgo(faker.number.int({ min: 14, max: 28 }));
-      const deadline = daysFromNow(faker.number.int({ min: 3, max: 14 }));
-      const allItems = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 3, max: 5 }));
-      const receivedCount = Math.ceil(allItems.length / 2);
+      const allDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 3, max: 5 }));
       const receivedDate = daysAgo(faker.number.int({ min: 2, max: 7 }));
 
       await prisma.policeRequest.create({
         data: {
           caseId,
           sentDate,
-          deadline,
+          description,
           items: {
-            create: allItems.map((description, idx) => ({
-              description,
-              receivedDate: idx < receivedCount ? receivedDate : null,
+            create: allDescriptions.map((desc, idx) => ({
+              description: desc,
+              defendants: randomDefendants(),
+              category: faker.helpers.arrayElement(ITEM_CATEGORIES),
+              dueDate: daysFromNow(faker.number.int({ min: 3, max: 14 })),
+              receivedDate: idx === 0 ? receivedDate : null,
+              cancelledDate: idx === 1 ? daysAgo(1) : null,
+              cancelledReason: idx === 1 ? faker.helpers.arrayElement(CANCEL_REASONS) : null,
             })),
           },
         },
@@ -101,45 +150,65 @@ async function seedPoliceRequests(prisma) {
     } else if (scenario === 3) {
       // All received
       const sentDate = daysAgo(faker.number.int({ min: 21, max: 42 }));
-      const deadline = new Date(sentDate.getTime() + 14 * 24 * 60 * 60 * 1000);
       const receivedDate = daysAgo(faker.number.int({ min: 3, max: 14 }));
-      const items = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
+      const itemDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
 
       await prisma.policeRequest.create({
         data: {
           caseId,
           sentDate,
-          deadline,
-          items: { create: items.map(description => ({ description, receivedDate })) },
+          description,
+          items: {
+            create: itemDescriptions.map((desc) => ({
+              description: desc,
+              defendants: randomDefendants(),
+              category: faker.helpers.arrayElement(ITEM_CATEGORIES),
+              dueDate: daysAgo(faker.number.int({ min: 15, max: 30 })),
+              receivedDate,
+            })),
+          },
         },
       });
       count++;
     } else {
-      // Multiple requests: one received, one outstanding
+      // Multiple requests: one fully received, one pending
       const sent1 = daysAgo(60);
-      const deadline1 = new Date(sent1.getTime() + 14 * 24 * 60 * 60 * 1000);
-      const received1 = new Date(sent1.getTime() + 10 * 24 * 60 * 60 * 1000);
-      const items1 = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 3 }));
+      const received1 = daysAgo(50);
+      const descriptions1 = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 3 }));
 
       await prisma.policeRequest.create({
         data: {
           caseId,
           sentDate: sent1,
-          deadline: deadline1,
-          items: { create: items1.map(description => ({ description, receivedDate: received1 })) },
+          description: faker.helpers.arrayElement(REQUEST_DESCRIPTIONS),
+          items: {
+            create: descriptions1.map((desc) => ({
+              description: desc,
+              defendants: randomDefendants(),
+              category: faker.helpers.arrayElement(ITEM_CATEGORIES),
+              dueDate: daysAgo(52),
+              receivedDate: received1,
+            })),
+          },
         },
       });
 
       const sent2 = daysAgo(faker.number.int({ min: 5, max: 14 }));
-      const deadline2 = daysFromNow(faker.number.int({ min: 7, max: 14 }));
-      const items2 = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
+      const descriptions2 = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
 
       await prisma.policeRequest.create({
         data: {
           caseId,
           sentDate: sent2,
-          deadline: deadline2,
-          items: { create: items2.map(description => ({ description })) },
+          description: faker.helpers.arrayElement(REQUEST_DESCRIPTIONS),
+          items: {
+            create: descriptions2.map((desc) => ({
+              description: desc,
+              defendants: randomDefendants(),
+              category: faker.helpers.arrayElement(ITEM_CATEGORIES),
+              dueDate: daysFromNow(faker.number.int({ min: 7, max: 14 })),
+            })),
+          },
         },
       });
       count += 2;

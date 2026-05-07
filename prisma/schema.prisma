@@ -272,10 +272,11 @@ model Defendant {
   status           String?
   defenceLawyerId  Int?
   defenceLawyer    DefenceLawyer? @relation(fields: [defenceLawyerId], references: [id])
-  cases            Case[]         @relation("CaseDefendants")
-  charges          Charge[]
-  directions       Direction[]
-  hearings         Hearing[]      @relation("HearingDefendants")
+  cases              Case[]               @relation("CaseDefendants")
+  charges            Charge[]
+  directions         Direction[]
+  hearings           Hearing[]            @relation("HearingDefendants")
+  policeRequestItems PoliceRequestItem[]
 }
 
 model DefenceLawyer {
@@ -464,14 +465,14 @@ model RecentCase {
 }
 
 model PoliceRequest {
-  id        Int                 @id @default(autoincrement())
-  caseId    Int
-  case      Case                @relation(fields: [caseId], references: [id])
-  sentDate  DateTime
-  deadline  DateTime
-  items     PoliceRequestItem[]
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
+  id          Int                 @id @default(autoincrement())
+  caseId      Int
+  case        Case                @relation(fields: [caseId], references: [id])
+  sentDate    DateTime
+  description String?
+  items       PoliceRequestItem[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 }
 
 model PoliceRequestItem {
@@ -479,7 +480,12 @@ model PoliceRequestItem {
   policeRequestId Int
   policeRequest   PoliceRequest @relation(fields: [policeRequestId], references: [id])
   description     String
+  category        String?
+  dueDate         DateTime
   receivedDate    DateTime?
+  cancelledDate   DateTime?
+  cancelledReason String?
+  defendants      Defendant[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 }

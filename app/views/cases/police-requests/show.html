@@ -1,6 +1,7 @@
 {% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
 {% set secondaryNavId = 'police-requests' %}
+{% from "_components/page-header/macro.njk" import appPageHeader %}
 
 {% block beforeContent %}
   {{
@@ -22,34 +23,93 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <span class="govuk-caption-l">{{_case.reference}}</span>
       <h1 class="govuk-heading-l">
-        Request sent {{ policeRequest.sentDate | isoDateString | govukDate }}
-        {{ govukTag({ text: policeRequest.status, classes: policeRequest.status | policeRequestStatusTagClass }) }}
+        {% if policeRequest.description and policeRequest.description.length > 75 %}
+          {{ policeRequest.description | truncate(75) }}
+        {% elif policeRequest.description %}
+          {{ policeRequest.description }}
+        {% else %}
+          Request sent {{ policeRequest.sentDate | isoDateString | govukDate }}
+        {% endif %}
       </h1>
 
       {{
         govukSummaryList({
           rows: [
             {
+              key: { text: 'Description' },
+              value: { text: policeRequest.description }
+            } if policeRequest.description,
+            {
               key: { text: 'Sent' },
               value: { text: policeRequest.sentDate | isoDateString | govukDate }
-            },
-            {
-              key: { text: 'Deadline' },
-              value: { text: policeRequest.deadline | isoDateString | govukDate }
             }
           ]
         })
       }}
 
-      <h2 class="govuk-heading-m">Items requested</h2>
+      <h2 class="govuk-heading-m govuk-!-margin-top-6">Items requested</h2>
 
-      {{
-        govukSummaryList({
-          rows: policeRequest.itemRows
-        })
-      }}
+      {% for item in policeRequest.items %}
+
+        {% if item.status === 'Pending' %}
+          {{ appPageHeader({
+            classes: 'govuk-!-margin-bottom-1 govuk-!-margin-top-7',
+            heading: { level: 3, text: item.description, classes: 'govuk-heading-m' },
+            items: [
+              {
+                text: 'Mark as received',
+                href: '/cases/' + _case.id + '/police-requests/' + policeRequest.id + '/items/' + item.id + '/mark-received'
+              },
+              {
+                text: 'Cancel request',
+                href: '/cases/' + _case.id + '/police-requests/' + policeRequest.id + '/items/' + item.id + '/cancel'
+              }
+            ]
+          }) }}
+        {% else %}
+          {{ appPageHeader({
+            classes: 'govuk-!-margin-bottom-1 govuk-!-margin-top-7',
+            heading: { level: 3, text: item.description, classes: 'govuk-heading-m' }
+          }) }}
+        {% endif %}
+
+        {{
+          govukSummaryList({
+            rows: [
+              {
+                key: { text: 'Status' },
+                value: { html: govukTag({ text: item.status, classes: item.status | policeRequestStatusTagClass }) }
+              },
+              {
+                key: { text: 'Category' },
+                value: { text: item.category if item.category else '—' }
+              },
+              {
+                key: { text: 'Defendants' },
+                value: { text: item.defendantNames if item.defendantNames else '—' }
+              } if _case.defendants.length > 1,
+              {
+                key: { text: 'Due date' },
+                value: { text: item.dueDate | isoDateString | govukDate }
+              },
+              {
+                key: { text: 'Received' },
+                value: { text: item.receivedDate | isoDateString | govukDate }
+              } if item.status === 'Received',
+              {
+                key: { text: 'Cancelled' },
+                value: { text: item.cancelledDate | isoDateString | govukDate }
+              } if item.status === 'Cancelled',
+              {
+                key: { text: 'Reason for cancellation' },
+                value: { text: item.cancelledReason }
+              } if item.status === 'Cancelled'
+            ]
+          })
+        }}
+
+      {% endfor %}
     </div>
   </div>
 {% endblock %}

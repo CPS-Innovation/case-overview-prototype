@@ -47,7 +47,9 @@ addFilter('directionStatusTagClass', (status) => {
 })
 
 addFilter('isoDateString', (date) => {
-  return date.toISOString()
+  if (!date) return ''
+  const d = new Date(date)
+  return isNaN(d.getTime()) ? '' : d.toISOString()
 })
 
 addFilter('formatNumber', (number) => {
@@ -169,10 +171,10 @@ addFilter('policeRequestStatusTagClass', (status) => {
   switch (status) {
     case 'Received':
       return 'govuk-tag--green'
-    case 'Partially received':
-      return 'govuk-tag--blue'
-    case 'Overdue':
-      return 'govuk-tag--red'
+    case 'Cancelled':
+      return 'govuk-tag--grey'
+    case 'Pending':
+      return 'govuk-tag--yellow'
     default:
       return 'govuk-tag--grey'
   }
