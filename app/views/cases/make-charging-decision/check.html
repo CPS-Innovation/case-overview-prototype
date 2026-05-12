@@ -6,7 +6,7 @@
 {%
   set decisionLabels = {
     "charge": "Charge",
-    "no-further-action": "No further action"
+    "do-not-charge": "Do not charge"
   }
 %}
 
@@ -24,6 +24,96 @@
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <span class="govuk-caption-l">{{ _case.reference }} – make charging decision</span>
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+      {% if review %}
+        {% set allAnnotations = [] %}
+        {% for docReview in review.documents %}
+          {% for a in docReview.annotations %}
+            {% set allAnnotations = (allAnnotations.push({ annotation: a, documentName: docReview.document.name }), allAnnotations) %}
+          {% endfor %}
+        {% endfor %}
+
+        {% set evidenceItems = [] %}
+        {% set disclosureItems = [] %}
+        {% set missingItems = [] %}
+        {% for item in allAnnotations %}
+          {% if item.annotation.type == 'evidence' %}
+            {% set evidenceItems = (evidenceItems.push(item), evidenceItems) %}
+          {% elif item.annotation.type == 'disclosure' %}
+            {% set disclosureItems = (disclosureItems.push(item), disclosureItems) %}
+          {% else %}
+            {% set missingItems = (missingItems.push(item), missingItems) %}
+          {% endif %}
+        {% endfor %}
+
+        {% if evidenceItems.length %}
+          <h2 class="govuk-heading-m">Evidence</h2>
+          {% for item in evidenceItems %}
+            <div class="govuk-summary-card">
+              <div class="govuk-summary-card__title-wrapper">
+                <h3 class="govuk-summary-card__title govuk-body">{{ item.documentName }}</h3>
+              </div>
+              <div class="govuk-summary-card__content">
+                {{ govukSummaryList({
+                  rows: [
+                    { key: { text: "Selected text" }, value: { text: item.annotation.selectedText } },
+                    { key: { text: "Note" }, value: { text: item.annotation.note } }
+                  ]
+                }) }}
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if disclosureItems.length %}
+          <h2 class="govuk-heading-m">Disclosure</h2>
+          {% for item in disclosureItems %}
+            <div class="govuk-summary-card">
+              <div class="govuk-summary-card__title-wrapper">
+                <h3 class="govuk-summary-card__title govuk-body">{{ item.documentName }}</h3>
+              </div>
+              <div class="govuk-summary-card__content">
+                {{ govukSummaryList({
+                  rows: [
+                    { key: { text: "Selected text" }, value: { text: item.annotation.selectedText } },
+                    { key: { text: "Note" }, value: { text: item.annotation.note } }
+                  ]
+                }) }}
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if missingItems.length %}
+          <h2 class="govuk-heading-m">Missing items</h2>
+          {{ govukInsetText({
+            text: "An action plan will be sent to the police requesting the missing items."
+          }) }}
+          {% for item in missingItems %}
+            <div class="govuk-summary-card">
+              <div class="govuk-summary-card__title-wrapper">
+                <h3 class="govuk-summary-card__title govuk-body">{{ item.documentName }}</h3>
+              </div>
+              <div class="govuk-summary-card__content">
+                {{ govukSummaryList({
+                  rows: [
+                    { key: { text: "Selected text" }, value: { text: item.annotation.selectedText } },
+                    { key: { text: "Note" }, value: { text: item.annotation.note } }
+                  ]
+                }) }}
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if review.summary %}
+          <h2 class="govuk-heading-m">Summary of review</h2>
+          <p class="govuk-body">{{ review.summary }}</p>
+        {% endif %}
+
+      {% endif %}
+
+      <h2 class="govuk-heading-m">Decision</h2>
 
       {% set defendantNames %}{% for d in selectedDefendants %}
         {{ d.firstName }}

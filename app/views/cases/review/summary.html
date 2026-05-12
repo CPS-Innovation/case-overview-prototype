@@ -1,0 +1,38 @@
+{% extends "_layouts/main.html" %}
+
+{% set navId = 'cases' %}
+{% set pageName = "Summary of review" %}
+
+{% block beforeContent %}
+  {{ govukBackLink({
+    text: 'Back',
+    href: '/cases/' + caseId + '/review'
+  }) }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <span class="govuk-caption-l">{{ _case.reference }}</span>
+
+      <form method="post">
+        {{ govukTextarea({
+          name: "summary",
+          id: "summary",
+          value: summary,
+          label: {
+            text: pageName,
+            classes: "govuk-label--l",
+            isPageHeading: true
+          },
+          hint: {
+            text: "Summarise the evidence reviewed and the basis for the charging decision."
+          },
+          rows: 10
+        }) }}
+
+        {{ govukButton({ text: "Save and continue" }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

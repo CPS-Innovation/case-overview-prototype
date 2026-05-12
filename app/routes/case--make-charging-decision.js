@@ -4,12 +4,12 @@ const statuses = require('../data/case-statuses')
 
 const decisionStatusMap = {
   'charge': statuses.POLICE_AUTHORISED_CHARGE_PENDING,
-  'no-further-action': statuses.NO_FURTHER_ACTION,
+  'do-not-charge': statuses.NO_FURTHER_ACTION,
 }
 
 const decisionFlashMap = {
   'charge': 'Case charged',
-  'no-further-action': 'Case marked as no further action',
+  'do-not-charge': 'Case marked as do not charge',
 }
 
 module.exports = (router) => {
@@ -67,19 +67,37 @@ module.exports = (router) => {
   })
 
   router.get('/cases/:caseId/make-charging-decision/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const userId = req.session.data.user.id
+
     const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+      where: { id: caseId },
       include: { defendants: true },
     })
+
     const { defendantIds } = req.session.data.chargingDecision || {}
     const selectedDefendants = defendantIds
       ? _case.defendants.filter(d => defendantIds.includes(String(d.id)))
       : null
-    res.render('cases/make-charging-decision/check', { _case, selectedDefendants })
+
+    const review = await prisma.caseReview.findFirst({
+      where: { caseId, userId, status: 'in_progress' },
+      include: {
+        documents: {
+          include: {
+            document: true,
+            annotations: { orderBy: { createdAt: 'asc' } }
+          }
+        }
+      }
+    })
+
+    res.render('cases/make-charging-decision/check', { _case, selectedDefendants, review })
   })
 
   router.post('/cases/:caseId/make-charging-decision/check', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
+    const userId = req.session.data.user.id
     const decision = req.session.data.chargingDecision?.decision
     const defendantIds = req.session.data.chargingDecision?.defendantIds
 
@@ -98,14 +116,29 @@ module.exports = (router) => {
       }
     }
 
+    // Mark review as submitted
+    const review = await prisma.caseReview.findFirst({
+      where: { caseId, userId, status: 'in_progress' }
+    })
+
+    if (review) {
+      await prisma.caseReview.update({
+        where: { id: review.id },
+        data: { status: 'submitted', decision }
+      })
+    }
+
     await prisma.activityLog.create({
       data: {
-        userId: req.session.data.user.id,
+        userId,
         model: 'Case',
         recordId: caseId,
         action: 'UPDATE',
         title: 'Charging decision made',
-        meta: { ...req.session.data.chargingDecision },
+        meta: {
+          ...req.session.data.chargingDecision,
+          caseReviewId: review?.id
+        },
         caseId,
       },
     })

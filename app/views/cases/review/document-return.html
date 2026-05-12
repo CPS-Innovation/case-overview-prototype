@@ -1,39 +1,38 @@
 {% extends "_layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set pageName = "Make charging decision" %}
+{% set pageName = "Have you finished reviewing this document?" %}
 
 {% block beforeContent %}
   {{ govukBackLink({
     text: 'Back',
-    href: '/cases/' + _case.id
+    href: '/cases/' + caseId + '/review/documents/' + documentId
   }) }}
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
-      <span class="govuk-caption-l">{{ _case.reference }} – make charging decision</span>
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ document.name }}</span>
 
       <form method="post">
         {{ govukRadios({
-          name: "decision",
-          value: selectedDecision,
+          name: "markAsReviewed",
           fieldset: {
             legend: {
-              text: "Decision",
+              text: pageName,
               isPageHeading: true,
               classes: "govuk-fieldset__legend--l"
             }
           },
           items: [
             {
-              value: "charge",
-              text: "Charge"
+              value: "yes",
+              text: "Yes, mark as reviewed"
             },
             {
-              value: "do-not-charge",
-              text: "Do not charge"
+              value: "no",
+              text: "No, return without marking as reviewed"
             }
           ]
         }) }}

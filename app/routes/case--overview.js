@@ -41,7 +41,20 @@ module.exports = router => {
     addTimeLimitDates(_case)
     addCaseStatus(_case)
 
-    res.render("cases/overview/index", { _case })
+    const submittedReview = await prisma.caseReview.findFirst({
+      where: { caseId: parseInt(req.params.caseId), status: 'submitted' },
+      include: {
+        documents: {
+          include: {
+            document: true,
+            annotations: { orderBy: { createdAt: 'asc' } }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    res.render("cases/overview/index", { _case, submittedReview })
   })
 
   router.get("/cases/:caseId/complexity-calculation", async (req, res) => {
