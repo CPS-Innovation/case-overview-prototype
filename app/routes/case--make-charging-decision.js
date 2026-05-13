@@ -31,7 +31,10 @@ module.exports = (router) => {
 
   router.post('/cases/:caseId/make-charging-decision', async (req, res) => {
     const caseId = req.params.caseId
-    req.session.data.chargingDecision = { referrer: req.session.data.chargingDecision?.referrer, decision: req.body.decision }
+    req.session.data.chargingDecision = {
+      referrer: req.session.data.chargingDecision?.referrer,
+      decision: req.body.decision,
+    }
 
     const _case = await prisma.case.findUnique({
       where: { id: parseInt(caseId) },
@@ -42,7 +45,7 @@ module.exports = (router) => {
     if (eligibleDefendants.length > 1) {
       res.redirect(`/cases/${caseId}/make-charging-decision/defendants`)
     } else {
-      res.redirect(`/cases/${caseId}/make-charging-decision/check`)
+      res.redirect(`/cases/${caseId}/review`)
     }
   })
 
@@ -51,6 +54,7 @@ module.exports = (router) => {
       where: { id: parseInt(req.params.caseId) },
       include: { defendants: true },
     })
+
     const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.CHARGING_DECISION_NEEDED)
     const selectedDefendantIds = req.session.data.chargingDecision?.defendantIds || eligibleDefendants.map(d => String(d.id))
     const defendantItems = eligibleDefendants.map(d => ({ value: String(d.id), text: `${d.firstName} ${d.lastName}` }))
@@ -63,7 +67,7 @@ module.exports = (router) => {
       ...req.session.data.chargingDecision,
       defendantIds: [].concat(req.body.chargingDecision?.defendants || []).filter(id => id !== '_unchecked'),
     }
-    res.redirect(`/cases/${caseId}/make-charging-decision/check`)
+    res.redirect(`/cases/${caseId}/review`)
   })
 
   router.get('/cases/:caseId/make-charging-decision/check', async (req, res) => {

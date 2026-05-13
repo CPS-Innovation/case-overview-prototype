@@ -16,7 +16,7 @@
       <span class="govuk-caption-l">{{ _case.reference }}</span>
 
       <form method="post">
-        {{ govukTextarea({
+        {{ govukCharacterCount({
           name: "summary",
           id: "summary",
           value: summary,
@@ -25,13 +25,11 @@
             classes: "govuk-label--l",
             isPageHeading: true
           },
-          hint: {
-            text: "Summarise the evidence reviewed and the basis for the charging decision."
-          },
-          rows: 10
+          rows: 10,
+          maxlength: 2000
         }) }}
 
-        {{ govukButton({ text: "Save and continue" }) }}
+        {{ govukButton({ text: "Continue" }) }}
       </form>
     </div>
   </div>

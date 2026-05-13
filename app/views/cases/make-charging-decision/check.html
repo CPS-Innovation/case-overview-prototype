@@ -14,7 +14,7 @@
   {{
     govukBackLink({
       text: 'Back',
-      href: '/cases/' + _case.id + '/make-charging-decision'
+      href: '/cases/' + _case.id + '/review'
     })
   }}
 {% endblock %}
@@ -128,7 +128,7 @@
               value: { text: decisionLabels[data.chargingDecision.decision] },
               actions: {
                 items: [{
-                  href: '/cases/' + _case.id + '/make-charging-decision',
+                  href: '/cases/' + _case.id + '/make-charging-decision?next=check',
                   text: "Change",
                   visuallyHiddenText: "decision"
                 }]
@@ -139,7 +139,7 @@
               value: { text: defendantNames },
               actions: {
                 items: [{
-                  href: '/cases/' + _case.id + '/make-charging-decision/defendants',
+                  href: '/cases/' + _case.id + '/make-charging-decision/defendants?next=check',
                   text: "Change",
                   visuallyHiddenText: "defendants"
                 }]

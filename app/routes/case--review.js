@@ -1,6 +1,17 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const { generateDocumentContent } = require('../helpers/documentContent')
+const statuses = require('../data/case-statuses')
+
+const decisionStatusMap = {
+  'charge': statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  'do-not-charge': statuses.NO_FURTHER_ACTION,
+}
+
+const decisionFlashMap = {
+  'charge': 'Case charged',
+  'do-not-charge': 'Case marked as do not charge',
+}
 
 async function findOrCreateReview(caseId, userId) {
   let review = await prisma.caseReview.findFirst({
@@ -204,6 +215,38 @@ module.exports = (router) => {
     }
   })
 
+  // Mark document as reviewed
+  router.post('/cases/:caseId/review/documents/:documentId/mark-reviewed', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+    const userId = req.session.data.user.id
+
+    const review = await findOrCreateReview(caseId, userId)
+    const docReview = await findOrCreateDocumentReview(review.id, documentId)
+    await prisma.caseReviewDocument.update({
+      where: { id: docReview.id },
+      data: { status: 'reviewed' }
+    })
+
+    res.redirect(`/cases/${caseId}/review`)
+  })
+
+  // Save document progress (in progress)
+  router.post('/cases/:caseId/review/documents/:documentId/save-progress', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+    const userId = req.session.data.user.id
+
+    const review = await findOrCreateReview(caseId, userId)
+    const docReview = await findOrCreateDocumentReview(review.id, documentId)
+    await prisma.caseReviewDocument.update({
+      where: { id: docReview.id },
+      data: { status: 'in_progress' }
+    })
+
+    res.redirect(`/cases/${caseId}/review`)
+  })
+
   // Return confirmation — GET
   router.get('/cases/:caseId/review/documents/:documentId/return', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
@@ -258,5 +301,60 @@ module.exports = (router) => {
     })
 
     res.redirect(`/cases/${caseId}/review`)
+  })
+
+  // Submit review
+  router.post('/cases/:caseId/review/submit', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const userId = req.session.data.user.id
+    const decision = req.session.data.chargingDecision?.decision
+    const defendantIds = req.session.data.chargingDecision?.defendantIds
+
+    const status = decisionStatusMap[decision]
+    if (status) {
+      if (defendantIds?.length) {
+        await prisma.defendant.updateMany({
+          where: { id: { in: defendantIds.map(id => parseInt(id)) } },
+          data: { status },
+        })
+      } else {
+        await prisma.defendant.updateMany({
+          where: { cases: { some: { id: caseId } } },
+          data: { status },
+        })
+      }
+    }
+
+    const review = await prisma.caseReview.findFirst({
+      where: { caseId, userId, status: 'in_progress' }
+    })
+
+    if (review) {
+      await prisma.caseReview.update({
+        where: { id: review.id },
+        data: { status: 'submitted', decision }
+      })
+    }
+
+    await prisma.activityLog.create({
+      data: {
+        userId,
+        model: 'Case',
+        recordId: caseId,
+        action: 'UPDATE',
+        title: 'Charging decision made',
+        meta: {
+          ...req.session.data.chargingDecision,
+          caseReviewId: review?.id
+        },
+        caseId,
+      },
+    })
+
+    const referrer = req.session.data.chargingDecision?.referrer
+    delete req.session.data.chargingDecision
+
+    req.flash('success', decisionFlashMap[decision] || 'Charging decision recorded')
+    res.redirect(referrer || `/cases/${caseId}`)
   })
 }

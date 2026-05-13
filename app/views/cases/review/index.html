@@ -17,31 +17,46 @@
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
-
       {% for document in documents %}
         {% set docReview = docReviewMap[document.id] %}
-        {% set status = docReview.status if docReview else 'not_started' %}
         {% set annotations = docReview.annotations if docReview else [] %}
+        {% if docReview and docReview.status == 'reviewed' %}
+          {% set status = 'complete' %}
+        {% elif (docReview and docReview.status == 'in_progress') or annotations.length %}
+          {% set status = 'in_progress' %}
+        {% else %}
+          {% set status = 'not_started' %}
+        {% endif %}
 
         <h2 class="govuk-heading-m govuk-!-margin-top-7">
           {{ document.name }}
-          {% if status == 'reviewed' %}
-            <strong class="govuk-tag govuk-tag--green govuk-!-margin-left-2">Reviewed</strong>
+          {% if status == 'complete' %}
+            <strong class="govuk-tag govuk-tag--green govuk-!-margin-left-2">Complete</strong>
+          {% elif status == 'in_progress' %}
+            <strong class="govuk-tag govuk-tag--light-blue govuk-!-margin-left-2">
+              In progress
+            </strong>
+          {% else %}
+            <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">Not started</strong>
           {% endif %}
         </h2>
 
         <p class="govuk-body">
-          <a href="/cases/{{ _case.id }}/review/documents/{{ document.id }}" class="govuk-link">Open</a>
+          <a href="/cases/{{ _case.id }}/review/documents/{{ document.id }}" class="govuk-link">
+            Review
+          </a>
         </p>
 
-        {% if status != 'not_started' and annotations and annotations.length %}
+        {% if annotations.length %}
           <table class="govuk-table">
             <thead class="govuk-table__head">
               <tr class="govuk-table__row">
                 <th scope="col" class="govuk-table__header">Type</th>
                 <th scope="col" class="govuk-table__header">Annotation</th>
                 <th scope="col" class="govuk-table__header">Note</th>
-                <th scope="col" class="govuk-table__header" style="white-space: nowrap; width: 1%;"><span class="govuk-visually-hidden">Actions</span></th>
+                <th scope="col" class="govuk-table__header" style="white-space: nowrap; width: 1%;">
+                  <span class="govuk-visually-hidden">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody class="govuk-table__body">
@@ -58,34 +73,104 @@
                   <td class="govuk-table__cell">{{ annotation.selectedText | truncate(80) }}</td>
                   <td class="govuk-table__cell">{{ annotation.note }}</td>
                   <td class="govuk-table__cell" style="white-space: nowrap;">
-                    <a href="/cases/{{ _case.id }}/review/documents/{{ document.id }}/annotations/{{ annotation.id }}/edit" class="govuk-link">Change</a>
-                    <a href="/cases/{{ _case.id }}/review/documents/{{ document.id }}/annotations/{{ annotation.id }}/remove?from=list" class="govuk-link govuk-!-margin-left-3">Remove</a>
+                    <a
+                      href="/cases/{{ _case.id }}/review/documents/{{ document.id }}/annotations/{{ annotation.id }}/edit"
+                      class="govuk-link"
+                    >
+                      Change
+                    </a>
+                    <a
+                      href="/cases/{{ _case.id }}/review/documents/{{ document.id }}/annotations/{{ annotation.id }}/remove?from=list"
+                      class="govuk-link govuk-!-margin-left-3"
+                    >
+                      Remove
+                    </a>
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         {% endif %}
-
       {% endfor %}
 
-      <h2 class="govuk-heading-m govuk-!-margin-top-7">Summary of review</h2>
-
-      <p class="govuk-body">
-        <a href="/cases/{{ _case.id }}/review/summary" class="govuk-link">Open</a>
-      </p>
+      <h2 class="govuk-heading-m govuk-!-margin-top-7">
+        Summary of review
+        {% if review.summary %}
+          <strong class="govuk-tag govuk-tag--green govuk-!-margin-left-2">Complete</strong>
+        {% else %}
+          <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">Not started</strong>
+        {% endif %}
+      </h2>
 
       {% if review.summary %}
-        <p class="govuk-body">{{ review.summary }}</p>
+        {{
+          govukSummaryList({
+            rows: [
+              {
+                key: { text: "Summary of review" },
+                value: { text: review.summary },
+                actions: {
+                  items: [{
+                    href: "/cases/" + _case.id + "/review/summary",
+                    text: "Change",
+                    visuallyHiddenText: "summary of review"
+                  }]
+                }
+              }
+            ]
+          })
+        }}
+      {% else %}
         <p class="govuk-body">
-          <a href="/cases/{{ _case.id }}/review/summary" class="govuk-link">Change</a>
+          <a href="/cases/{{ _case.id }}/review/summary" class="govuk-link">Add summary</a>
+        </p>
+      {% endif %}
+
+      <h2 class="govuk-heading-m govuk-!-margin-top-7">
+        Charging decision
+        {% if data.chargingDecision and data.chargingDecision.decision %}
+          <strong class="govuk-tag govuk-tag--green govuk-!-margin-left-2">Complete</strong>
+        {% else %}
+          <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">Not started</strong>
+        {% endif %}
+      </h2>
+
+      {% if data.chargingDecision and data.chargingDecision.decision %}
+        {% if data.chargingDecision.decision == 'charge' %}
+          {% set decisionLabel = 'Charge' %}
+        {% else %}
+          {% set decisionLabel = 'Do not charge' %}
+        {% endif %}
+        {{
+          govukSummaryList({
+            rows: [
+              {
+                key: { text: "Charging decision" },
+                value: { text: decisionLabel },
+                actions: {
+                  items: [{
+                    href: "/cases/" + _case.id + "/make-charging-decision",
+                    text: "Change",
+                    visuallyHiddenText: "charging decision"
+                  }]
+                }
+              }
+            ]
+          })
+        }}
+      {% else %}
+        <p class="govuk-body">
+          <a href="/cases/{{ _case.id }}/make-charging-decision" class="govuk-link">
+            Add charging decision
+          </a>
         </p>
       {% endif %}
 
       <div class="govuk-!-margin-top-6">
-        <a href="/cases/{{ _case.id }}/make-charging-decision" class="govuk-button">Continue</a>
+        <form method="post" action="/cases/{{ _case.id }}/review/submit">
+          <button class="govuk-button">Submit review</button>
+        </form>
       </div>
-
     </div>
   </div>
 {% endblock %}

@@ -252,6 +252,10 @@ $statuses: (
   }
 }
 
+.govuk-button-group form {
+  display: contents;
+}
+
 .app-button--link {
   background: none;
   border: none;

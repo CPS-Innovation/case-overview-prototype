@@ -6,7 +6,7 @@
 {% block beforeContent %}
   {{ govukBackLink({
     text: 'Back',
-    href: '/cases/' + caseId + '/review/documents/' + documentId + '/return'
+    href: '/cases/' + caseId + '/review'
   }) }}
 {% endblock %}
 
@@ -18,7 +18,12 @@
   <div class="app-toolbar js-toolbar">
     <div class="app-toolbar__inner">
       <div class="govuk-button-group">
-        <a href="/cases/{{ caseId }}/review/documents/{{ documentId }}/return" class="govuk-button govuk-!-margin-bottom-0">Finish</a>
+        <form method="post" action="/cases/{{ caseId }}/review/documents/{{ documentId }}/mark-reviewed">
+          <button type="submit" class="govuk-button govuk-!-margin-bottom-0">Mark as reviewed</button>
+        </form>
+        <form method="post" action="/cases/{{ caseId }}/review/documents/{{ documentId }}/save-progress">
+          <button type="submit" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0">Mark as In Progress</button>
+        </form>
         <a href="#" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0">Download</a>
       </div>
     </div>
