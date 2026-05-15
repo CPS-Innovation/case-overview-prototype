@@ -292,7 +292,7 @@
     }
   })
 
-  // ── Card expand/collapse ──────────────────────────────────────────────────
+  // ── Card click → highlight annotation in document ────────────────────────
 
   function activateMark(annotationId) {
     document.querySelectorAll('.app-annotation').forEach(function (m) {
@@ -304,17 +304,9 @@
     }
   }
 
-  document.querySelectorAll('.js-card-toggle').forEach(function (toggle) {
-    toggle.addEventListener('click', function () {
-      var card = toggle.closest('.js-annotation-card')
-      var expanded = card.querySelector('.js-card-expanded')
-      var isExpanded = toggle.getAttribute('aria-expanded') === 'true'
-
-      toggle.setAttribute('aria-expanded', isExpanded ? 'false' : 'true')
-      if (expanded) expanded.hidden = isExpanded
-
-      var annotationId = isExpanded ? null : card.getAttribute('data-annotation-id')
-      activateMark(annotationId)
+  document.querySelectorAll('.js-annotation-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      activateMark(card.getAttribute('data-annotation-id'))
     })
   })
 

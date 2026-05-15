@@ -36,7 +36,7 @@
             type="submit"
             class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0"
           >
-            Mark as In Progress
+            Mark as in progress
           </button>
         </form>
         <a href="#" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0">
@@ -161,52 +161,22 @@
               <strong class="govuk-tag govuk-tag--{{ tagColour }}">{{ typeLabel }}</strong>
             </div>
 
-            <div class="app-annotation-card__header">
-              <p class="app-annotation-card__name">{{ user.firstName }} {{ user.lastName }}</p>
-              <p class="app-annotation-card__time">
-                {{ annotation.createdAt | isoDateString | govukDateTime }}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              class="app-annotation-card__toggle js-card-toggle"
-              aria-expanded="false"
-            >
-              <div class="app-annotation-card__preview">{{ annotation.note | truncate(80) }}</div>
-            </button>
-
-            <div class="js-card-expanded" hidden>
-              <div class="app-annotation-card__expanded">
-                <dl class="govuk-summary-list app-annotation-card__summary">
-                  <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-body-s">Annotation</dt>
-                    <dd class="govuk-summary-list__value govuk-body-s">
-                      {{ annotation.selectedText | truncate(120) }}
-                    </dd>
-                    <dd class="govuk-summary-list__actions">
-                      <a
-                        href="/cases/{{ caseId }}/review/documents/{{ documentId }}/annotations/{{ annotation.id }}/edit"
-                        class="govuk-link govuk-body-s"
-                      >
-                        Edit
-                      </a>
-                    </dd>
-                  </div>
-                  <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-body-s">Note</dt>
-                    <dd class="govuk-summary-list__value govuk-body-s">{{ annotation.note }}</dd>
-                    <dd class="govuk-summary-list__actions">
-                      <a
-                        href="/cases/{{ caseId }}/review/documents/{{ documentId }}/annotations/{{ annotation.id }}/remove?from=document"
-                        class="govuk-link govuk-body-s"
-                      >
-                        Remove
-                      </a>
-                    </dd>
-                  </div>
-                </dl>
+            <div class="app-annotation-card__body">
+              <div class="app-annotation-card__header">
+                <p class="app-annotation-card__name">{{ user.firstName }} {{ user.lastName }}</p>
+                <p class="app-annotation-card__time">
+                  {{ annotation.createdAt | isoDateString | govukDateTime }}
+                </p>
               </div>
+
+              <p class="app-annotation-card__note js-annotation-note">{{ annotation.note }}</p>
+
+              <a
+                href="/cases/{{ caseId }}/review/documents/{{ documentId }}/annotations/{{ annotation.id }}/remove?from=document"
+                class="govuk-link govuk-body-s app-annotation-card__remove"
+              >
+                Remove
+              </a>
             </div>
           </div>
         {% endfor %}
@@ -256,4 +226,13 @@
 {% block pageScripts %}
   {{ super() }}
   <script src="/public/javascripts/components/annotation-panel.js"></script>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    $('.js-annotation-note').each(function () {
+      new App.TextExpander({ container: $(this), maxLength: 50 })
+    })
+  </script>
 {% endblock %}
