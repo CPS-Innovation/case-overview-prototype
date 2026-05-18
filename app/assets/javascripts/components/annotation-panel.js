@@ -1,466 +1,370 @@
-;(function () {
-  'use strict'
+App.AnnotationPanel = function(params) {
+  this.container = params.container
 
-  var documentContent = document.getElementById('document-content')
-  var popup = document.querySelector('.js-annotation-popup')
-  var annotateBtns = document.querySelectorAll('.js-annotate-btn')
-  var redactBtn = document.querySelector('.js-redact-btn')
-  var newAnnotationCard = document.querySelector('.js-new-annotation-card')
-  var sidebarInner = document.querySelector('.js-sidebar-inner')
-  var sidebarEmpty = document.querySelector('.js-sidebar-empty')
-  var annotationForm = document.getElementById('annotation-form')
-  var selectedTextInput = document.getElementById('annotation-selected-text')
-  var typeHiddenInput = document.getElementById('annotation-type-hidden')
-  var noteHiddenInput = document.getElementById('annotation-note-hidden')
-  var noteInput = document.getElementById('annotation-note-input')
-  var pendingAnnotationType = null
-  var saveBtn = document.querySelector('.js-save-annotation')
-  var cancelBtn = document.querySelector('.js-cancel-annotation')
-  var redactionForm = document.getElementById('redaction-form')
-  var redactionSelectedTextInput = document.getElementById('redaction-selected-text')
-  var redactionRemoveForm = document.getElementById('redaction-remove-form')
-  var toggleRedactionsBtn = document.querySelector('.js-toggle-redactions')
-  var selectionActions = document.querySelector('.js-selection-actions')
-  var redactionActions = document.querySelector('.js-redaction-actions')
-  var removeRedactionBtn = document.querySelector('.js-remove-redaction-btn')
-  var inadmissibleBtn = document.querySelector('.js-inadmissible-btn')
-  var inadmissibleActions = document.querySelector('.js-inadmissible-actions')
-  var removeInadmissibleBtn = document.querySelector('.js-remove-inadmissible-btn')
-  var inadmissibleForm = document.getElementById('inadmissible-form')
-  var inadmissibleSelectedTextInput = document.getElementById('inadmissible-selected-text')
-  var inadmissibleRemoveForm = document.getElementById('inadmissible-remove-form')
+  this.popup                         = $('.js-annotation-popup')
+  this.annotateBtns                  = $('.js-annotate-btn')
+  this.redactBtn                     = $('.js-redact-btn')
+  this.newAnnotationCard             = $('.js-new-annotation-card')
+  this.sidebarInner                  = $('.js-sidebar-inner')
+  this.sidebarEmpty                  = $('.js-sidebar-empty')
+  this.annotationForm                = $('#annotation-form')
+  this.selectedTextInput             = $('#annotation-selected-text')
+  this.typeHiddenInput               = $('#annotation-type-hidden')
+  this.noteHiddenInput               = $('#annotation-note-hidden')
+  this.noteInput                     = $('#annotation-note-input')
+  this.saveBtn                       = $('.js-save-annotation')
+  this.cancelBtn                     = $('.js-cancel-annotation')
+  this.redactionForm                 = $('#redaction-form')
+  this.redactionSelectedTextInput    = $('#redaction-selected-text')
+  this.redactionRemoveForm           = $('#redaction-remove-form')
+  this.toggleRedactionsBtn           = $('.js-toggle-redactions')
+  this.selectionActions              = $('.js-selection-actions')
+  this.redactionActions              = $('.js-redaction-actions')
+  this.removeRedactionBtn            = $('.js-remove-redaction-btn')
+  this.inadmissibleBtn               = $('.js-inadmissible-btn')
+  this.inadmissibleActions           = $('.js-inadmissible-actions')
+  this.removeInadmissibleBtn         = $('.js-remove-inadmissible-btn')
+  this.inadmissibleForm              = $('#inadmissible-form')
+  this.inadmissibleSelectedTextInput = $('#inadmissible-selected-text')
+  this.inadmissibleRemoveForm        = $('#inadmissible-remove-form')
 
-  var caseId = documentContent ? documentContent.getAttribute('data-case-id') : null
-  var documentId = documentContent ? documentContent.getAttribute('data-document-id') : null
+  this.caseId     = this.container.data('case-id')
+  this.documentId = this.container.data('document-id')
 
-  var currentRange = null
-  var selectionMark = null
-  var redactionsHidden = false
-  var pendingRemoveRedactionId = null
-  var pendingRemoveInadmissibleId = null
-  var formSelectionDocumentY = null
+  this.currentRange                = null
+  this.selectionMark               = null
+  this.redactionsHidden            = false
+  this.pendingAnnotationType       = null
+  this.pendingRemoveRedactionId    = null
+  this.pendingRemoveInadmissibleId = null
+  this.formSelectionDocumentY      = null
 
-  if (!documentContent || !popup) return
+  this.setupStickyToolbar()
+  this.setupEvents()
+  this.positionAllCards()
+  this.handleUrlHash()
+}
 
-  // ── Sticky toolbar border ─────────────────────────────────────────────────
-
+App.AnnotationPanel.prototype.setupStickyToolbar = function() {
   var sentinel = document.querySelector('.js-toolbar-sentinel')
   var toolbar = document.querySelector('.js-toolbar')
-
   if (sentinel && toolbar && 'IntersectionObserver' in window) {
-    new IntersectionObserver(function (entries) {
+    new IntersectionObserver(function(entries) {
       toolbar.classList.toggle('is-stuck', !entries[0].isIntersecting)
     }).observe(sentinel)
   }
+}
 
-  // ── Text selection → popup ─────────────────────────────────────────────────
+App.AnnotationPanel.prototype.setupEvents = function() {
+  this.container.on('mouseup', $.proxy(this, 'onDocumentMouseup'))
+  this.container.on('click', $.proxy(this, 'onDocumentClick'))
+  this.annotateBtns.on('click', $.proxy(this, 'onAnnotateBtnClick'))
+  this.redactBtn.on('click', $.proxy(this, 'onRedactClick'))
+  this.inadmissibleBtn.on('click', $.proxy(this, 'onInadmissibleClick'))
+  this.removeRedactionBtn.on('click', $.proxy(this, 'onRemoveRedactionClick'))
+  this.removeInadmissibleBtn.on('click', $.proxy(this, 'onRemoveInadmissibleClick'))
+  this.toggleRedactionsBtn.on('click', $.proxy(this, 'onToggleRedactionsClick'))
+  this.saveBtn.on('click', $.proxy(this, 'onSaveClick'))
+  this.cancelBtn.on('click', $.proxy(this, 'onCancelClick'))
+  this.sidebarInner.on('click', '.js-annotation-card', $.proxy(this, 'onCardClick'))
+  $(document).on('mousedown', $.proxy(this, 'onDocumentMousedown'))
+  $(document).on('keydown', $.proxy(this, 'onDocumentKeydown'))
+  $(window).on('resize', $.proxy(this, 'positionAllCards'))
+}
 
-  function clearSelectionHighlight() {
-    if (selectionMark) {
-      var parent = selectionMark.parentNode
-      while (selectionMark.firstChild) {
-        parent.insertBefore(selectionMark.firstChild, selectionMark)
-      }
-      parent.removeChild(selectionMark)
-      selectionMark = null
+// ── Popup ─────────────────────────────────────────────────────────────────────
+
+App.AnnotationPanel.prototype.hidePopup = function() {
+  this.popup.prop('hidden', true).attr('aria-hidden', 'true')
+  this.pendingRemoveRedactionId = null
+  this.pendingRemoveInadmissibleId = null
+  window.getSelection().removeAllRanges()
+}
+
+App.AnnotationPanel.prototype.showPopup = function(rect) {
+  var popupEl = this.popup[0]
+  this.popup.prop('hidden', false).removeAttr('aria-hidden')
+
+  var popupWidth = popupEl.offsetWidth
+  var popupHeight = popupEl.offsetHeight
+  var arrowHeight = 9
+
+  var left = rect.left + rect.width / 2 - popupWidth / 2
+  left = Math.max(8, Math.min(left, window.innerWidth - popupWidth - 8))
+  var top = rect.top - popupHeight - arrowHeight - 4
+
+  this.popup.css({ left: left + 'px', top: top + 'px' })
+}
+
+App.AnnotationPanel.prototype.showSelectionPopup = function(rect) {
+  this.selectionActions.prop('hidden', false)
+  this.redactionActions.prop('hidden', true)
+  this.inadmissibleActions.prop('hidden', true)
+  this.showPopup(rect)
+}
+
+App.AnnotationPanel.prototype.showRedactionPopup = function(rect, redactionId) {
+  this.pendingRemoveRedactionId = redactionId
+  this.selectionActions.prop('hidden', true)
+  this.redactionActions.prop('hidden', false)
+  this.inadmissibleActions.prop('hidden', true)
+  this.showPopup(rect)
+}
+
+App.AnnotationPanel.prototype.showInadmissiblePopup = function(rect, inadmissibleId) {
+  this.pendingRemoveInadmissibleId = inadmissibleId
+  this.selectionActions.prop('hidden', true)
+  this.redactionActions.prop('hidden', true)
+  this.inadmissibleActions.prop('hidden', false)
+  this.showPopup(rect)
+}
+
+// ── Cards ─────────────────────────────────────────────────────────────────────
+
+App.AnnotationPanel.prototype.clearSelectionHighlight = function() {
+  if (!this.selectionMark) return
+  var parent = this.selectionMark.parentNode
+  while (this.selectionMark.firstChild) {
+    parent.insertBefore(this.selectionMark.firstChild, this.selectionMark)
+  }
+  parent.removeChild(this.selectionMark)
+  this.selectionMark = null
+}
+
+App.AnnotationPanel.prototype.hideNewCard = function() {
+  this.newAnnotationCard.prop('hidden', true)
+  this.clearSelectionHighlight()
+  this.selectedTextInput.val('')
+  this.noteInput.val('')
+  this.pendingAnnotationType = null
+  this.currentRange = null
+  this.formSelectionDocumentY = null
+  this.positionAllCards()
+}
+
+// Positions saved annotation cards and the in-progress form card inline with
+// their document marks, pushing cards down to prevent overlap.
+App.AnnotationPanel.prototype.positionAllCards = function() {
+  if (!this.sidebarInner.length) return
+
+  var sidebarRect = this.sidebarInner[0].getBoundingClientRect()
+  var MIN_GAP = 8
+  var items = []
+
+  $('.js-annotation-card[data-annotation-id]').each(function() {
+    var card = this
+    var id = $(card).data('annotation-id')
+    var mark = document.querySelector('.app-annotation[data-annotation-id="' + id + '"]')
+    var markCentreY = 0
+    if (mark) {
+      var markRect = mark.getBoundingClientRect()
+      markCentreY = markRect.top + markRect.height / 2 - sidebarRect.top
     }
+    items.push({ card: card, height: card.offsetHeight, markCentreY: markCentreY, idealTop: markCentreY - card.offsetHeight / 2 })
+  })
+
+  var formCard = this.newAnnotationCard[0]
+  if (formCard && !formCard.hidden && this.formSelectionDocumentY !== null) {
+    var formViewportY = this.formSelectionDocumentY - window.scrollY
+    var formMarkCentreY = formViewportY - sidebarRect.top
+    items.push({ card: formCard, height: formCard.offsetHeight, markCentreY: formMarkCentreY, idealTop: formMarkCentreY - formCard.offsetHeight / 2 })
   }
 
-  function hidePopup() {
-    popup.hidden = true
-    popup.setAttribute('aria-hidden', 'true')
-    pendingRemoveRedactionId = null
-    pendingRemoveInadmissibleId = null
+  if (!items.length) return
+
+  // Sort by mark centre position, not idealTop — idealTop includes card height
+  // so taller cards (like the form) would wrongly sort before shorter ones
+  items.sort(function(a, b) { return a.markCentreY - b.markCentreY })
+
+  this.sidebarInner.css('position', 'relative')
+
+  var nextMinTop = 0
+  items.forEach(function(item) {
+    var top = Math.max(0, item.idealTop, nextMinTop)
+    $(item.card).css({ position: 'absolute', top: top + 'px', left: '0', right: '0', marginBottom: '0' })
+    nextMinTop = top + item.height + MIN_GAP
+  })
+
+  var lastItem = items[items.length - 1]
+  var lastBottom = parseFloat($(lastItem.card).css('top')) + lastItem.height
+  this.sidebarInner.css('min-height', lastBottom + 'px')
+}
+
+App.AnnotationPanel.prototype.repositionCards = function() {
+  requestAnimationFrame($.proxy(this, 'positionAllCards'))
+}
+
+App.AnnotationPanel.prototype.activateMark = function(annotationId) {
+  $('.app-annotation').removeClass('app-annotation--active')
+  if (!annotationId) return
+  var mark = $('.app-annotation[data-annotation-id="' + annotationId + '"]')
+  mark.addClass('app-annotation--active')
+  if (mark[0]) mark[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+}
+
+App.AnnotationPanel.prototype.activateCard = function(annotationId) {
+  $('.js-annotation-card').removeClass('is-selected app-annotation-card--active')
+  if (annotationId) {
+    var card = $('.js-annotation-card[data-annotation-id="' + annotationId + '"]')
+    card.addClass('is-selected app-annotation-card--active')
+    if (card[0]) card[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }
+  this.repositionCards()
+}
+
+App.AnnotationPanel.prototype.handleUrlHash = function() {
+  var match = window.location.hash.match(/^#annotation-(\d+)$/)
+  if (!match) return
+  this.activateCard(match[1])
+  this.activateMark(match[1])
+}
+
+// ── Event handlers ────────────────────────────────────────────────────────────
+
+App.AnnotationPanel.prototype.onDocumentMouseup = function(e) {
+  var self = this
+  setTimeout(function() {
+    if ($(e.target).closest('.app-redaction').length || $(e.target).closest('.app-inadmissible').length) return
+    var selection = window.getSelection()
+    if (!selection || selection.isCollapsed) { self.hidePopup(); return }
+    var selectedText = selection.toString().trim()
+    if (!selectedText || selectedText.length < 3) { self.hidePopup(); return }
+    var range = selection.getRangeAt(0)
+    if (!self.container[0].contains(range.commonAncestorContainer)) { self.hidePopup(); return }
+    self.currentRange = range.cloneRange()
+    self.showSelectionPopup(range.getBoundingClientRect())
+  }, 10)
+}
+
+App.AnnotationPanel.prototype.onAnnotateBtnClick = function(e) {
+  if (!this.currentRange) return
+
+  this.pendingAnnotationType = $(e.currentTarget).data('type')
+  this.selectedTextInput.val(this.currentRange.toString().trim())
+
+  var rect = this.currentRange.getBoundingClientRect()
+  this.formSelectionDocumentY = rect.top + rect.height / 2 + window.scrollY
+
+  this.clearSelectionHighlight()
+  try {
+    this.selectionMark = document.createElement('span')
+    this.selectionMark.className = 'app-annotation-selecting'
+    this.currentRange.surroundContents(this.selectionMark)
+  } catch(err) {
+    this.selectionMark = null
+  }
+
+  window.getSelection().removeAllRanges()
+  this.hidePopup()
+  this.newAnnotationCard.prop('hidden', false)
+  this.sidebarEmpty.prop('hidden', true)
+  this.positionAllCards()
+  this.noteInput.focus()
+}
+
+App.AnnotationPanel.prototype.onRedactClick = function() {
+  if (!this.currentRange) return
+  var selectedText = this.currentRange.toString().trim()
+  if (!selectedText) return
+  this.redactionSelectedTextInput.val(selectedText)
+  window.getSelection().removeAllRanges()
+  this.hidePopup()
+  this.redactionForm[0].submit()
+}
+
+App.AnnotationPanel.prototype.onDocumentClick = function(e) {
+  var annotation = $(e.target).closest('.app-annotation')
+  if (annotation.length) {
+    var annotationId = annotation.data('annotation-id')
+    this.activateCard(annotationId)
+    this.activateMark(annotationId)
+    return
+  }
+
+  var inadmissible = $(e.target).closest('.app-inadmissible')
+  if (inadmissible.length) {
+    var inadmissibleId = inadmissible.data('inadmissible-id')
+    if (!inadmissibleId) return
     window.getSelection().removeAllRanges()
+    this.showInadmissiblePopup(inadmissible[0].getBoundingClientRect(), inadmissibleId)
+    return
   }
 
-  function showSelectionPopup(rect) {
-    if (selectionActions) selectionActions.hidden = false
-    if (redactionActions) redactionActions.hidden = true
-    if (inadmissibleActions) inadmissibleActions.hidden = true
-    showPopup(rect)
+  if (this.redactionsHidden) return
+  var redaction = $(e.target).closest('.app-redaction')
+  if (!redaction.length) return
+  var redactionId = redaction.data('redaction-id')
+  if (!redactionId) return
+  window.getSelection().removeAllRanges()
+  this.showRedactionPopup(redaction[0].getBoundingClientRect(), redactionId)
+}
+
+App.AnnotationPanel.prototype.onRemoveRedactionClick = function() {
+  if (!this.pendingRemoveRedactionId) return
+  this.redactionRemoveForm.attr('action', '/cases/' + this.caseId + '/review/documents/' + this.documentId + '/redactions/' + this.pendingRemoveRedactionId + '/remove')
+  this.redactionRemoveForm[0].submit()
+}
+
+App.AnnotationPanel.prototype.onInadmissibleClick = function() {
+  if (!this.currentRange) return
+  var selectedText = this.currentRange.toString().trim()
+  if (!selectedText) return
+  this.inadmissibleSelectedTextInput.val(selectedText)
+  window.getSelection().removeAllRanges()
+  this.hidePopup()
+  this.inadmissibleForm[0].submit()
+}
+
+App.AnnotationPanel.prototype.onRemoveInadmissibleClick = function() {
+  if (!this.pendingRemoveInadmissibleId) return
+  this.inadmissibleRemoveForm.attr('action', '/cases/' + this.caseId + '/review/documents/' + this.documentId + '/inadmissibles/' + this.pendingRemoveInadmissibleId + '/remove')
+  this.inadmissibleRemoveForm[0].submit()
+}
+
+App.AnnotationPanel.prototype.onToggleRedactionsClick = function() {
+  this.redactionsHidden = !this.redactionsHidden
+  this.container.toggleClass('app-redactions-hidden', this.redactionsHidden)
+  this.toggleRedactionsBtn.text(this.redactionsHidden ? 'Show redactions' : 'Hide redactions')
+}
+
+App.AnnotationPanel.prototype.onSaveClick = function() {
+  var note = this.noteInput.val().trim()
+  if (!note) { this.noteInput.focus(); return }
+  this.typeHiddenInput.val(this.pendingAnnotationType)
+  this.noteHiddenInput.val(note)
+  this.annotationForm[0].submit()
+}
+
+App.AnnotationPanel.prototype.onCancelClick = function(e) {
+  e.preventDefault()
+  this.hideNewCard()
+  if (!$('.js-annotation-card').length) {
+    this.sidebarEmpty.prop('hidden', false)
   }
+}
 
-  function showRedactionPopup(rect, redactionId) {
-    pendingRemoveRedactionId = redactionId
-    if (selectionActions) selectionActions.hidden = true
-    if (redactionActions) redactionActions.hidden = false
-    if (inadmissibleActions) inadmissibleActions.hidden = true
-    showPopup(rect)
+App.AnnotationPanel.prototype.onCardClick = function(e) {
+  if ($(e.target).closest('a').length) return
+  var card = $(e.currentTarget)
+  $('.js-annotation-card').removeClass('is-selected app-annotation-card--active')
+  card.addClass('is-selected')
+  this.activateMark(card.data('annotation-id'))
+  this.repositionCards()
+}
+
+App.AnnotationPanel.prototype.onDocumentMousedown = function(e) {
+  if (!this.popup[0].hidden && !$.contains(this.popup[0], e.target)) {
+    this.hidePopup()
   }
-
-  function showInadmissiblePopup(rect, inadmissibleId) {
-    pendingRemoveInadmissibleId = inadmissibleId
-    if (selectionActions) selectionActions.hidden = true
-    if (redactionActions) redactionActions.hidden = true
-    if (inadmissibleActions) inadmissibleActions.hidden = false
-    showPopup(rect)
+  if (!$(e.target).closest('.js-annotation-card').length) {
+    $('.js-annotation-card').removeClass('is-selected app-annotation-card--active')
+    this.activateMark(null)
+    this.repositionCards()
   }
-
-  function showPopup(rect) {
-    popup.hidden = false
-    popup.removeAttribute('aria-hidden')
-
-    var popupWidth = popup.offsetWidth
-    var popupHeight = popup.offsetHeight
-    var arrowHeight = 9
-
-    var left = rect.left + rect.width / 2 - popupWidth / 2
-    left = Math.max(8, Math.min(left, window.innerWidth - popupWidth - 8))
-
-    var top = rect.top - popupHeight - arrowHeight - 4
-
-    popup.style.left = left + 'px'
-    popup.style.top = top + 'px'
-  }
-
-  function hideNewCard() {
-    if (newAnnotationCard) {
-      newAnnotationCard.hidden = true
-    }
-    clearSelectionHighlight()
-    if (selectedTextInput) selectedTextInput.value = ''
-    if (noteInput) noteInput.value = ''
-    pendingAnnotationType = null
-    currentRange = null
-    formSelectionDocumentY = null
-    positionAllCards()
-  }
-
-  documentContent.addEventListener('mouseup', function (e) {
-    setTimeout(function () {
-      if (e.target.closest('.app-redaction') || e.target.closest('.app-inadmissible')) return
-      var selection = window.getSelection()
-      if (!selection || selection.isCollapsed) {
-        hidePopup()
-        return
-      }
-      var selectedText = selection.toString().trim()
-      if (!selectedText || selectedText.length < 3) {
-        hidePopup()
-        return
-      }
-      var range = selection.getRangeAt(0)
-      if (!documentContent.contains(range.commonAncestorContainer)) {
-        hidePopup()
-        return
-      }
-
-      currentRange = range.cloneRange()
-      var rect = range.getBoundingClientRect()
-      showSelectionPopup(rect)
-    }, 10)
-  })
-
-  // ── Position all cards (saved + form) inline with their marks ─────────────
-  //
-  // The form card uses selectionMark as its anchor, just like saved cards use
-  // their <mark> element. Both are sorted together and pushed down as needed
-  // so nothing overlaps or runs into the footer.
-
-  function positionAllCards() {
-    if (!sidebarInner) return
-
-    var sidebarRect = sidebarInner.getBoundingClientRect()
-    var MIN_GAP = 8
-    var items = []
-
-    // Saved annotation cards
-    Array.from(document.querySelectorAll('.js-annotation-card[data-annotation-id]')).forEach(function (card) {
-      var id = card.getAttribute('data-annotation-id')
-      var mark = document.querySelector('.app-annotation[data-annotation-id="' + id + '"]')
-      var markCentreY = 0
-      if (mark) {
-        var markRect = mark.getBoundingClientRect()
-        markCentreY = markRect.top + markRect.height / 2 - sidebarRect.top
-      }
-      items.push({ card: card, height: card.offsetHeight, markCentreY: markCentreY, idealTop: markCentreY - card.offsetHeight / 2 })
-    })
-
-    // New annotation form card — use stored document-relative Y so it works
-    // even when surroundContents threw and selectionMark is null
-    if (newAnnotationCard && !newAnnotationCard.hidden && formSelectionDocumentY !== null) {
-      var formViewportY = formSelectionDocumentY - window.scrollY
-      var formMarkCentreY = formViewportY - sidebarRect.top
-      var formIdealTop = formMarkCentreY - newAnnotationCard.offsetHeight / 2
-      items.push({ card: newAnnotationCard, height: newAnnotationCard.offsetHeight, markCentreY: formMarkCentreY, idealTop: formIdealTop })
-    }
-
-    if (!items.length) return
-
-    // Sort by mark centre position, not idealTop — idealTop includes card height
-    // so taller cards (like the form) would wrongly sort before shorter ones
-    items.sort(function (a, b) { return a.markCentreY - b.markCentreY })
-
-    sidebarInner.style.position = 'relative'
-
-    var nextMinTop = 0
-
-    items.forEach(function (item) {
-      var top = Math.max(0, item.idealTop, nextMinTop)
-      item.card.style.position = 'absolute'
-      item.card.style.top = top + 'px'
-      item.card.style.left = '0'
-      item.card.style.right = '0'
-      item.card.style.marginBottom = '0'
-      nextMinTop = top + item.height + MIN_GAP
-    })
-
-    var lastItem = items[items.length - 1]
-    var lastBottom = parseFloat(lastItem.card.style.top) + lastItem.height
-    sidebarInner.style.minHeight = lastBottom + 'px'
-  }
-
-  // ── Annotate buttons → sidebar form ───────────────────────────────────────
-
-  annotateBtns.forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      if (!currentRange) return
-
-      pendingAnnotationType = btn.getAttribute('data-type')
-
-      var selectedText = currentRange.toString().trim()
-      if (selectedTextInput) selectedTextInput.value = selectedText
-
-      var selectionRect = currentRange.getBoundingClientRect()
-      formSelectionDocumentY = selectionRect.top + selectionRect.height / 2 + window.scrollY
-
-      clearSelectionHighlight()
-      try {
-        selectionMark = document.createElement('span')
-        selectionMark.className = 'app-annotation-selecting'
-        currentRange.surroundContents(selectionMark)
-      } catch (e) {
-        selectionMark = null
-      }
-
-      window.getSelection().removeAllRanges()
-      hidePopup()
-
-      if (newAnnotationCard) {
-        newAnnotationCard.hidden = false
-        if (sidebarEmpty) sidebarEmpty.hidden = true
-      }
-
-      positionAllCards()
-
-      if (noteInput) noteInput.focus()
-    })
-  })
-
-  // ── Redact button → instant redaction ────────────────────────────────────
-
-  if (redactBtn) {
-    redactBtn.addEventListener('click', function () {
-      if (!currentRange || !redactionForm || !redactionSelectedTextInput) return
-
-      var selectedText = currentRange.toString().trim()
-      if (!selectedText) return
-
-      redactionSelectedTextInput.value = selectedText
-      window.getSelection().removeAllRanges()
-      hidePopup()
-      redactionForm.submit()
-    })
-  }
-
-  // ── Click document content → annotation mark, redaction, or inadmissible ───
-
-  documentContent.addEventListener('click', function (e) {
-    var annotation = e.target.closest('.app-annotation')
-    if (annotation) {
-      var annotationId = annotation.getAttribute('data-annotation-id')
-      activateCard(annotationId)
-      activateMark(annotationId)
-      return
-    }
-
-    var inadmissible = e.target.closest('.app-inadmissible')
-    if (inadmissible) {
-      var inadmissibleId = inadmissible.getAttribute('data-inadmissible-id')
-      if (!inadmissibleId) return
-      window.getSelection().removeAllRanges()
-      var inadmissibleRect = inadmissible.getBoundingClientRect()
-      showInadmissiblePopup(inadmissibleRect, inadmissibleId)
-      return
-    }
-
-    if (redactionsHidden) return
-    var redaction = e.target.closest('.app-redaction')
-    if (!redaction) return
-
-    var redactionId = redaction.getAttribute('data-redaction-id')
-    if (!redactionId) return
-
-    window.getSelection().removeAllRanges()
-    var rect = redaction.getBoundingClientRect()
-    showRedactionPopup(rect, redactionId)
-  })
-
-  // ── Remove redaction button ───────────────────────────────────────────────
-
-  if (removeRedactionBtn) {
-    removeRedactionBtn.addEventListener('click', function () {
-      if (!pendingRemoveRedactionId || !redactionRemoveForm) return
-      redactionRemoveForm.action = '/cases/' + caseId + '/review/documents/' + documentId + '/redactions/' + pendingRemoveRedactionId + '/remove'
-      redactionRemoveForm.submit()
-    })
-  }
-
-  // ── Inadmissible button → instant mark ───────────────────────────────────
-
-  if (inadmissibleBtn) {
-    inadmissibleBtn.addEventListener('click', function () {
-      if (!currentRange || !inadmissibleForm || !inadmissibleSelectedTextInput) return
-
-      var selectedText = currentRange.toString().trim()
-      if (!selectedText) return
-
-      inadmissibleSelectedTextInput.value = selectedText
-      window.getSelection().removeAllRanges()
-      hidePopup()
-      inadmissibleForm.submit()
-    })
-  }
-
-  // ── Remove inadmissible button ────────────────────────────────────────────
-
-  if (removeInadmissibleBtn) {
-    removeInadmissibleBtn.addEventListener('click', function () {
-      if (!pendingRemoveInadmissibleId || !inadmissibleRemoveForm) return
-      inadmissibleRemoveForm.action = '/cases/' + caseId + '/review/documents/' + documentId + '/inadmissibles/' + pendingRemoveInadmissibleId + '/remove'
-      inadmissibleRemoveForm.submit()
-    })
-  }
-
-  // ── Show/hide redactions toggle ───────────────────────────────────────────
-
-  if (toggleRedactionsBtn) {
-    toggleRedactionsBtn.addEventListener('click', function () {
-      redactionsHidden = !redactionsHidden
-      documentContent.classList.toggle('app-redactions-hidden', redactionsHidden)
-      toggleRedactionsBtn.textContent = redactionsHidden ? 'Show redactions' : 'Hide redactions'
-    })
-  }
-
-  // ── Save annotation ───────────────────────────────────────────────────────
-
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function () {
-      var note = noteInput ? noteInput.value.trim() : ''
-
-      if (!note) {
-        if (noteInput) noteInput.focus()
-        return
-      }
-
-      if (typeHiddenInput) typeHiddenInput.value = pendingAnnotationType
-      if (noteHiddenInput) noteHiddenInput.value = note
-
-      if (annotationForm) annotationForm.submit()
-    })
-  }
-
-  // ── Cancel annotation ─────────────────────────────────────────────────────
-
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', function (e) {
-      e.preventDefault()
-      hideNewCard()
-      if (sidebarEmpty && !document.querySelectorAll('.js-annotation-card').length) {
-        sidebarEmpty.hidden = false
-      }
-    })
-  }
-
-  // ── Close popup when clicking outside ────────────────────────────────────
-
-  document.addEventListener('mousedown', function (e) {
-    if (!popup.hidden && !popup.contains(e.target)) {
-      hidePopup()
-    }
-    if (!e.target.closest('.js-annotation-card')) {
-      document.querySelectorAll('.js-annotation-card').forEach(function (c) {
-        c.classList.remove('is-selected')
-        c.classList.remove('app-annotation-card--active')
-      })
-      activateMark(null)
-      repositionCards()
-    }
-  })
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-      if (!popup.hidden) hidePopup()
-      if (newAnnotationCard && !newAnnotationCard.hidden) hideNewCard()
-    }
-  })
-
-  // ── Card click → highlight annotation in document ────────────────────────
-
-  function activateMark(annotationId) {
-    document.querySelectorAll('.app-annotation').forEach(function (m) {
-      m.classList.remove('app-annotation--active')
-    })
-    if (annotationId) {
-      var mark = document.querySelector('.app-annotation[data-annotation-id="' + annotationId + '"]')
-      if (mark) {
-        mark.classList.add('app-annotation--active')
-        mark.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      }
-    }
-  }
-
-  // ── Mark click → highlight annotation card ────────────────────────────────
-
-  function activateCard(annotationId) {
-    document.querySelectorAll('.js-annotation-card').forEach(function (c) {
-      c.classList.remove('is-selected')
-      c.classList.remove('app-annotation-card--active')
-    })
-    if (annotationId) {
-      var card = document.querySelector('.js-annotation-card[data-annotation-id="' + annotationId + '"]')
-      if (card) {
-        card.classList.add('is-selected')
-        card.classList.add('app-annotation-card--active')
-        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      }
-    }
-    repositionCards()
-  }
-
-  document.querySelectorAll('.js-annotation-card').forEach(function (card) {
-    card.addEventListener('click', function (e) {
-      if (e.target.closest('a')) return
-      document.querySelectorAll('.js-annotation-card').forEach(function (c) {
-        c.classList.remove('is-selected')
-        c.classList.remove('app-annotation-card--active')
-      })
-      card.classList.add('is-selected')
-      activateMark(card.getAttribute('data-annotation-id'))
-      repositionCards()
-    })
-  })
-
-  function repositionCards() {
-    requestAnimationFrame(positionAllCards)
-  }
-
-  // ── Initial card positioning and resize handler ───────────────────────────
-
-  positionAllCards()
-  window.addEventListener('resize', positionAllCards)
-
-  // ── Activate annotation linked from another page via URL hash ─────────────
-
-  var hash = window.location.hash
-  if (hash) {
-    var match = hash.match(/^#annotation-(\d+)$/)
-    if (match) {
-      var linkedId = match[1]
-      activateCard(linkedId)
-      activateMark(linkedId)
-    }
-  }
-
-})()
+}
+
+App.AnnotationPanel.prototype.onDocumentKeydown = function(e) {
+  if (e.key !== 'Escape') return
+  if (!this.popup[0].hidden) this.hidePopup()
+  if (this.newAnnotationCard.length && !this.newAnnotationCard[0].hidden) this.hideNewCard()
+}

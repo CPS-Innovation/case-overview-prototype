@@ -1,14 +1,13 @@
 .app-annotation-sidebar {
   width: 280px;
   flex-shrink: 0;
-  padding: govuk-spacing(6) 0 govuk-spacing(6) govuk-spacing(4);
+  padding: govuk-spacing(5) 0 govuk-spacing(5) govuk-spacing(4);
 }
 
 .app-annotation-sidebar__empty {
   color: govuk-colour("dark-grey");
-  padding-top: govuk-spacing(6);
+  padding-top: govuk-spacing(5);
 }
-
 
 .app-annotation-card {
   background: govuk-colour("white");

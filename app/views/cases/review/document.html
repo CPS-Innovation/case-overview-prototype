@@ -90,8 +90,8 @@
     <aside class="app-annotation-sidebar" id="annotation-sidebar" aria-label="Annotations">
       <div class="app-annotation-sidebar__inner js-sidebar-inner">
         <div class="app-annotation-sidebar__new js-new-annotation-card" hidden>
-          <div class="app-annotation-card app-annotation-card--form">
-            <div class="app-annotation-card__body">
+          <div class="app-annotation-form">
+            <div class="app-annotation-form__body">
               <div class="govuk-form-group govuk-!-margin-bottom-3">
                 <label class="govuk-label govuk-label--s" for="annotation-note-input">Note</label>
                 <textarea
@@ -229,6 +229,7 @@
 {% block scripts %}
   {{ super() }}
   <script>
+    new App.AnnotationPanel({ container: $('#document-content') })
     $('.js-annotation-note').each(function () {
       new App.TextExpander({ container: $(this), maxLength: 50 })
     })
