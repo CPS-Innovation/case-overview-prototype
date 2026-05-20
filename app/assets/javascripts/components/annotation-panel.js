@@ -14,8 +14,10 @@ App.AnnotationPanel = function(params) {
   this.noteHiddenInput               = $('#annotation-note-hidden')
   this.saveBtn                       = $('.js-save-annotation')
   this.cancelBtn                     = $('.js-cancel-annotation')
-  this.redactionForm                 = $('#redaction-form')
-  this.redactionSelectedTextInput    = $('#redaction-selected-text')
+  this.redactionForm                  = $('#redaction-form')
+  this.redactionSelectedTextInput     = $('#redaction-selected-text')
+  this.redactionParagraphIndexInput   = $('#redaction-paragraph-index')
+  this.redactionOccurrenceIndexInput  = $('#redaction-occurrence-index')
   this.redactionRemoveForm           = $('#redaction-remove-form')
   this.toggleRedactionsBtn           = $('.js-toggle-redactions')
   this.selectionActions              = $('.js-selection-actions')
@@ -258,7 +260,33 @@ App.AnnotationPanel.prototype.onRedactClick = function() {
   if (!this.currentRange) return
   var selectedText = this.currentRange.toString().trim()
   if (!selectedText) return
+
+  var range = this.currentRange
+  var allParas = this.container.find('.app-document__paragraph').toArray()
+  var startNode = range.startContainer
+  var startEl = startNode.nodeType === 3 ? startNode.parentNode : startNode
+  var paraEl = $(startEl).closest('.app-document__paragraph')[0]
+  var paragraphIndex = paraEl ? allParas.indexOf(paraEl) : 0
+  var occurrenceIndex = 0
+
+  if (paraEl) {
+    var paraRange = document.createRange()
+    paraRange.setStart(paraEl, 0)
+    paraRange.setEnd(range.startContainer, range.startOffset)
+    var selectionStart = paraRange.toString().length
+    var paraText = paraEl.textContent
+    var searchFrom = 0
+    while (true) {
+      var idx = paraText.indexOf(selectedText, searchFrom)
+      if (idx === -1 || idx >= selectionStart) break
+      occurrenceIndex++
+      searchFrom = idx + 1
+    }
+  }
+
   this.redactionSelectedTextInput.val(selectedText)
+  this.redactionParagraphIndexInput.val(paragraphIndex)
+  this.redactionOccurrenceIndexInput.val(occurrenceIndex)
   window.getSelection().removeAllRanges()
   this.hidePopup()
   this.redactionForm[0].submit()

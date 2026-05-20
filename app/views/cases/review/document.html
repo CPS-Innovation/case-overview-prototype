@@ -61,57 +61,28 @@
   <div class="app-toolbar js-toolbar">
     <div class="app-toolbar__inner">
       <div class="govuk-button-group">
-        {% if isReviewMode %}
-          <form
-            method="post"
-            action="/cases/{{ caseId }}/review/documents/{{ documentId }}/mark-reviewed"
-          >
-            {{ govukButton({ text: "Mark as reviewed" }) }}
-          </form>
-          <form
-            method="post"
-            action="/cases/{{ caseId }}/review/documents/{{ documentId }}/save-progress"
-          >
-            {{ govukButton({ text: "Mark as in progress", classes: "govuk-button--secondary" }) }}
-          </form>
-        {% endif %}
-        {{ govukButton({ text: "Mark as unused", classes: "govuk-button--secondary", href: "#" }) }}
-        {% if isReviewMode %}
-          {{ govukButton({ text: "Add case summary note", classes: "govuk-button--secondary", href: "#" }) }}
-        {% endif %}
-        {{ govukButton({ text: "Add police request", classes: "govuk-button--secondary", href: "#" }) }}
-        {# <a href="#" class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0">
-          Download
-        </a> #}
-        {# <button
-          type="button"
-          class="govuk-button govuk-button--secondary govuk-!-margin-bottom-0 js-toggle-redactions"
+        <form
+          method="post"
+          action="/cases/{{ caseId }}/review/documents/{{ documentId }}/mark-reviewed"
         >
-          Hide redactions
-        </button> #}
+          {{ govukButton({ text: "Mark as reviewed" }) }}
+        </form>
+        <form
+          method="post"
+          action="/cases/{{ caseId }}/review/documents/{{ documentId }}/save-progress"
+        >
+          {{ govukButton({ text: "Mark as in progress", classes: "govuk-button--secondary" }) }}
+        </form>
+        {{ govukButton({ text: "Mark as unused", classes: "govuk-button--secondary", href: "#" }) }}
+        {{ govukButton({ text: "Add case summary note", classes: "govuk-button--secondary", href: "#" }) }}
+        {{ govukButton({ text: "Add police request", classes: "govuk-button--secondary", href: "#" }) }}
       </div>
     </div>
   </div>
 
   <div class="app-document-area">
     <div class="app-document-layout">
-      <div class="app-document-pane">
-        <div class="app-document">
-          <div
-            class="app-document__content"
-            id="document-content"
-            data-case-id="{{ caseId }}"
-            data-document-id="{{ documentId }}"
-          >
-            {% for section in sections %}
-              <h2 class="app-document__section-heading">{{ section.heading }}</h2>
-              {% for paragraph in section.paragraphs %}
-                <p class="app-document__paragraph">{{ paragraph | safe }}</p>
-              {% endfor %}
-            {% endfor %}
-          </div>
-        </div>
-      </div>
+      {% include "cases/documents/_document-pane.html" %}
 
       <aside class="app-annotation-sidebar" id="annotation-sidebar" aria-label="Annotations">
         <div class="app-annotation-sidebar__inner js-sidebar-inner">
@@ -325,6 +296,8 @@
     hidden
   >
     <input type="hidden" name="selectedText" id="redaction-selected-text" />
+    <input type="hidden" name="paragraphIndex" id="redaction-paragraph-index" />
+    <input type="hidden" name="occurrenceIndex" id="redaction-occurrence-index" />
   </form>
 
   <form method="post" id="redaction-remove-form" hidden></form>

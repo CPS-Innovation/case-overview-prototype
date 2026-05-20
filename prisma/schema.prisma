@@ -451,6 +451,8 @@ model CaseReviewRedaction {
   id                   Int                @id @default(autoincrement())
   caseReviewDocumentId Int
   selectedText         String
+  paragraphIndex       Int                @default(0)
+  occurrenceIndex      Int                @default(0)
   createdAt            DateTime           @default(now())
   caseReviewDocument   CaseReviewDocument @relation(fields: [caseReviewDocumentId], references: [id])
 }

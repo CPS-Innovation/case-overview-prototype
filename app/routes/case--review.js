@@ -86,21 +86,25 @@ function applyInadmissibles(sections, inadmissibles) {
 
 function applyRedactions(sections, redactions) {
   if (!redactions.length) return sections
-  const sorted = [...redactions].sort((a, b) => b.selectedText.length - a.selectedText.length)
+  const flatParagraphs = sections.flatMap(s => s.paragraphs)
+  redactions.forEach(redaction => {
+    const paraIdx = redaction.paragraphIndex
+    if (paraIdx < 0 || paraIdx >= flatParagraphs.length) return
+    const escaped = redaction.selectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(escaped, 'g')
+    const target = redaction.occurrenceIndex
+    let count = 0
+    flatParagraphs[paraIdx] = flatParagraphs[paraIdx].replace(regex, function(match) {
+      if (count++ === target) {
+        return `<mark class="app-redaction" data-redaction-id="${redaction.id}">${redaction.selectedText}</mark>`
+      }
+      return match
+    })
+  })
+  let flatIdx = 0
   return sections.map(section => ({
     heading: section.heading,
-    paragraphs: section.paragraphs.map(para => {
-      let result = para
-      sorted.forEach(redaction => {
-        const escaped = redaction.selectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-        const regex = new RegExp(escaped, 'g')
-        result = result.replace(
-          regex,
-          `<mark class="app-redaction" data-redaction-id="${redaction.id}">${redaction.selectedText}</mark>`
-        )
-      })
-      return result
-    })
+    paragraphs: section.paragraphs.map(() => flatParagraphs[flatIdx++])
   }))
 }
 
@@ -285,10 +289,15 @@ module.exports = (router) => {
     const review = await findOrCreateReview(caseId, userId)
     const docReview = await findOrCreateDocumentReview(review.id, documentId)
 
-    const { selectedText } = req.body
+    const { selectedText, paragraphIndex, occurrenceIndex } = req.body
     if (selectedText) {
       await prisma.caseReviewRedaction.create({
-        data: { caseReviewDocumentId: docReview.id, selectedText }
+        data: {
+          caseReviewDocumentId: docReview.id,
+          selectedText,
+          paragraphIndex: parseInt(paragraphIndex) || 0,
+          occurrenceIndex: parseInt(occurrenceIndex) || 0
+        }
       })
     }
 

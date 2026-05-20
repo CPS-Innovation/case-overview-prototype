@@ -157,15 +157,14 @@ module.exports = router => {
 
     const sections = applyHighlights(generateDocumentContent(document), annotations)
 
-    res.render('cases/review/document', {
+    res.render('cases/documents/document', {
       _case,
       document,
       sections,
       annotations,
       caseId,
       documentId,
-      user: req.session.data.user,
-      isReviewMode: false
+      user: req.session.data.user
     })
   })
 
