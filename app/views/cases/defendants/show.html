@@ -40,49 +40,53 @@
           {{ govukButton({ text: 'Accept case', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/accept' }) }}
           {{ govukButton({ text: 'Reject case', classes: 'govuk-button--secondary', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/reject' }) }}
           {{ govukButton({ text: 'Request more information', classes: 'govuk-button--secondary', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/request-more-information' }) }}
-
         {% elif defendant.status == 'Charging decision needed' %}
           {{ govukButton({ text: 'Make charging decision', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/make-charging-decision' }) }}
           {{ govukButton({ text: 'Request more information', classes: 'govuk-button--secondary', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/request-more-information' }) }}
-
         {% elif defendant.status == 'Police resubmission pending' %}
           {{ govukButton({ text: 'Simulate: Resubmitted', classes: 'app-button--blue', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/simulate-advance' }) }}
-
         {% elif defendant.status == 'Police charging information pending' %}
           {{ govukButton({ text: 'Simulate: Information received', classes: 'app-button--blue', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/simulate-advance' }) }}
-
         {% elif defendant.status == 'Police authorised charge pending' %}
           {{ govukButton({ text: 'Simulate: Charges received', classes: 'app-button--blue', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/simulate-advance' }) }}
-
         {% elif defendant.status == 'Charged' %}
           {% if not (firstHearings | hasFirstHearing) %}
             {{ govukButton({ text: 'Add first hearing', href: '/cases/' + _case.id + '/add-first-hearing' }) }}
           {% endif %}
-
         {% endif %}
       </div>
 
       {% set dobValue %}
         {% if defendant.dateOfBirth %}
-          {{ defendant.dateOfBirth | isoDateString | govukDate }} ({{ defendant.dateOfBirth | age }} old)
+          {{ defendant.dateOfBirth | isoDateString | govukDate }}
+          ({{ defendant.dateOfBirth | age }} old)
         {% endif %}
       {% endset %}
 
+
       {% set remandStatusValue %}
-        {% if defendant.remandStatus == 'UNCONDITIONAL_BAIL' %}Unconditional bail
-        {% elif defendant.remandStatus == 'CONDITIONAL_BAIL' %}Conditional bail
-        {% elif defendant.remandStatus == 'REMANDED_IN_CUSTODY' %}Remanded in custody
-        {% elif defendant.remandStatus == 'REMANDED_IN_SECURE_UNIT' %}Remanded in secure unit
+        {% if defendant.remandStatus == 'UNCONDITIONAL_BAIL' %}
+          Unconditional bail
+        {% elif defendant.remandStatus == 'CONDITIONAL_BAIL' %}
+          Conditional bail
+        {% elif defendant.remandStatus == 'REMANDED_IN_CUSTODY' %}
+          Remanded in custody
+        {% elif defendant.remandStatus == 'REMANDED_IN_SECURE_UNIT' %}
+          Remanded in secure unit
         {% endif %}
       {% endset %}
+
 
       {% set defenceLawyerValue %}
         {% if defendant.defenceLawyer %}
-          {{ defendant.defenceLawyer.firstName }} {{ defendant.defenceLawyer.lastName }}, {{ defendant.defenceLawyer.organisation }}
+          {{ defendant.defenceLawyer.firstName }}
+          {{ defendant.defenceLawyer.lastName }},
+          {{ defendant.defenceLawyer.organisation }}
         {% else %}
           Not assigned
         {% endif %}
       {% endset %}
+
 
       {% set chargesList %}
         <ul class="govuk-list govuk-list--bullet">
@@ -92,26 +96,34 @@
         </ul>
       {% endset %}
 
-      {{ govukSummaryList({
-        rows: [
-          {
-            key: { text: 'Date of birth' },
-            value: { html: dobValue }
-          } if defendant.dateOfBirth,
-          {
-            key: { text: 'Remand status' },
-            value: { html: remandStatusValue }
-          } if defendant.remandStatus,
-          {
-            key: { text: 'Defence lawyer' },
-            value: { html: defenceLawyerValue }
-          },
-          {
-            key: { text: 'Charges' },
-            value: { html: chargesList }
-          } if defendant.charges.length
-        ]
-      }) }}
+      {{
+        govukSummaryList({
+          rows: [
+            {
+              key: { text: 'Date of birth' },
+              value: { html: dobValue }
+            } if defendant.dateOfBirth,
+            {
+              key: { text: 'Remand status' },
+              value: { html: remandStatusValue }
+            } if defendant.remandStatus,
+            {
+              key: { text: 'Defence lawyer' },
+              value: { html: defenceLawyerValue }
+            },
+            {
+              key: { text: 'Charges' },
+              value: { html: chargesList }
+            } if defendant.charges.length
+          ]
+        })
+      }}
+
+      <h2 class="govuk-heading-m">Charges</h2>
+
+      <h3 class="govuk-heading-s">Theft</h3>
+
+      <p>This has no evidence yet.</p>
     </div>
   </div>
 {% endblock %}

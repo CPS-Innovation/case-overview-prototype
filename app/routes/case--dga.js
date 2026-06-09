@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const { getDgaReportStatus } = require('../helpers/dgaReportStatus')
+const { addCaseStatus } = require('../helpers/caseStatus')
 
 module.exports = router => {
 
@@ -20,6 +21,8 @@ module.exports = router => {
         dga: { include: { failureReasons: true } }
       }
     })
+
+    addCaseStatus(_case)
 
     const outcomesTotal = _case.dga?.failureReasons?.length || 0
     const outcomesCompleted = _case.dga?.failureReasons?.filter(fr => fr.didPoliceDisputeFailure !== null).length || 0
