@@ -47,8 +47,8 @@ function calculateDeadline(reviewDate) {
   const deadline = new Date(endOfMonth);
   deadline.setDate(deadline.getDate() + 42);
 
-  // Set time to 11:59pm UTC
-  deadline.setUTCHours(23, 59, 0, 0);
+  // Set time to 11:59pm local time
+  deadline.setHours(23, 59, 0, 0);
 
   return deadline;
 }
