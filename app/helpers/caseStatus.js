@@ -7,6 +7,7 @@ function addCaseStatus(_case) {
     _case.status = uniqueDefendantStatuses[0] || null
     _case.defendantStatuses = []
   }
+  _case.needsReview = _case.defendants.some(d => d.needsReview)
 }
 
 module.exports = {

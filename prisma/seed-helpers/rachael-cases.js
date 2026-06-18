@@ -13,9 +13,7 @@ const RACHAEL_UNITS = {
 };
 
 const RACHAEL_STATUSES = [
-  statuses.CHARGING_DECISION_NEEDED,
-  statuses.POLICE_CHARGING_INFORMATION_PENDING,
-  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.NOT_CHARGED,
   statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
@@ -262,7 +260,7 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
   const status = faker.helpers.arrayElement(RACHAEL_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status })
 
@@ -431,7 +429,7 @@ async function createManyWitnessesCase(prisma, user, config) {
   const status = faker.helpers.arrayElement(RACHAEL_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId: RACHAEL_UNITS.WESSEX_CROWN_COURT, defendants: [defendant, ...extraDefendants], status })
 
@@ -544,7 +542,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const status = faker.helpers.arrayElement(RACHAEL_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant], status })
 
@@ -610,7 +608,7 @@ async function seedRachaelCases(prisma, dependencies, config) {
   }
 
   await createDivergedCase(prisma, rachaelHarvey, RACHAEL_UNITS.WESSEX_CROWN_COURT, RACHAEL_STATUSES, fullConfig);
-  await createDivergedCase(prisma, rachaelHarvey, RACHAEL_UNITS.WESSEX_CROWN_COURT, [statuses.TRIAGE_NEEDED, statuses.CHARGING_DECISION_NEEDED], fullConfig);
+  await createDivergedCase(prisma, rachaelHarvey, RACHAEL_UNITS.WESSEX_CROWN_COURT, [statuses.NOT_CHARGED, statuses.CHARGED], fullConfig);
 
   return RACHAEL_TASKS.length + 1 + 20 + 1 + 1;
 }

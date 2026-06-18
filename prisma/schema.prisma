@@ -272,6 +272,7 @@ model Defendant {
   remandStatus     RemandStatus?
   paceClock        DateTime?
   status           String?
+  needsReview      Boolean        @default(true)
   defenceLawyerId  Int?
   defenceLawyer    DefenceLawyer? @relation(fields: [defenceLawyerId], references: [id])
   cases              Case[]               @relation("CaseDefendants")

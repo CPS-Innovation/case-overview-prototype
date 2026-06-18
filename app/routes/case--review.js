@@ -4,7 +4,7 @@ const { generateDocumentContent } = require('../helpers/documentContent')
 const statuses = require('../data/case-statuses')
 
 const decisionStatusMap = {
-  'charge': statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  'charge': statuses.CHARGED,
   'do-not-charge': statuses.NO_FURTHER_ACTION,
 }
 

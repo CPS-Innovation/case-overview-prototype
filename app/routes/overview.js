@@ -25,12 +25,8 @@ module.exports = router => {
       }
     })
 
-    const triageCaseCount = await prisma.case.count({
-      where: { ...unitFilter, defendants: { some: { status: statuses.TRIAGE_NEEDED } } }
-    })
-
-    const chargingDecisionNeededCaseCount = await prisma.case.count({
-      where: { ...unitFilter, defendants: { some: { status: statuses.CHARGING_DECISION_NEEDED } } }
+    const needsReviewCaseCount = await prisma.case.count({
+      where: { ...unitFilter, defendants: { some: { needsReview: true } } }
     })
 
     const chargedCaseCount = await prisma.case.count({
@@ -58,9 +54,7 @@ module.exports = router => {
     })
 
     const activeStatuses = [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.NOT_CHARGED,
       statuses.CHARGED
     ]
 
@@ -89,9 +83,7 @@ module.exports = router => {
           some: {
             status: {
               in: [
-                statuses.CHARGING_DECISION_NEEDED,
-                statuses.POLICE_CHARGING_INFORMATION_PENDING,
-                statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+                statuses.NOT_CHARGED,
                 statuses.CHARGED
               ]
             }
@@ -471,9 +463,7 @@ module.exports = router => {
     }
 
     const unitBreakdownActiveStatuses = [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.NOT_CHARGED,
       statuses.CHARGED
     ]
 
@@ -484,17 +474,16 @@ module.exports = router => {
           const f = { unitId: unit.id }
           const isCrownCourt = unit.type === 'Crown Court'
 
-          const [triage, needsProsecutor, needsParalegalOfficer, chargingDecision, firstHearingNeeded] = await Promise.all([
-            prisma.case.count({ where: { ...f, defendants: { some: { status: statuses.TRIAGE_NEEDED } } } }),
+          const [notCharged, needsProsecutor, needsParalegalOfficer, firstHearingNeeded] = await Promise.all([
+            prisma.case.count({ where: { ...f, defendants: { some: { status: statuses.NOT_CHARGED } } } }),
             prisma.case.count({ where: { ...f, prosecutors: { none: {} }, defendants: { some: { status: { in: unitBreakdownActiveStatuses } } } } }),
             isCrownCourt
               ? prisma.case.count({ where: { ...f, paralegalOfficers: { none: {} }, defendants: { some: { status: { in: unitBreakdownActiveStatuses } } } } })
               : Promise.resolve(null),
-            prisma.case.count({ where: { ...f, defendants: { some: { status: statuses.CHARGING_DECISION_NEEDED } } } }),
             prisma.case.count({ where: { ...f, defendants: { some: { status: statuses.CHARGED, hearings: { none: { type: 'First hearing' } } } } } }),
           ])
 
-          return { unit, isCrownCourt, counts: { triage, needsProsecutor, needsParalegalOfficer, chargingDecision, firstHearingNeeded } }
+          return { unit, isCrownCourt, counts: { notCharged, needsProsecutor, needsParalegalOfficer, firstHearingNeeded } }
         })
       )
     }
@@ -516,8 +505,7 @@ module.exports = router => {
 
     res.render('overview/index', {
       unassignedCaseCount,
-      triageCaseCount,
-      chargingDecisionNeededCaseCount,
+      needsReviewCaseCount,
       chargedCaseCount,
       firstHearingNeededCount,
       hearingPrepNeededCaseCount,

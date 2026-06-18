@@ -3,7 +3,7 @@ const prisma = new PrismaClient()
 const statuses = require('../data/case-statuses')
 
 const decisionStatusMap = {
-  'charge': statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  'charge': statuses.CHARGED,
   'do-not-charge': statuses.NO_FURTHER_ACTION,
 }
 
@@ -40,7 +40,7 @@ module.exports = (router) => {
       where: { id: parseInt(caseId) },
       include: { defendants: true },
     })
-    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.CHARGING_DECISION_NEEDED)
+    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.NOT_CHARGED && d.needsReview)
 
     if (eligibleDefendants.length > 1) {
       res.redirect(`/cases/${caseId}/make-charging-decision/defendants`)
@@ -55,7 +55,7 @@ module.exports = (router) => {
       include: { defendants: true },
     })
 
-    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.CHARGING_DECISION_NEEDED)
+    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.NOT_CHARGED && d.needsReview)
     const selectedDefendantIds = req.session.data.chargingDecision?.defendantIds || eligibleDefendants.map(d => String(d.id))
     const defendantItems = eligibleDefendants.map(d => ({ value: String(d.id), text: `${d.firstName} ${d.lastName}` }))
     res.render('cases/make-charging-decision/defendants', { _case, defendantItems, selectedDefendantIds })

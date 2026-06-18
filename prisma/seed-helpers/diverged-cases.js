@@ -21,6 +21,7 @@ async function createDivergedCase(prisma, user, unitId, statusPool, config) {
       dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
       remandStatus: faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL', 'REMANDED_IN_CUSTODY']),
       status: status1,
+      needsReview: status1 === statuses.NOT_CHARGED,
       defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
       charges: {
         create: {
@@ -44,6 +45,7 @@ async function createDivergedCase(prisma, user, unitId, statusPool, config) {
       dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
       remandStatus: faker.helpers.arrayElement(['UNCONDITIONAL_BAIL', 'CONDITIONAL_BAIL', 'REMANDED_IN_CUSTODY']),
       status: status2,
+      needsReview: status2 === statuses.NOT_CHARGED,
       defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
       charges: {
         create: {

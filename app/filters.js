@@ -134,16 +134,8 @@ addFilter('caseStatusTagClass', (status) => {
   switch (status) {
     case 'Multiple statuses':
       return 'govuk-tag--yellow'
-    case statuses.TRIAGE_NEEDED:
+    case statuses.NOT_CHARGED:
       return 'govuk-tag--blue'
-    case statuses.POLICE_RESUBMISSION_PENDING:
-      return 'govuk-tag--orange'
-    case statuses.CHARGING_DECISION_NEEDED:
-      return 'govuk-tag--purple'
-    case statuses.POLICE_CHARGING_INFORMATION_PENDING:
-      return 'govuk-tag--yellow'
-    case statuses.POLICE_AUTHORISED_CHARGE_PENDING:
-      return 'govuk-tag--yellow'
     case statuses.CHARGED:
       return 'govuk-tag--green'
     case statuses.NO_FURTHER_ACTION:

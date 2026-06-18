@@ -28,11 +28,7 @@ const ALL_TONY_UNITS = Object.values(TONY_UNITS);
 const CROWN_COURT_UNIT_IDS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_RASSO];
 
 const TONY_STATUSES = [
-  statuses.TRIAGE_NEEDED,
-  statuses.POLICE_RESUBMISSION_PENDING,
-  statuses.CHARGING_DECISION_NEEDED,
-  statuses.POLICE_CHARGING_INFORMATION_PENDING,
-  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.NOT_CHARGED,
   statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.NO_FURTHER_ACTION,
@@ -45,8 +41,8 @@ const CROWN_RASSO_CCU_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_
 
 // STL tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
 const ADMIN_STL_TASKS = [
-  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.TRIAGE_NEEDED },
-  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.POLICE_RESUBMISSION_PENDING }
+  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.NOT_CHARGED, fixedNeedsReview: true },
+  { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.NOT_CHARGED, fixedNeedsReview: false }
 ];
 
 // PACE clock tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
@@ -81,7 +77,7 @@ async function getAdminPoolTeamForUnit(prisma, unitId) {
 
 async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
   const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities, policeUnits, ukCities, availableOperationNames, documentNames, documentTypes } = config;
-  const { name, stlGenerator, units, fixedStatus } = taskConfig;
+  const { name, stlGenerator, units, fixedStatus, fixedNeedsReview } = taskConfig;
 
   const unitId = faker.helpers.arrayElement(units);
   const statutoryTimeLimit = stlGenerator();
@@ -160,9 +156,13 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
     }
   });
 
+  const adminStlStatus = fixedStatus || faker.helpers.arrayElement(TONY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: fixedStatus || faker.helpers.arrayElement(TONY_STATUSES) }
+    data: {
+      status: adminStlStatus,
+      needsReview: fixedStatus ? fixedNeedsReview : adminStlStatus === statuses.NOT_CHARGED && faker.datatype.boolean()
+    }
   });
 
   // Create task assigned to admin pool team (not to a user)
@@ -267,9 +267,10 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
     }
   });
 
+  const adminPaceStatus = faker.helpers.arrayElement(TONY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: faker.helpers.arrayElement(TONY_STATUSES) }
+    data: { status: adminPaceStatus, needsReview: adminPaceStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
 
   // Create task assigned to admin pool team (not to a user)
@@ -404,7 +405,7 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
   const status = faker.helpers.arrayElement(TONY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status })
 
@@ -502,7 +503,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const status = faker.helpers.arrayElement(TONY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant], status })
 
@@ -584,7 +585,7 @@ async function seedTonyCases(prisma, dependencies, config) {
   if (tonyStark) {
     await createDivergedCase(prisma, tonyStark, faker.helpers.arrayElement(ALL_TONY_UNITS), TONY_STATUSES, fullConfig);
     count++;
-    await createDivergedCase(prisma, tonyStark, faker.helpers.arrayElement(ALL_TONY_UNITS), [statuses.TRIAGE_NEEDED, statuses.CHARGING_DECISION_NEEDED], fullConfig);
+    await createDivergedCase(prisma, tonyStark, faker.helpers.arrayElement(ALL_TONY_UNITS), [statuses.NOT_CHARGED, statuses.CHARGED], fullConfig);
     count++;
   }
 

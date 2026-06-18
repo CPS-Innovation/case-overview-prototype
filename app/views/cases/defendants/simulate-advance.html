@@ -1,11 +1,7 @@
 {% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
 
-{% set simulateLabels = {
-  'Police resubmission pending': 'Resubmitted',
-  'Police charging information pending': 'Information received',
-  'Police authorised charge pending': 'Charges received'
-} %}
+{% set simulateLabel = "Information received" %}
 
 {% block beforeContent %}
   {{ govukBackLink({ text: 'Back', href: 'javascript:history.back()' }) }}
@@ -15,7 +11,7 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
       {% if eligibleDefendants %}
-        <span class="govuk-caption-l">{{ _case.reference }} – simulate: {{ simulateLabels[defendant.status] | lower }}</span>
+        <span class="govuk-caption-l">{{ _case.reference }} – simulate: {{ simulateLabel | lower }}</span>
         <form method="post">
           {{ govukCheckboxes({
             name: "simulateAdvance[defendants]",
@@ -33,7 +29,7 @@
         </form>
       {% else %}
         <span class="govuk-caption-l">{{ _case.reference }} – {{ defendant.firstName }} {{ defendant.lastName }}</span>
-        <h1 class="govuk-heading-l">Simulate: {{ simulateLabels[defendant.status] }}</h1>
+        <h1 class="govuk-heading-l">Simulate: {{ simulateLabel }}</h1>
         <form method="post">
           {{ govukButton({ text: "Confirm", classes: "app-button--blue" }) }}
         </form>

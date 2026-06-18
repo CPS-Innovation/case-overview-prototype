@@ -55,66 +55,12 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.TRIAGE_NEEDED %}
+{% elif _case.status == caseStatuses.NOT_CHARGED and _case.needsReview %}
   {% set identityBarMenus = [
     {
       items: [
         {
-          text: 'Accept case',
-          href: '/cases/' + _case.id + '/accept?referrer=' + path
-        },
-        {
-          text: 'Reject case',
-          href: '/cases/' + _case.id + '/reject',
-          classes: 'govuk-button--secondary'
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          text: 'Placeholder action',
-          href: '#',
-          classes: 'govuk-button--secondary'
-        },
-        {
-          text: 'Another action',
-          href: '#',
-          classes: 'govuk-button--secondary'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.POLICE_RESUBMISSION_PENDING %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Simulate: Resubmitted',
-          href: '/cases/' + _case.id + '/accept-resubmission?referrer=' + path,
-          classes: 'app-button--blue'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.POLICE_CHARGING_INFORMATION_PENDING %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Simulate: Information received',
-          href: '/cases/' + _case.id + '/mark-information-received?referrer=' + path,
-          classes: 'app-button--blue'
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.CHARGING_DECISION_NEEDED %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Make charging decision',
+          text: 'Review case',
           href: '/cases/' + _case.id + '/review'
         },
         {
@@ -125,13 +71,13 @@
       ]
     }
   ] %}
-{% elif _case.status == caseStatuses.POLICE_AUTHORISED_CHARGE_PENDING %}
+{% elif _case.status == caseStatuses.NOT_CHARGED %}
   {% set identityBarMenus = [
     {
       items: [
         {
-          text: 'Simulate: Charges received',
-          href: '/cases/' + _case.id + '/mark-charges-received?referrer=' + path,
+          text: 'Simulate: Information received',
+          href: '/cases/' + _case.id + '/mark-information-received?referrer=' + path,
           classes: 'app-button--blue'
         }
       ]

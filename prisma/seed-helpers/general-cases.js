@@ -42,11 +42,7 @@ async function seedGeneralCases(prisma, dependencies, config) {
   const crownCourtUnitIds = allUnits.filter(u => u.type === 'Crown Court').map(u => u.id)
 
   const defendantStatusPool = [
-    statuses.TRIAGE_NEEDED,
-    statuses.POLICE_RESUBMISSION_PENDING,
-    statuses.CHARGING_DECISION_NEEDED,
-    statuses.POLICE_CHARGING_INFORMATION_PENDING,
-    statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+    statuses.NOT_CHARGED,
     statuses.CHARGED,
     statuses.NOT_GUILTY,
     statuses.NO_FURTHER_ACTION,
@@ -289,7 +285,7 @@ async function seedGeneralCases(prisma, dependencies, config) {
       const defendantStatus = isDiverged ? faker.helpers.arrayElement(defendantStatusPool) : status
       await prisma.defendant.update({
         where: { id: defendant.id },
-        data: { status: defendantStatus }
+        data: { status: defendantStatus, needsReview: defendantStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
       })
     }
 

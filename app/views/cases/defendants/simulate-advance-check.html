@@ -1,13 +1,9 @@
 {% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
 
-{% set simulateLabels = {
-  'Police resubmission pending': 'Resubmitted',
-  'Police charging information pending': 'Information received',
-  'Police authorised charge pending': 'Charges received'
-} %}
+{% set simulateLabel = "Information received" %}
 
-{% set pageName = "Check details and simulate: " + simulateLabels[defendant.status] %}
+{% set pageName = "Check details and simulate: " + simulateLabel %}
 
 {% block beforeContent %}
   {{ govukBackLink({ text: 'Back', href: '/cases/' + _case.id + '/defendants/' + defendant.id + '/simulate-advance' }) }}
@@ -16,7 +12,7 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-      <span class="govuk-caption-l">{{ _case.reference }} – simulate: {{ simulateLabels[defendant.status] | lower }}</span>
+      <span class="govuk-caption-l">{{ _case.reference }} – simulate: {{ simulateLabel | lower }}</span>
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
       {% set defendantNames %}{% for d in selectedDefendants %}{{ d.firstName }} {{ d.lastName }}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
@@ -25,7 +21,7 @@
         rows: [
           {
             key: { text: "Action" },
-            value: { text: "Simulate: " + simulateLabels[defendant.status] }
+            value: { text: "Simulate: " + simulateLabel }
           },
           {
             key: { text: "Defendants" },

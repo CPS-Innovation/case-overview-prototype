@@ -23,11 +23,7 @@ const SIMON_UNITS_ARRAY = Object.values(SIMON_UNITS);
 const statuses = require('../../app/data/case-statuses');
 
 const SIMON_STATUSES = [
-  statuses.TRIAGE_NEEDED,
-  statuses.POLICE_RESUBMISSION_PENDING,
-  statuses.CHARGING_DECISION_NEEDED,
-  statuses.POLICE_CHARGING_INFORMATION_PENDING,
-  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.NOT_CHARGED,
   statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
@@ -249,7 +245,7 @@ async function createSTLCase(prisma, user, taskConfig, config) {
 
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: statuses.POLICE_AUTHORISED_CHARGE_PENDING }
+    data: { status: statuses.NOT_CHARGED, needsReview: false }
   });
 
   // Create task (no hearing for STL/pre-charge tasks)
@@ -386,7 +382,7 @@ async function createCTLCase(prisma, user, taskConfig, config) {
   const status = faker.helpers.arrayElement(SIMON_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status })
 
@@ -498,7 +494,7 @@ async function createManyStatementsCase(prisma, user, config) {
   const status = faker.helpers.arrayElement(SIMON_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId: SIMON_UNITS.NORTH_YORKSHIRE_MAGISTRATES_COURT, defendants: [defendant], status })
 
@@ -663,7 +659,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const status = faker.helpers.arrayElement(SIMON_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant], status })
 
@@ -734,7 +730,7 @@ async function seedSimonCases(prisma, dependencies, config) {
   }
 
   await createDivergedCase(prisma, simonWhatley, faker.helpers.arrayElement(SIMON_UNITS_ARRAY), SIMON_STATUSES, fullConfig);
-  await createDivergedCase(prisma, simonWhatley, faker.helpers.arrayElement(SIMON_UNITS_ARRAY), [statuses.TRIAGE_NEEDED, statuses.CHARGING_DECISION_NEEDED], fullConfig);
+  await createDivergedCase(prisma, simonWhatley, faker.helpers.arrayElement(SIMON_UNITS_ARRAY), [statuses.NOT_CHARGED, statuses.CHARGED], fullConfig);
 
   return SIMON_STL_TASKS.length + SIMON_CTL_TASKS.length + 1 + 20 + 1 + 1;
 }

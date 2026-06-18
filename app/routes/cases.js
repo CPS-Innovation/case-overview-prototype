@@ -13,11 +13,7 @@ const statuses = require('../data/case-statuses')
 const dgaStatuses = ['Awaiting outcome', 'Outcome recorded']
 
 const caseStatuses = [
-  statuses.TRIAGE_NEEDED,
-  statuses.POLICE_RESUBMISSION_PENDING,
-  statuses.CHARGING_DECISION_NEEDED,
-  statuses.POLICE_CHARGING_INFORMATION_PENDING,
-  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.NOT_CHARGED,
   statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.NO_FURTHER_ACTION,
@@ -39,6 +35,7 @@ function resetFilters(req) {
   _.set(req, 'session.data.caseListFilters.statuses', null)
   _.set(req, 'session.data.caseListFilters.defendants', null)
   _.set(req, 'session.data.caseListFilters.statusMix', null)
+  _.set(req, 'session.data.caseListFilters.review', null)
   _.set(req, 'session.data.caseListFilters.firstHearing', null)
   _.set(req, 'session.data.caseListFilters.hearingStatuses', null)
   _.set(req, 'session.data.caseListFilters.hearingPrepDateRange', null)
@@ -50,19 +47,14 @@ module.exports = (router) => {
     res.redirect('/cases/?caseListFilters[prosecutors][]=Unassigned')
   })
 
-  router.get('/cases/shortcut/triage', (req, res) => {
+  router.get('/cases/shortcut/needs-review', (req, res) => {
     resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=Triage+needed')
+    res.redirect('/cases/?caseListFilters[review][]=Review+needed')
   })
 
   router.get('/cases/shortcut/prosecutor-needed', (req, res) => {
     resetFilters(req)
     res.redirect('/cases/?caseListFilters[statuses][]=Prosecution+team+needed')
-  })
-
-  router.get('/cases/shortcut/charging-decision-needed', (req, res) => {
-    resetFilters(req)
-    res.redirect('/cases/?caseListFilters[statuses][]=Charging+decision+needed')
   })
 
   router.get('/cases/shortcut/charged', (req, res) => {
@@ -85,9 +77,7 @@ module.exports = (router) => {
     _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
     _.set(req.session.data.caseListFilters, 'unit', magsUnits.map(u => u.id.toString()))
     _.set(req.session.data.caseListFilters, 'statuses', [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.NOT_CHARGED,
       statuses.CHARGED
     ])
     res.redirect('/cases')
@@ -102,9 +92,7 @@ module.exports = (router) => {
     _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
     _.set(req.session.data.caseListFilters, 'unit', crownUnits.map(u => u.id.toString()))
     _.set(req.session.data.caseListFilters, 'statuses', [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.NOT_CHARGED,
       statuses.CHARGED
     ])
     res.redirect('/cases')
@@ -119,9 +107,7 @@ module.exports = (router) => {
     _.set(req.session.data.caseListFilters, 'paralegalOfficers', ['Unassigned'])
     _.set(req.session.data.caseListFilters, 'unit', crownUnits.map(u => u.id.toString()))
     _.set(req.session.data.caseListFilters, 'statuses', [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.NOT_CHARGED,
       statuses.CHARGED
     ])
     res.redirect('/cases')
@@ -131,9 +117,7 @@ module.exports = (router) => {
     resetFilters(req)
     _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
     _.set(req.session.data.caseListFilters, 'statuses', [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.NOT_CHARGED,
       statuses.CHARGED
     ])
     res.redirect('/cases')
@@ -143,9 +127,7 @@ module.exports = (router) => {
     resetFilters(req)
     _.set(req.session.data.caseListFilters, 'paralegalOfficers', ['Unassigned'])
     _.set(req.session.data.caseListFilters, 'statuses', [
-      statuses.CHARGING_DECISION_NEEDED,
-      statuses.POLICE_CHARGING_INFORMATION_PENDING,
-      statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+      statuses.NOT_CHARGED,
       statuses.CHARGED
     ])
     res.redirect('/cases')
@@ -329,9 +311,7 @@ module.exports = (router) => {
   })
 
   const unitBreakdownActiveStatuses = [
-    statuses.CHARGING_DECISION_NEEDED,
-    statuses.POLICE_CHARGING_INFORMATION_PENDING,
-    statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+    statuses.NOT_CHARGED,
     statuses.CHARGED
   ]
 
@@ -341,8 +321,8 @@ module.exports = (router) => {
     _.set(req.session.data.caseListFilters, 'unit', [unitId])
 
     switch (category) {
-      case 'triage':
-        _.set(req.session.data.caseListFilters, 'statuses', [statuses.TRIAGE_NEEDED])
+      case 'not-charged':
+        _.set(req.session.data.caseListFilters, 'statuses', [statuses.NOT_CHARGED])
         break
       case 'needs-prosecutor':
         _.set(req.session.data.caseListFilters, 'prosecutors', ['Unassigned'])
@@ -351,9 +331,6 @@ module.exports = (router) => {
       case 'needs-paralegal-officer':
         _.set(req.session.data.caseListFilters, 'paralegalOfficers', ['Unassigned'])
         _.set(req.session.data.caseListFilters, 'statuses', unitBreakdownActiveStatuses)
-        break
-      case 'charging-decision':
-        _.set(req.session.data.caseListFilters, 'statuses', [statuses.CHARGING_DECISION_NEEDED])
         break
       case 'first-hearing':
         _.set(req.session.data.caseListFilters, 'firstHearing', ['Needs set up'])
@@ -432,6 +409,7 @@ module.exports = (router) => {
     let selectedStatusFilters = _.get(req.session.data.caseListFilters, 'statuses', [])
     let selectedDefendantFilters = _.get(req.session.data.caseListFilters, 'defendants', [])
     let selectedStatusMixFilters = _.get(req.session.data.caseListFilters, 'statusMix', [])
+    let selectedReviewFilters = _.get(req.session.data.caseListFilters, 'review', [])
     let selectedFirstHearingFilters = _.get(req.session.data.caseListFilters, 'firstHearing', [])
     let selectedHearingStatusFilters = _.get(req.session.data.caseListFilters, 'hearingStatuses', [])
     let selectedHearingPrepDateRangeFilters = _.get(req.session.data.caseListFilters, 'hearingPrepDateRange', [])
@@ -604,6 +582,16 @@ module.exports = (router) => {
         items: selectedDefendantFilters.map((value) => ({
           text: value,
           href: '/cases/remove-defendants/' + encodeURIComponent(value),
+        })),
+      })
+    }
+
+    if (selectedReviewFilters?.length) {
+      selectedFilters.categories.push({
+        heading: { text: 'Review status' },
+        items: selectedReviewFilters.map((value) => ({
+          text: value,
+          href: '/cases/remove-review/' + encodeURIComponent(value),
         })),
       })
     }
@@ -852,6 +840,18 @@ module.exports = (router) => {
 
     if (selectedStatusFilters?.length) {
       where.AND.push({ defendants: { some: { status: { in: selectedStatusFilters } } } })
+    }
+    if (selectedReviewFilters?.length) {
+      const reviewFilters = []
+      if (selectedReviewFilters.includes('Review needed')) {
+        reviewFilters.push({ defendants: { some: { needsReview: true } } })
+      }
+      if (selectedReviewFilters.includes('Review not needed')) {
+        reviewFilters.push({ defendants: { some: { needsReview: false } } })
+      }
+      if (reviewFilters.length) {
+        where.AND.push({ OR: reviewFilters })
+      }
     }
     if (selectedComplexityFilters?.length) {
       where.AND.push({ complexity: { in: selectedComplexityFilters } })
@@ -1307,11 +1307,18 @@ module.exports = (router) => {
       { value: 'Not mixed', text: 'Not mixed' },
     ]
 
+    const reviewItems = [
+      { value: 'Review needed', text: 'Review needed' },
+      { value: 'Review not needed', text: 'Review not needed' },
+    ]
+
     res.render('cases/index', {
       totalCases,
       cases,
       statusItems,
       selectedStatusFilters,
+      reviewItems,
+      selectedReviewFilters,
       firstHearingItems,
       selectedFirstHearingFilters,
       hearingStatusItems,
@@ -1382,6 +1389,12 @@ module.exports = (router) => {
   router.get('/cases/remove-status-mix/:value', (req, res) => {
     const current = _.get(req, 'session.data.caseListFilters.statusMix', [])
     _.set(req, 'session.data.caseListFilters.statusMix', _.pull(current, decodeURIComponent(req.params.value)))
+    res.redirect('/cases')
+  })
+
+  router.get('/cases/remove-review/:value', (req, res) => {
+    const current = _.get(req, 'session.data.caseListFilters.review', [])
+    _.set(req, 'session.data.caseListFilters.review', _.pull(current, decodeURIComponent(req.params.value)))
     res.redirect('/cases')
   })
 

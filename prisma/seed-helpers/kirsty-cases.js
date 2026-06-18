@@ -14,9 +14,7 @@ const { createCtlLogEntries } = require('./ctl-log-entries');
 const KIRSTY_UNIT = 3; // Wessex Crown Court
 
 const KIRSTY_STATUSES = [
-  statuses.CHARGING_DECISION_NEEDED,
-  statuses.POLICE_CHARGING_INFORMATION_PENDING,
-  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.NOT_CHARGED,
   statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.SENTENCED,
@@ -113,9 +111,10 @@ async function createSTLCase(prisma, user, taskConfig, config) {
     }
   });
 
+  const defendantStatus = faker.helpers.arrayElement(KIRSTY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: faker.helpers.arrayElement(KIRSTY_STATUSES) }
+    data: { status: defendantStatus, needsReview: defendantStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
 
   await prisma.caseProsecutor.create({
@@ -251,7 +250,7 @@ async function createCTLCase(prisma, user, taskConfig, config) {
   const status = faker.helpers.arrayElement(KIRSTY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId: KIRSTY_UNIT, defendants: [defendant, ...extraDefendants], status })
 
@@ -353,7 +352,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const status = faker.helpers.arrayElement(KIRSTY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId: KIRSTY_UNIT, defendants: [defendant], status })
 
@@ -429,7 +428,7 @@ async function seedKirstyCases(prisma, dependencies, config) {
   }
 
   await createDivergedCase(prisma, kirstyPriest, KIRSTY_UNIT, KIRSTY_STATUSES, fullConfig);
-  await createDivergedCase(prisma, kirstyPriest, KIRSTY_UNIT, [statuses.TRIAGE_NEEDED, statuses.CHARGING_DECISION_NEEDED], fullConfig);
+  await createDivergedCase(prisma, kirstyPriest, KIRSTY_UNIT, [statuses.NOT_CHARGED, statuses.CHARGED], fullConfig);
 
   return KIRSTY_STL_TASKS.length + KIRSTY_CTL_TASKS.length + 20 + 1 + 1;
 }

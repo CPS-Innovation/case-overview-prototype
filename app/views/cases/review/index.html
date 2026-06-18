@@ -2,7 +2,7 @@
 {% from "govuk/components/task-list/macro.njk" import govukTaskList %}
 
 {% set navId = 'cases' %}
-{% set pageName = "Review case material" %}
+{% set pageName = "Review case" %}
 
 {% block beforeContent %}
   {{ govukBackLink({ text: 'Back', href: '/cases/' + _case.id }) }}
@@ -14,7 +14,7 @@
       <span class="govuk-caption-l">{{ _case.reference }}</span>
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      <h2 class="govuk-heading-m">Review documents</h2>
+      <h2 class="govuk-heading-m">Material</h2>
 
       {% set documentItems = [] %}
       {% for document in documents %}
@@ -29,17 +29,21 @@
           {% set docStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
         {% endif %}
 
-        {% set documentItems = documentItems.concat([{
-          title: { text: document.name },
-          href: "/cases/" + _case.id + "/review/documents/" + document.id,
-          status: docStatus
-        }]) %}
+        {%
+          set documentItems = documentItems.concat([{
+            title: { text: document.name },
+            href: "/cases/" + _case.id + "/review/documents/" + document.id,
+            status: docStatus
+          }])
+        %}
       {% endfor %}
 
-      {{ govukTaskList({
-        idPrefix: "review-documents",
-        items: documentItems
-      }) }}
+      {{
+        govukTaskList({
+          idPrefix: "review-documents",
+          items: documentItems
+        })
+      }}
 
       <h2 class="govuk-heading-m govuk-!-margin-top-4">Additional information</h2>
 
@@ -55,27 +59,31 @@
         {% set chargingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
-      {{ govukTaskList({
-        idPrefix: "additional-information",
-        items: [
-          {
-            title: { text: "Summary of review" },
-            href: "/cases/" + _case.id + "/review/summary",
-            status: summaryStatus
-          },
-          {
-            title: { text: "Charging decision" },
-            href: "/cases/" + _case.id + "/make-charging-decision",
-            status: chargingStatus
-          }
-        ]
-      }) }}
+      {{
+        govukTaskList({
+          idPrefix: "additional-information",
+          items: [
+            {
+              title: { text: "Summary of review" },
+              href: "/cases/" + _case.id + "/review/summary",
+              status: summaryStatus
+            },
+            {
+              title: { text: "Charging decision" },
+              href: "/cases/" + _case.id + "/make-charging-decision",
+              status: chargingStatus
+            }
+          ]
+        })
+      }}
 
-      {{ govukButton({
-        text: "Check and submit review",
-        href: "/cases/" + _case.id + "/review/check",
-        classes: "govuk-!-margin-top-4"
-      }) }}
+      {{
+        govukButton({
+          text: "Check and submit review",
+          href: "/cases/" + _case.id + "/review/check",
+          classes: "govuk-!-margin-top-4"
+        })
+      }}
     </div>
   </div>
 {% endblock %}

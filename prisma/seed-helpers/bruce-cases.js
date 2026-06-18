@@ -35,9 +35,7 @@ const BRUCE_UNITS = {
 };
 
 const BRUCE_STATUSES = [
-  statuses.CHARGING_DECISION_NEEDED,
-  statuses.POLICE_CHARGING_INFORMATION_PENDING,
-  statuses.POLICE_AUTHORISED_CHARGE_PENDING,
+  statuses.NOT_CHARGED,
   statuses.CHARGED,
   statuses.NOT_GUILTY,
   statuses.NO_FURTHER_ACTION,
@@ -292,7 +290,7 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
   const status = faker.helpers.arrayElement(BRUCE_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status }
+    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status })
 
@@ -433,7 +431,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
 
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: defendantStatus }
+    data: { status: defendantStatus, needsReview: defendantStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status: defendantStatus })
 
@@ -507,7 +505,7 @@ async function seedBruceCases(prisma, dependencies, config) {
   }
 
   await createDivergedCase(prisma, bruceBanner, faker.helpers.arrayElement(units), BRUCE_STATUSES, fullConfig);
-  await createDivergedCase(prisma, bruceBanner, faker.helpers.arrayElement(units), [statuses.TRIAGE_NEEDED, statuses.CHARGING_DECISION_NEEDED], fullConfig);
+  await createDivergedCase(prisma, bruceBanner, faker.helpers.arrayElement(units), [statuses.NOT_CHARGED, statuses.CHARGED], fullConfig);
 
   return TEST_CASES.length + 20 + 1 + 1;
 }
