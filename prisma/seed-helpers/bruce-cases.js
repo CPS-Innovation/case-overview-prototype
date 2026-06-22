@@ -290,7 +290,7 @@ async function createTimeLimitTestCase(prisma, user, unitId, timeLimitType, gene
   const status = faker.helpers.arrayElement(BRUCE_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status })
 
@@ -431,7 +431,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
 
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: defendantStatus, needsReview: defendantStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status: defendantStatus, needsReview: (defendantStatus === statuses.NOT_CHARGED || defendantStatus === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status: defendantStatus })
 

@@ -59,21 +59,40 @@
         {% set chargingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
+      {% if data.reviewFirstHearing and data.reviewFirstHearing.confirmed %}
+        {% set firstHearingStatus = { text: "Completed" } %}
+      {% else %}
+        {% set firstHearingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
+      {% endif %}
+
+      {% set additionalInformationItems = [
+        {
+          title: { text: "Summary of review" },
+          href: "/cases/" + _case.id + "/review/summary",
+          status: summaryStatus
+        }
+      ] %}
+
+      {% if needsChargingDecision %}
+        {% set additionalInformationItems = additionalInformationItems.concat([{
+          title: { text: "Charging decision" },
+          href: "/cases/" + _case.id + "/make-charging-decision",
+          status: chargingStatus
+        }]) %}
+      {% endif %}
+
+      {% if not firstHearings.length and not needsChargingDecision %}
+        {% set additionalInformationItems = additionalInformationItems.concat([{
+          title: { text: "First hearing details" },
+          href: "/cases/" + _case.id + "/review/first-hearing",
+          status: firstHearingStatus
+        }]) %}
+      {% endif %}
+
       {{
         govukTaskList({
           idPrefix: "additional-information",
-          items: [
-            {
-              title: { text: "Summary of review" },
-              href: "/cases/" + _case.id + "/review/summary",
-              status: summaryStatus
-            },
-            {
-              title: { text: "Charging decision" },
-              href: "/cases/" + _case.id + "/make-charging-decision",
-              status: chargingStatus
-            }
-          ]
+          items: additionalInformationItems
         })
       }}
 

@@ -114,13 +114,16 @@ module.exports = router => {
 
   // --- Make charging decision (per-defendant) ---
 
+  // CPS only ever states what the charges should be - it never charges a
+  // defendant directly. A "Charge" decision here doesn't change status; the
+  // defendant only becomes Charged once the police or referring agency send
+  // back authorised charges.
   const decisionStatusMap = {
-    'charge': statuses.CHARGED,
     'no-further-action': statuses.NO_FURTHER_ACTION,
   }
 
   const decisionFlashMap = {
-    'charge': 'Case charged',
+    'charge': 'Charges stated',
     'no-further-action': 'Case marked as no further action',
   }
 

@@ -269,10 +269,44 @@ module.exports = (router) => {
       },
     })
 
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
+      data: { needsReview: false },
+    })
+
     delete req.session.data.newPoliceRequest
 
     req.flash('success', 'Request sent')
     res.redirect(`/cases/${caseId}/police-requests`)
+  })
+
+  // ─── Simulate: information received ──────────────────────────────────────
+
+  router.get('/cases/:caseId/police-requests/simulate-received', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+
+    await prisma.policeRequestItem.updateMany({
+      where: { policeRequest: { caseId }, receivedDate: null, cancelledDate: null },
+      data: { receivedDate: new Date() },
+    })
+
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
+      data: { needsReview: true },
+    })
+
+    await prisma.activityLog.create({
+      data: {
+        userId: req.session.data.user.id,
+        model: 'Case',
+        recordId: caseId,
+        action: 'UPDATE',
+        title: 'Further information received',
+        caseId,
+      },
+    })
+
+    res.redirect(req.query.referrer || `/cases/${caseId}`)
   })
 
   // ─── Show ─────────────────────────────────────────────────────────────────

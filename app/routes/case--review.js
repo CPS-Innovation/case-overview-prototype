@@ -2,15 +2,28 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const { generateDocumentContent } = require('../helpers/documentContent')
 const statuses = require('../data/case-statuses')
+const hearingStatuses = require('../data/hearing-statuses')
 
+// CPS only ever states what the charges should be - it never charges a
+// defendant directly. A "Charge" decision here doesn't change status; the
+// defendant only becomes Charged once the police or referring agency send
+// back authorised charges.
 const decisionStatusMap = {
-  'charge': statuses.CHARGED,
   'do-not-charge': statuses.NO_FURTHER_ACTION,
 }
 
-const decisionFlashMap = {
-  'charge': 'Case charged',
-  'do-not-charge': 'Case marked as do not charge',
+function parseHearingTime(time) {
+  const match = String(time || '').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i)
+  if (!match) return { hour: 10, minute: 0 }
+
+  let hour = parseInt(match[1], 10)
+  const minute = match[2] ? parseInt(match[2], 10) : 0
+  const meridiem = match[3]?.toLowerCase()
+
+  if (meridiem === 'pm' && hour < 12) hour += 12
+  if (meridiem === 'am' && hour === 12) hour = 0
+
+  return { hour, minute }
 }
 
 async function findOrCreateReview(caseId, userId) {
@@ -123,7 +136,6 @@ module.exports = (router) => {
 
     const documents = await prisma.document.findMany({
       where: { caseId },
-      take: 5,
       orderBy: { id: 'asc' }
     })
 
@@ -135,7 +147,9 @@ module.exports = (router) => {
     const docReviewMap = {}
     documentReviews.forEach(dr => { docReviewMap[dr.documentId] = dr })
 
-    res.render('cases/review/index', { _case, documents, review, docReviewMap })
+    const needsChargingDecision = _case.defendants.some(d => d.status === statuses.NOT_CHARGED && d.needsReview)
+
+    res.render('cases/review/index', { _case, documents, review, docReviewMap, needsChargingDecision })
   })
 
   // Document viewer
@@ -422,7 +436,6 @@ module.exports = (router) => {
 
     const documents = await prisma.document.findMany({
       where: { caseId },
-      take: 5,
       orderBy: { id: 'asc' }
     })
 
@@ -434,7 +447,9 @@ module.exports = (router) => {
     const docReviewMap = {}
     documentReviews.forEach(dr => { docReviewMap[dr.documentId] = dr })
 
-    res.render('cases/review/check', { _case, documents, review, docReviewMap })
+    const needsChargingDecision = _case.defendants.some(d => d.status === statuses.NOT_CHARGED && d.needsReview)
+
+    res.render('cases/review/check', { _case, documents, review, docReviewMap, needsChargingDecision })
   })
 
   // Summary form — GET
@@ -462,6 +477,92 @@ module.exports = (router) => {
     res.redirect(`/cases/${caseId}/review`)
   })
 
+  // First hearing details — suggested date, time and venue
+  function buildSuggestedFirstHearing() {
+    const suggestedDate = new Date(Date.now() + 28 * 24 * 60 * 60 * 1000)
+    return {
+      hearingDate: {
+        day: String(suggestedDate.getDate()),
+        month: String(suggestedDate.getMonth() + 1),
+        year: String(suggestedDate.getFullYear()),
+      },
+      time: '10am',
+      venue: "Manchester Magistrates' Court",
+    }
+  }
+
+  function buildDateHintExample() {
+    const exampleDate = new Date()
+    exampleDate.setMonth(exampleDate.getMonth() + 6)
+    return `${exampleDate.getDate()} ${exampleDate.getMonth() + 1} ${exampleDate.getFullYear()}`
+  }
+
+  router.get('/cases/:caseId/review/first-hearing', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+
+    if (!req.session.data.reviewFirstHearing) {
+      req.session.data.reviewFirstHearing = buildSuggestedFirstHearing()
+    }
+    res.locals.data.reviewFirstHearing = req.session.data.reviewFirstHearing
+
+    res.render('cases/review/first-hearing', { _case, dateHintExample: buildDateHintExample() })
+  })
+
+  router.post('/cases/:caseId/review/first-hearing', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.reviewFirstHearing = {
+      ...req.session.data.reviewFirstHearing,
+      hearingDate: req.body.reviewFirstHearing?.hearingDate,
+    }
+    res.redirect(`/cases/${caseId}/review/first-hearing/time`)
+  })
+
+  // First hearing details — time
+  router.get('/cases/:caseId/review/first-hearing/time', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+    res.render('cases/review/first-hearing-time', { _case })
+  })
+
+  router.post('/cases/:caseId/review/first-hearing/time', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.reviewFirstHearing = {
+      ...req.session.data.reviewFirstHearing,
+      time: req.body.reviewFirstHearing?.time,
+    }
+    res.redirect(`/cases/${caseId}/review/first-hearing/venue`)
+  })
+
+  // First hearing details — venue
+  router.get('/cases/:caseId/review/first-hearing/venue', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+    res.render('cases/review/first-hearing-venue', { _case })
+  })
+
+  router.post('/cases/:caseId/review/first-hearing/venue', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.reviewFirstHearing = {
+      ...req.session.data.reviewFirstHearing,
+      venue: req.body.reviewFirstHearing?.venue,
+    }
+    res.redirect(`/cases/${caseId}/review/first-hearing/check`)
+  })
+
+  // First hearing details — check answers
+  router.get('/cases/:caseId/review/first-hearing/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+    res.render('cases/review/first-hearing-check', { _case })
+  })
+
+  router.post('/cases/:caseId/review/first-hearing/check', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.reviewFirstHearing.confirmed = true
+    res.redirect(`/cases/${caseId}/review`)
+  })
+
   // Submit review
   router.post('/cases/:caseId/review/submit', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
@@ -469,19 +570,71 @@ module.exports = (router) => {
     const decision = req.session.data.chargingDecision?.decision
     const defendantIds = req.session.data.chargingDecision?.defendantIds
 
+    const _case = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: { defendants: true },
+    })
+    const reviewedDefendantIds = defendantIds?.length
+      ? defendantIds.map(id => parseInt(id))
+      : _case.defendants.map(d => d.id)
+
     const status = decisionStatusMap[decision]
     if (status) {
-      if (defendantIds?.length) {
-        await prisma.defendant.updateMany({
-          where: { id: { in: defendantIds.map(id => parseInt(id)) } },
-          data: { status },
-        })
-      } else {
-        await prisma.defendant.updateMany({
-          where: { cases: { some: { id: caseId } } },
-          data: { status },
-        })
-      }
+      await prisma.defendant.updateMany({
+        where: { id: { in: reviewedDefendantIds } },
+        data: { status },
+      })
+    }
+
+    await prisma.defendant.updateMany({
+      where: { id: { in: reviewedDefendantIds } },
+      data: { needsReview: false },
+    })
+
+    const reviewFirstHearing = req.session.data.reviewFirstHearing
+    const hasFirstHearing = (await prisma.hearing.count({
+      where: { caseId, type: 'First hearing' },
+    })) > 0
+
+    if (!hasFirstHearing && reviewFirstHearing?.confirmed) {
+      const { hearingDate, time, venue } = reviewFirstHearing
+      const { hour, minute } = parseHearingTime(time)
+      const startDate = new Date(hearingDate.year, hearingDate.month - 1, hearingDate.day, hour, minute, 0)
+
+      const hearing = await prisma.hearing.create({
+        data: {
+          caseId,
+          startDate,
+          status: hearingStatuses.PREPARATION_NEEDED,
+          type: 'First hearing',
+          venue,
+          defendants: {
+            connect: reviewedDefendantIds.map(id => ({ id })),
+          },
+        },
+      })
+
+      const selectedDefendants = _case.defendants
+        .filter(d => reviewedDefendantIds.includes(d.id))
+        .map(d => ({ firstName: d.firstName, lastName: d.lastName }))
+
+      await prisma.activityLog.create({
+        data: {
+          userId,
+          model: 'Case',
+          recordId: caseId,
+          action: 'UPDATE',
+          title: 'First hearing added',
+          meta: {
+            hearingEventType: 'added',
+            hearingType: 'First hearing',
+            hearingDate: hearing.startDate,
+            venue,
+            defendants: selectedDefendants,
+          },
+          caseId,
+        },
+      })
     }
 
     const review = await prisma.caseReview.findFirst({
@@ -512,8 +665,9 @@ module.exports = (router) => {
 
     const referrer = req.session.data.chargingDecision?.referrer
     delete req.session.data.chargingDecision
+    delete req.session.data.reviewFirstHearing
 
-    req.flash('success', decisionFlashMap[decision] || 'Charging decision recorded')
+    req.flash('success', 'Review submitted')
     res.redirect(referrer || `/cases/${caseId}`)
   })
 }

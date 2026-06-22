@@ -6,14 +6,14 @@
 {% block beforeContent %}
   {{ govukBackLink({
     text: 'Back',
-    href: '/cases/' + _case.id
+    href: '/cases/' + _case.id + '/review'
   }) }}
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
-      <span class="govuk-caption-l">{{ _case.reference }} – add first hearing</span>
+      <span class="govuk-caption-l">{{ _case.reference }}</span>
 
       <form method="post">
         {{ govukDateInput({
@@ -26,25 +26,25 @@
             }
           },
           hint: {
-            text: "For example, 31 3 2025"
+            text: "For example, " + dateHintExample
           },
           items: [
             {
-              name: "addFirstHearing[hearingDate][day]",
+              name: "reviewFirstHearing[hearingDate][day]",
               label: "Day",
-              value: data.addFirstHearing.hearingDate.day,
+              value: data.reviewFirstHearing.hearingDate.day,
               classes: "govuk-input--width-2"
             },
             {
-              name: "addFirstHearing[hearingDate][month]",
+              name: "reviewFirstHearing[hearingDate][month]",
               label: "Month",
-              value: data.addFirstHearing.hearingDate.month,
+              value: data.reviewFirstHearing.hearingDate.month,
               classes: "govuk-input--width-2"
             },
             {
-              name: "addFirstHearing[hearingDate][year]",
+              name: "reviewFirstHearing[hearingDate][year]",
               label: "Year",
-              value: data.addFirstHearing.hearingDate.year,
+              value: data.reviewFirstHearing.hearingDate.year,
               classes: "govuk-input--width-4"
             }
           ]

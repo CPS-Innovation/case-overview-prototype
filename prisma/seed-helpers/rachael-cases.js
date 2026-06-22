@@ -260,7 +260,7 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
   const status = faker.helpers.arrayElement(RACHAEL_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status })
 
@@ -429,7 +429,7 @@ async function createManyWitnessesCase(prisma, user, config) {
   const status = faker.helpers.arrayElement(RACHAEL_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId: RACHAEL_UNITS.WESSEX_CROWN_COURT, defendants: [defendant, ...extraDefendants], status })
 
@@ -542,7 +542,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const status = faker.helpers.arrayElement(RACHAEL_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant], status })
 

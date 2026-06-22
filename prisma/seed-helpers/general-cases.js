@@ -180,6 +180,16 @@ async function seedGeneralCases(prisma, dependencies, config) {
     // Pick between 5 and 15 documents
     const numDocuments = faker.number.int({ min: 5, max: 15 });
     const documentsData = [];
+
+    if (status === statuses.CHARGED) {
+      documentsData.push({
+        name: 'Authorised charges (MG04)',
+        description: 'Authorised charges received from the police.',
+        type: 'PDF',
+        size: faker.number.int({ min: 50, max: 5000 }),
+      });
+    }
+
     for (let d = 0; d < numDocuments; d++) {
       const baseName = faker.helpers.arrayElement(documentNames);
       const name = `${baseName} ${d + 1}`;
@@ -285,7 +295,7 @@ async function seedGeneralCases(prisma, dependencies, config) {
       const defendantStatus = isDiverged ? faker.helpers.arrayElement(defendantStatusPool) : status
       await prisma.defendant.update({
         where: { id: defendant.id },
-        data: { status: defendantStatus, needsReview: defendantStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
+        data: { status: defendantStatus, needsReview: (defendantStatus === statuses.NOT_CHARGED || defendantStatus === statuses.CHARGED) && faker.datatype.boolean() }
       })
     }
 

@@ -127,6 +127,53 @@ module.exports = router => {
     res.redirect(`/cases/${req.params.caseId}/documents`)
   })
 
+  router.get('/cases/:caseId/documents/add', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+
+    const documentTypeItems = documentTypes.map(docType => ({
+      text: docType,
+      value: docType
+    }))
+
+    res.render('cases/documents/add', { _case, documentTypeItems })
+  })
+
+  router.post('/cases/:caseId/documents/add', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const { name, type, description } = req.body.newDocument || {}
+
+    const document = await prisma.document.create({
+      data: {
+        caseId,
+        name,
+        description: description || null,
+        type,
+        size: 1200,
+      },
+    })
+
+    await prisma.defendant.updateMany({
+      where: { cases: { some: { id: caseId } } },
+      data: { needsReview: true },
+    })
+
+    await prisma.activityLog.create({
+      data: {
+        userId: req.session.data.user.id,
+        model: 'Document',
+        recordId: document.id,
+        action: 'CREATE',
+        title: 'Document added',
+        meta: { name, type, description: description || null },
+        caseId,
+      },
+    })
+
+    req.flash('success', 'Document added')
+    res.redirect(`/cases/${caseId}/documents`)
+  })
+
   router.get('/cases/:caseId/documents/:documentId', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const documentId = parseInt(req.params.documentId)

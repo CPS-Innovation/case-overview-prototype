@@ -114,7 +114,7 @@ async function createSTLCase(prisma, user, taskConfig, config) {
   const defendantStatus = faker.helpers.arrayElement(KIRSTY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: defendantStatus, needsReview: defendantStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status: defendantStatus, needsReview: (defendantStatus === statuses.NOT_CHARGED || defendantStatus === statuses.CHARGED) && faker.datatype.boolean() }
   });
 
   await prisma.caseProsecutor.create({
@@ -250,7 +250,7 @@ async function createCTLCase(prisma, user, taskConfig, config) {
   const status = faker.helpers.arrayElement(KIRSTY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId: KIRSTY_UNIT, defendants: [defendant, ...extraDefendants], status })
 
@@ -352,7 +352,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const status = faker.helpers.arrayElement(KIRSTY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId: KIRSTY_UNIT, defendants: [defendant], status })
 

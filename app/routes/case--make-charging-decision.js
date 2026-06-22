@@ -2,13 +2,16 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const statuses = require('../data/case-statuses')
 
+// CPS only ever states what the charges should be - it never charges a
+// defendant directly. A "Charge" decision here doesn't change status; the
+// defendant only becomes Charged once the police or referring agency send
+// back authorised charges.
 const decisionStatusMap = {
-  'charge': statuses.CHARGED,
   'do-not-charge': statuses.NO_FURTHER_ACTION,
 }
 
 const decisionFlashMap = {
-  'charge': 'Case charged',
+  'charge': 'Charges stated',
   'do-not-charge': 'Case marked as do not charge',
 }
 

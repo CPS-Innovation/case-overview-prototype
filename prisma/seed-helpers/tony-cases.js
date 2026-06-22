@@ -161,7 +161,7 @@ async function createSTLCaseForAdminPool(prisma, taskConfig, config) {
     where: { cases: { some: { id: _case.id } } },
     data: {
       status: adminStlStatus,
-      needsReview: fixedStatus ? fixedNeedsReview : adminStlStatus === statuses.NOT_CHARGED && faker.datatype.boolean()
+      needsReview: fixedStatus ? fixedNeedsReview : (adminStlStatus === statuses.NOT_CHARGED || adminStlStatus === statuses.CHARGED) && faker.datatype.boolean()
     }
   });
 
@@ -270,7 +270,7 @@ async function createPACECaseForAdminPool(prisma, taskConfig, config) {
   const adminPaceStatus = faker.helpers.arrayElement(TONY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status: adminPaceStatus, needsReview: adminPaceStatus === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status: adminPaceStatus, needsReview: (adminPaceStatus === statuses.NOT_CHARGED || adminPaceStatus === statuses.CHARGED) && faker.datatype.boolean() }
   });
 
   // Create task assigned to admin pool team (not to a user)
@@ -405,7 +405,7 @@ async function createCTLCaseForAdminPool(prisma, taskConfig, config) {
   const status = faker.helpers.arrayElement(TONY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant, ...extraDefendants], status })
 
@@ -503,7 +503,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const status = faker.helpers.arrayElement(TONY_STATUSES)
   await prisma.defendant.updateMany({
     where: { cases: { some: { id: _case.id } } },
-    data: { status, needsReview: status === statuses.NOT_CHARGED && faker.datatype.boolean() }
+    data: { status, needsReview: (status === statuses.NOT_CHARGED || status === statuses.CHARGED) && faker.datatype.boolean() }
   });
   await addHearings(prisma, { caseId: _case.id, unitId, defendants: [defendant], status })
 

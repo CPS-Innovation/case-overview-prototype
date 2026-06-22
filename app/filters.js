@@ -175,11 +175,3 @@ addFilter('policeRequestStatusTagClass', (status) => {
 addFilter('pluralize', (count, singular, plural) => {
   return count === 1 ? singular : plural || singular + 's'
 })
-
-addFilter('allCharged', (defendants) => {
-  return defendants && defendants.length > 0 && defendants.every(d => d.status === statuses.CHARGED)
-})
-
-addFilter('hasFirstHearing', (hearings) => {
-  return hearings && hearings.some(h => h.type === 'First hearing')
-})

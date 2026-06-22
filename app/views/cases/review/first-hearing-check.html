@@ -1,0 +1,64 @@
+{% extends "_layouts/main.html" %}
+
+{% set navId = 'cases' %}
+{% set pageName = "Check first hearing details and return to review" %}
+
+{% block beforeContent %}
+  {{
+    govukBackLink({
+      text: 'Back',
+      href: '/cases/' + _case.id + '/review/first-hearing/venue'
+    })
+  }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds-from-desktop">
+      <span class="govuk-caption-l">{{ _case.reference }}</span>
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+      {{
+        govukSummaryList({
+          rows: [
+            {
+              key: { text: "Date" },
+              value: { text: data.reviewFirstHearing.hearingDate | isoDateFromDateInput | govukDate },
+              actions: {
+                items: [{
+                  href: '/cases/' + _case.id + '/review/first-hearing',
+                  text: "Change",
+                  visuallyHiddenText: "date of first hearing"
+                }]
+              }
+            },
+            {
+              key: { text: "Time" },
+              value: { text: data.reviewFirstHearing.time },
+              actions: {
+                items: [{
+                  href: '/cases/' + _case.id + '/review/first-hearing/time',
+                  text: "Change",
+                  visuallyHiddenText: "time of first hearing"
+                }]
+              }
+            },
+            {
+              key: { text: "Venue" },
+              value: { text: data.reviewFirstHearing.venue },
+              actions: {
+                items: [{
+                  href: '/cases/' + _case.id + '/review/first-hearing/venue',
+                  text: "Change",
+                  visuallyHiddenText: "venue"
+                }]
+              }
+            }
+          ]
+        })
+      }}
+
+      <form method="post">{{ govukButton({ text: "Continue" }) }}</form>
+    </div>
+  </div>
+{% endblock %}

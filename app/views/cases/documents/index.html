@@ -16,6 +16,13 @@
     <div class="govuk-grid-column-full">
       <h1 class="govuk-heading-l">{{pageName}}</h1>
 
+      {{
+        govukButton({
+          text: "Add document",
+          href: "/cases/" + _case.id + "/documents/add"
+        })
+      }}
+
       <div class="app-filter-layout">
         <div class="app-filter-layout__filter">
           {% include "_includes/document/filter-panel.njk" %}

@@ -65,6 +65,11 @@ router.use('/cases/:caseId*', async (req, res, next) => {
     res.locals.hearingStatuses = hearingStatusOrder.filter(s => uniqueActive.includes(s))
     res.locals.caseHearings = hearings
     res.locals.activeHearings = hearings.filter(h => h.status !== 'Hearing complete')
+
+    const pendingPoliceRequestItemCount = await prisma.policeRequestItem.count({
+      where: { policeRequest: { caseId }, receivedDate: null, cancelledDate: null }
+    })
+    res.locals.hasPendingPoliceRequest = pendingPoliceRequestItemCount > 0
   }
   next()
 })
@@ -84,7 +89,7 @@ require('./routes/case--prosecutors')(router)
 require('./routes/case--paralegal-officers')(router)
 require('./routes/case--overview')(router)
 require('./routes/case--make-charging-decision')(router)
-require('./routes/case--request-more-information')(router)
+require('./routes/case--simulate-authorised-charges')(router)
 require('./routes/case--no-further-action')(router)
 require('./routes/case--hearing-actions')(router)
 require('./routes/case--edit-complexity')(router)
@@ -118,7 +123,6 @@ require('./routes/case--witness-statement--mark-as-section9')(router)
 require('./routes/case--witness-statement--unmark-as-section9')(router)
 require('./routes/case--hearings')(router)
 require('./routes/case--hearings--add')(router)
-require('./routes/case--add-first-hearing')(router)
 require('./routes/case--hearing')(router)
 require('./routes/case--key-evidence')(router)
 require('./routes/case--review')(router)

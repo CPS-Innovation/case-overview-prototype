@@ -44,29 +44,25 @@
   {% endif %}
 {% endset %}
 
-{% if (_case.defendants | allCharged) and not (firstHearings | hasFirstHearing) %}
-  {% set identityBarMenus = [
-    {
-      items: [
-        {
-          text: 'Add first hearing',
-          href: '/cases/' + _case.id + '/add-first-hearing?referrer=' + path
-        }
-      ]
-    }
-  ] %}
-{% elif _case.status == caseStatuses.NOT_CHARGED and _case.needsReview %}
+{% if _case.needsReview %}
   {% set identityBarMenus = [
     {
       items: [
         {
           text: 'Review case',
           href: '/cases/' + _case.id + '/review'
-        },
+        }
+      ]
+    }
+  ] %}
+{% elif hasPendingPoliceRequest %}
+  {% set identityBarMenus = [
+    {
+      items: [
         {
-          text: 'Request more information',
-          href: '/cases/' + _case.id + '/request-more-information',
-          classes: 'govuk-button--secondary'
+          text: 'Simulate: Information received',
+          href: '/cases/' + _case.id + '/police-requests/simulate-received?referrer=' + path,
+          classes: 'app-button--blue'
         }
       ]
     }
@@ -76,8 +72,8 @@
     {
       items: [
         {
-          text: 'Simulate: Information received',
-          href: '/cases/' + _case.id + '/mark-information-received?referrer=' + path,
+          text: 'Simulate: Receiving authorised charges',
+          href: '/cases/' + _case.id + '/simulate-authorised-charges?referrer=' + path,
           classes: 'app-button--blue'
         }
       ]
