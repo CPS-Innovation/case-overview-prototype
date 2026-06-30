@@ -87,6 +87,14 @@ A defendant's status only becomes Charged when that body sends back authorised c
 2. When do advocates first need to be notified of the case details by CPS, and what should they have access to? [Rebekah, Shiv]
 3. When do defence lawyers first need to be notified of the case details by CPS, and what should they have access to? [Rebekah, Shiv]
 4. When does the court first need to be notified of the case details by CPS, and what should they have access to? [Rebekah, Shiv]
+
+According to the criminal procedure rules, everyone needs access to the case as early as possible.
+
+- If a case needs a review (not been charged yet) at the moment most cases are not reviewed for 9 months. They just don't have time to look. Might also be about how the current system (task list) is designed.
+- If a case comes in charged, at the moment, cases are not reviewed until it's in court, so it's done by the advocate.
+[Make things better in general so that their general workload is drastically reduced. The new interface should make it really easy to see cases that need a review in order to nudge them to actually review them as soon as possible. Everything should be reviewed before court.]
+
+
 5. Is there a scenario where the reviewing lawyer makes a decision to charge, but the case isn't ready to share yet? In an ideal world, selecting Decision: Charge is itself the signal that, once the police agree and send back authorised charges, the case is automatically shared with the right people. [Rebekah, Shiv, Kirsty]
 6. Could the police ever disagree with the prosecutor's charging decision and send back authorised charges that differ from what the prosecutor stated? Probably yes. [Rebekah, Shiv, Kirsty]
 7. If a police-charged case comes in already charged, and the reviewing lawyer disagrees with the charges on review, what should happen? [Rebekah, Shiv, Kirsty]
