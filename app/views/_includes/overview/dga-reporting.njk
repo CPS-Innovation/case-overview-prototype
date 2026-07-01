@@ -5,7 +5,7 @@
       <li>
         <a href="/dga-reporting/{{ latestDGAMonth.key }}" class="govuk-link--no-visited-state">
           {{ latestDGAMonth.count }} {{ latestDGAMonth.count | pluralize("case needs", "cases need") }}
-          DGA dispute outcomes recorded by {{ latestDGAMonth.deadline | isoDateString | govukDate }}
+          DGA dispute outcomes recorded by {{ latestDGAMonth.deadline | isoDateString | govukDateTime }}
         </a>
       </li>
     </ul>
