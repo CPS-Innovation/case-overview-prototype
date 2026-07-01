@@ -47,20 +47,26 @@
 
       <h2 class="govuk-heading-m govuk-!-margin-top-4">Additional information</h2>
 
-      {% if review.summary %}
+      {% if review.summaryComplete == true %}
         {% set summaryStatus = { text: "Completed" } %}
+      {% elif review.summary %}
+        {% set summaryStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
       {% else %}
         {% set summaryStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
-      {% if data.chargingDecision and data.chargingDecision.decision %}
+      {% if data.chargingDecision and data.chargingDecision.complete == true %}
         {% set chargingStatus = { text: "Completed" } %}
+      {% elif data.chargingDecision and data.chargingDecision.decision %}
+        {% set chargingStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
       {% else %}
         {% set chargingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
       {% if data.reviewFirstHearing and data.reviewFirstHearing.confirmed %}
         {% set firstHearingStatus = { text: "Completed" } %}
+      {% elif data.reviewFirstHearing and data.reviewFirstHearing.hearingDate.day %}
+        {% set firstHearingStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
       {% else %}
         {% set firstHearingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
@@ -68,23 +74,25 @@
       {% set additionalInformationItems = [
         {
           title: { text: "Summary of review" },
-          href: "/cases/" + _case.id + "/review/summary",
+          href: "/cases/" + _case.id + "/review/summary/check" if (review.summaryComplete == true or review.summary) else "/cases/" + _case.id + "/review/summary",
           status: summaryStatus
         }
       ] %}
 
       {% if needsChargingDecision %}
+        {% set chargingAllAnswered = data.chargingDecision and data.chargingDecision.decision and (not chargingDecisionNeedsDefendantSelection or data.chargingDecision.defendantIds.length) %}
         {% set additionalInformationItems = additionalInformationItems.concat([{
           title: { text: "Charging decision" },
-          href: "/cases/" + _case.id + "/make-charging-decision",
+          href: "/cases/" + _case.id + "/make-charging-decision/complete" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingAllAnswered) else "/cases/" + _case.id + "/make-charging-decision",
           status: chargingStatus
         }]) %}
       {% endif %}
 
       {% if not firstHearings.length and not needsChargingDecision %}
+        {% set firstHearingAllAnswered = data.reviewFirstHearing and data.reviewFirstHearing.hearingDate.day and data.reviewFirstHearing.time and data.reviewFirstHearing.venue %}
         {% set additionalInformationItems = additionalInformationItems.concat([{
           title: { text: "First hearing details" },
-          href: "/cases/" + _case.id + "/review/first-hearing",
+          href: "/cases/" + _case.id + "/review/first-hearing/check" if ((data.reviewFirstHearing and data.reviewFirstHearing.confirmed == true) or firstHearingAllAnswered) else "/cases/" + _case.id + "/review/first-hearing",
           status: firstHearingStatus
         }]) %}
       {% endif %}
@@ -96,11 +104,12 @@
         })
       }}
 
+      <h2 class="govuk-heading-m govuk-!-margin-top-4">Check and submit review</h2>
+
       {{
         govukButton({
           text: "Check and submit review",
-          href: "/cases/" + _case.id + "/review/check",
-          classes: "govuk-!-margin-top-4"
+          href: "/cases/" + _case.id + "/review/check"
         })
       }}
     </div>

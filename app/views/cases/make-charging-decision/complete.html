@@ -1,13 +1,13 @@
 {% extends "_layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set pageName = "First hearing details" %}
+{% set pageName = "Charging decision" %}
 
 {% block beforeContent %}
   {{
     govukBackLink({
       text: 'Back',
-      href: '/cases/' + _case.id + '/review/first-hearing/venue'
+      href: 'javascript:history.back()'
     })
   }}
 {% endblock %}
@@ -22,35 +22,15 @@
         govukSummaryList({
           rows: [
             {
-              key: { text: "Date" },
-              value: { text: data.reviewFirstHearing.hearingDate | isoDateFromDateInput | govukDate },
+              key: { text: "Decision" },
+              value: {
+                text: ("Charge" if data.chargingDecision.decision == 'charge' else "Do not charge") if (data.chargingDecision and data.chargingDecision.decision) else "Not provided"
+              },
               actions: {
                 items: [{
-                  href: '/cases/' + _case.id + '/review/first-hearing',
+                  href: '/cases/' + _case.id + '/make-charging-decision',
                   text: "Change",
-                  visuallyHiddenText: "date of first hearing"
-                }]
-              }
-            },
-            {
-              key: { text: "Time" },
-              value: { text: data.reviewFirstHearing.time },
-              actions: {
-                items: [{
-                  href: '/cases/' + _case.id + '/review/first-hearing/time',
-                  text: "Change",
-                  visuallyHiddenText: "time of first hearing"
-                }]
-              }
-            },
-            {
-              key: { text: "Venue" },
-              value: { text: data.reviewFirstHearing.venue },
-              actions: {
-                items: [{
-                  href: '/cases/' + _case.id + '/review/first-hearing/venue',
-                  text: "Change",
-                  visuallyHiddenText: "venue"
+                  visuallyHiddenText: "charging decision"
                 }]
               }
             }
@@ -68,7 +48,7 @@
                 classes: "govuk-fieldset__legend--m"
               }
             },
-            value: "yes" if data.reviewFirstHearing.confirmed == true else ("no" if data.reviewFirstHearing.confirmed == false else ""),
+            value: "yes" if data.chargingDecision.complete == true else ("no" if data.chargingDecision.complete == false else ""),
             items: [
               {
                 value: "yes",

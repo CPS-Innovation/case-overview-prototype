@@ -148,9 +148,11 @@ module.exports = (router) => {
     const docReviewMap = {}
     documentReviews.forEach(dr => { docReviewMap[dr.documentId] = dr })
 
-    const needsChargingDecision = _case.defendants.some(d => d.status === statuses.NOT_CHARGED && d.needsReview)
+    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.NOT_CHARGED && d.needsReview)
+    const needsChargingDecision = eligibleDefendants.length > 0
+    const chargingDecisionNeedsDefendantSelection = eligibleDefendants.length > 1
 
-    res.render('cases/review/index', { _case, documents, review, docReviewMap, needsChargingDecision })
+    res.render('cases/review/index', { _case, documents, review, docReviewMap, needsChargingDecision, chargingDecisionNeedsDefendantSelection })
   })
 
   // Document viewer
@@ -269,14 +271,15 @@ module.exports = (router) => {
     const documentId = parseInt(req.params.documentId)
     const annotationId = parseInt(req.params.annotationId)
 
-    await prisma.caseReviewAnnotation.delete({ where: { id: annotationId } })
+    const [_case, document, annotation] = await Promise.all([
+      prisma.case.findUnique({ where: { id: caseId } }),
+      prisma.document.findUnique({ where: { id: documentId } }),
+      prisma.caseReviewAnnotation.findUnique({ where: { id: annotationId } })
+    ])
 
     const from = req.query.from || 'list'
-    if (from === 'document') {
-      res.redirect(`/cases/${caseId}/review/documents/${documentId}`)
-    } else {
-      res.redirect(`/cases/${caseId}/review`)
-    }
+
+    res.render('cases/review/annotation-remove', { _case, document, annotation, caseId, documentId, from })
   })
 
   // Remove annotation — POST
@@ -290,6 +293,8 @@ module.exports = (router) => {
     const from = req.body.from
     if (from === 'document') {
       res.redirect(`/cases/${caseId}/review/documents/${documentId}`)
+    } else if (from === 'check') {
+      res.redirect(`/cases/${caseId}/review/check`)
     } else {
       res.redirect(`/cases/${caseId}/review`)
     }
@@ -475,6 +480,30 @@ module.exports = (router) => {
       data: { summary: req.body.summary || '' }
     })
 
+    res.redirect(`/cases/${caseId}/review/summary/check`)
+  })
+
+  // Summary — check answers
+  router.get('/cases/:caseId/review/summary/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const userId = req.session.data.user.id
+
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+    const review = await findOrCreateReview(caseId, userId)
+
+    res.render('cases/review/summary-check', { _case, caseId, review })
+  })
+
+  router.post('/cases/:caseId/review/summary/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const userId = req.session.data.user.id
+
+    const review = await findOrCreateReview(caseId, userId)
+    await prisma.caseReview.update({
+      where: { id: review.id },
+      data: { summaryComplete: req.body.complete === 'yes' }
+    })
+
     res.redirect(`/cases/${caseId}/review`)
   })
 
@@ -555,7 +584,7 @@ module.exports = (router) => {
 
   router.post('/cases/:caseId/review/first-hearing/check', (req, res) => {
     const caseId = req.params.caseId
-    req.session.data.reviewFirstHearing.confirmed = true
+    req.session.data.reviewFirstHearing.confirmed = req.body.complete === 'yes'
     res.redirect(`/cases/${caseId}/review`)
   })
 

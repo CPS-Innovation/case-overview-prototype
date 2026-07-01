@@ -9,17 +9,26 @@
 
 {% block content %}
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
-      <span class="govuk-caption-l">{{ _case.reference }}</span>
-      <h1 class="govuk-heading-l">{{ pageName }}</h1>
+    <div class="govuk-grid-column-full">
 
-      <h2 class="govuk-heading-m">Review documents</h2>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <span class="govuk-caption-l">{{ _case.reference }}</span>
+          <h1 class="govuk-heading-l">{{ pageName }}</h1>
+
+          <h2 class="govuk-heading-m">Material</h2>
+        </div>
+      </div>
 
       {% for document in documents %}
         {% set docReview = docReviewMap[document.id] %}
         {% set annotations = docReview.annotations if docReview else [] %}
 
-        <h3 class="govuk-heading-s govuk-!-margin-bottom-1">{{ document.name }}</h3>
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-two-thirds">
+            <h3 class="govuk-heading-s govuk-!-margin-bottom-1">{{ document.name }}</h3>
+          </div>
+        </div>
 
         {% if annotations.length %}
           <table class="govuk-table govuk-!-margin-bottom-4">
@@ -48,13 +57,13 @@
                   <td class="govuk-table__cell">{{ annotation.note }}</td>
                   <td class="govuk-table__cell" style="white-space: nowrap;">
                     <a
-                      href="/cases/{{ _case.id }}/review/documents/{{ document.id }}/annotations/{{ annotation.id }}/edit"
+                      href="/cases/{{ _case.id }}/review/documents/{{ document.id }}#annotation-{{ annotation.id }}"
                       class="govuk-link"
                     >
                       Change
                     </a>
                     <a
-                      href="/cases/{{ _case.id }}/review/documents/{{ document.id }}/annotations/{{ annotation.id }}/remove?from=list"
+                      href="/cases/{{ _case.id }}/review/documents/{{ document.id }}/annotations/{{ annotation.id }}/remove?from=check"
                       class="govuk-link govuk-!-margin-left-3"
                     >
                       Remove
@@ -65,11 +74,30 @@
             </tbody>
           </table>
         {% else %}
-          <p class="govuk-body govuk-!-margin-bottom-4">No annotations added.</p>
+          {{ govukSummaryList({
+            classes: "govuk-!-margin-bottom-4",
+            rows: [
+              {
+                key: { text: document.name },
+                value: { text: "Not provided" },
+                actions: {
+                  items: [{
+                    href: "/cases/" + _case.id + "/review/documents/" + document.id,
+                    text: "Add",
+                    visuallyHiddenText: document.name
+                  }]
+                }
+              }
+            ]
+          }) }}
         {% endif %}
       {% endfor %}
 
-      <h2 class="govuk-heading-m govuk-!-margin-top-6">Additional information</h2>
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <h2 class="govuk-heading-m govuk-!-margin-top-6">Additional information</h2>
+        </div>
+      </div>
 
       {%
         set additionalInformationRows = [
@@ -129,35 +157,40 @@
         })
       }}
 
-      {% if needsChargingDecision %}
-        {% if data.chargingDecision and data.chargingDecision.decision == 'do-not-charge' %}
-          <p class="govuk-body">When you submit this review, we will notify:</p>
-          <ul class="govuk-list govuk-list--bullet">
-            <li>the police, that the case has been marked as no further action</li>
-            <li>the advocate, that the review is done and the decision is no further action</li>
-          </ul>
-        {% else %}
-          <p class="govuk-body">When you submit this review, we will notify:</p>
-          <ul class="govuk-list govuk-list--bullet">
-            <li>the police, that you have stated what the charges should be</li>
-            <li>
-              the advocate, that the review is done and the decision is to charge, with any
-              additional orders
-            </li>
-          </ul>
-        {% endif %}
-      {% else %}
-        <p class="govuk-body">When you submit this review, we will notify:</p>
-        <ul class="govuk-list govuk-list--bullet">
-          <li>the advocate, that the case has been reviewed and confirmed as charged</li>
-          <li>the defence lawyer, with the case bundle</li>
-          <li>the court, with the case bundle</li>
-        </ul>
-      {% endif %}
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          {% if needsChargingDecision %}
+            {% if data.chargingDecision and data.chargingDecision.decision == 'do-not-charge' %}
+              <p class="govuk-body">When you submit this review, we will notify:</p>
+              <ul class="govuk-list govuk-list--bullet">
+                <li>the police, that the case has been marked as no further action</li>
+                <li>the advocate, that the review is done and the decision is no further action</li>
+              </ul>
+            {% else %}
+              <p class="govuk-body">When you submit this review, we will notify:</p>
+              <ul class="govuk-list govuk-list--bullet">
+                <li>the police, that you have stated what the charges should be</li>
+                <li>
+                  the advocate, that the review is done and the decision is to charge, with any
+                  additional orders
+                </li>
+              </ul>
+            {% endif %}
+          {% else %}
+            <p class="govuk-body">When you submit this review, we will notify:</p>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>the advocate, that the case has been reviewed and confirmed as charged</li>
+              <li>the defence lawyer, with the case bundle</li>
+              <li>the court, with the case bundle</li>
+            </ul>
+          {% endif %}
 
-      <form method="post" action="/cases/{{ _case.id }}/review/submit">
-        {{ govukButton({ text: "Submit review" }) }}
-      </form>
+          <form method="post" action="/cases/{{ _case.id }}/review/submit">
+            {{ govukButton({ text: "Submit review" }) }}
+          </form>
+        </div>
+      </div>
+
     </div>
   </div>
 {% endblock %}

@@ -417,6 +417,7 @@ model CaseReview {
   userId    Int
   status    String               @default("in_progress")
   summary   String?
+  summaryComplete Boolean?
   decision  String?
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt

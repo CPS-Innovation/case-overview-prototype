@@ -49,7 +49,7 @@ module.exports = (router) => {
     if (eligibleDefendants.length > 1) {
       res.redirect(`/cases/${caseId}/make-charging-decision/defendants`)
     } else {
-      res.redirect(`/cases/${caseId}/review`)
+      res.redirect(`/cases/${caseId}/make-charging-decision/complete`)
     }
   })
 
@@ -70,6 +70,23 @@ module.exports = (router) => {
     req.session.data.chargingDecision = {
       ...req.session.data.chargingDecision,
       defendantIds: [].concat(req.body.chargingDecision?.defendants || []).filter(id => id !== '_unchecked'),
+    }
+    res.redirect(`/cases/${caseId}/make-charging-decision/complete`)
+  })
+
+  // Charging decision — check answers
+  router.get('/cases/:caseId/make-charging-decision/complete', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+
+    res.render('cases/make-charging-decision/complete', { _case })
+  })
+
+  router.post('/cases/:caseId/make-charging-decision/complete', (req, res) => {
+    const caseId = req.params.caseId
+    req.session.data.chargingDecision = {
+      ...req.session.data.chargingDecision,
+      complete: req.body.complete === 'yes',
     }
     res.redirect(`/cases/${caseId}/review`)
   })

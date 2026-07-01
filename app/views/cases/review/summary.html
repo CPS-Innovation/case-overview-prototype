@@ -4,10 +4,12 @@
 {% set pageName = "Summary of review" %}
 
 {% block beforeContent %}
-  {{ govukBackLink({
-    text: 'Back',
-    href: '/cases/' + caseId + '/review'
-  }) }}
+  {{
+    govukBackLink({
+      text: 'Back',
+      href: '/cases/' + caseId + '/review'
+    })
+  }}
 {% endblock %}
 
 {% block content %}
@@ -16,18 +18,19 @@
       <span class="govuk-caption-l">{{ _case.reference }}</span>
 
       <form method="post">
-        {{ govukCharacterCount({
-          name: "summary",
-          id: "summary",
-          value: summary,
-          label: {
-            text: pageName,
-            classes: "govuk-label--l",
-            isPageHeading: true
-          },
-          rows: 10,
-          maxlength: 2000
-        }) }}
+        {{
+          govukCharacterCount({
+            name: "summary",
+            id: "summary",
+            value: summary,
+            label: {
+              text: pageName,
+              classes: "govuk-label--l",
+              isPageHeading: true
+            },
+            maxlength: 2000
+          })
+        }}
 
         {{ govukButton({ text: "Continue" }) }}
       </form>
