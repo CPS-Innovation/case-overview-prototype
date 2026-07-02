@@ -71,30 +71,36 @@
         {% set firstHearingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
-      {% set additionalInformationItems = [
-        {
-          title: { text: "Summary of review" },
-          href: "/cases/" + _case.id + "/review/summary/check" if (review.summaryComplete == true or review.summary) else "/cases/" + _case.id + "/review/summary",
-          status: summaryStatus
-        }
-      ] %}
+      {%
+        set additionalInformationItems = [
+          {
+            title: { text: "Summary of review" },
+            href: "/cases/" + _case.id + "/review/summary/check" if (review.summaryComplete == true or review.summary) else "/cases/" + _case.id + "/review/summary",
+            status: summaryStatus
+          }
+        ]
+      %}
 
       {% if needsChargingDecision %}
         {% set chargingAllAnswered = data.chargingDecision and data.chargingDecision.decision and (not chargingDecisionNeedsDefendantSelection or data.chargingDecision.defendantIds.length) %}
-        {% set additionalInformationItems = additionalInformationItems.concat([{
-          title: { text: "Charging decision" },
-          href: "/cases/" + _case.id + "/make-charging-decision/complete" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingAllAnswered) else "/cases/" + _case.id + "/make-charging-decision",
-          status: chargingStatus
-        }]) %}
+        {%
+          set additionalInformationItems = additionalInformationItems.concat([{
+            title: { text: "Charging decision" },
+            href: "/cases/" + _case.id + "/make-charging-decision/complete" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingAllAnswered) else "/cases/" + _case.id + "/make-charging-decision",
+            status: chargingStatus
+          }])
+        %}
       {% endif %}
 
       {% if not firstHearings.length and not needsChargingDecision %}
         {% set firstHearingAllAnswered = data.reviewFirstHearing and data.reviewFirstHearing.hearingDate.day and data.reviewFirstHearing.time and data.reviewFirstHearing.venue %}
-        {% set additionalInformationItems = additionalInformationItems.concat([{
-          title: { text: "First hearing details" },
-          href: "/cases/" + _case.id + "/review/first-hearing/check" if ((data.reviewFirstHearing and data.reviewFirstHearing.confirmed == true) or firstHearingAllAnswered) else "/cases/" + _case.id + "/review/first-hearing",
-          status: firstHearingStatus
-        }]) %}
+        {%
+          set additionalInformationItems = additionalInformationItems.concat([{
+            title: { text: "First hearing details" },
+            href: "/cases/" + _case.id + "/review/first-hearing/check" if ((data.reviewFirstHearing and data.reviewFirstHearing.confirmed == true) or firstHearingAllAnswered) else "/cases/" + _case.id + "/review/first-hearing",
+            status: firstHearingStatus
+          }])
+        %}
       {% endif %}
 
       {{
