@@ -303,6 +303,17 @@ model Charge {
   isCount             Boolean   @default(false)
   defendantId         Int
   defendant           Defendant @relation(fields: [defendantId], references: [id])
+  pointsToProve       PointToProve[]
+}
+
+model PointToProve {
+  id          Int      @id @default(autoincrement())
+  description String
+  strength    String?  // 'Weak' | 'Unknown' | 'Strong'
+  order       Int      @default(0)
+  chargeId    Int
+  charge      Charge   @relation(fields: [chargeId], references: [id])
+  annotations CaseReviewAnnotationPointToProve[]
 }
 
 enum RemandStatus {
@@ -447,6 +458,17 @@ model CaseReviewAnnotation {
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   caseReviewDocument   CaseReviewDocument @relation(fields: [caseReviewDocumentId], references: [id])
+  pointsToProve        CaseReviewAnnotationPointToProve[]
+}
+
+model CaseReviewAnnotationPointToProve {
+  id             Int                  @id @default(autoincrement())
+  annotationId   Int
+  annotation     CaseReviewAnnotation @relation(fields: [annotationId], references: [id])
+  pointToProveId Int
+  pointToProve   PointToProve         @relation(fields: [pointToProveId], references: [id])
+  reasoning      String
+  createdAt      DateTime             @default(now())
 }
 
 model CaseReviewRedaction {

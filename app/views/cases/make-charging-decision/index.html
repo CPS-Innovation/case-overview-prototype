@@ -4,39 +4,54 @@
 {% set pageName = "Make charging decision" %}
 
 {% block beforeContent %}
-  {{ govukBackLink({
-    text: 'Back',
-    href: '/cases/' + _case.id
-  }) }}
+  {{
+    govukBackLink({
+      text: 'Back',
+      href: '/cases/' + _case.id
+    })
+  }}
 {% endblock %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <span class="govuk-caption-l">{{ _case.reference }}</span>
+      <h1 class="govuk-heading-l">Decision</h1>
+
+      {% if charge %}
+        <h2 class="govuk-heading-m">{{ charge.description }}</h2>
+
+        {{ govukSummaryList({ rows: pointsToProveRows }) }}
+      {% endif %}
 
       <form method="post">
-        {{ govukRadios({
-          name: "decision",
-          value: selectedDecision,
-          fieldset: {
-            legend: {
-              text: "Decision",
-              isPageHeading: true,
-              classes: "govuk-fieldset__legend--l"
-            }
-          },
-          items: [
-            {
-              value: "charge",
-              text: "Charge"
+        {{
+          govukRadios({
+            name: "decision",
+            value: selectedDecision,
+            fieldset: {
+              legend: {
+                text: "Decision",
+                isPageHeading: false,
+                classes: "govuk-fieldset__legend--m"
+              }
             },
-            {
-              value: "do-not-charge",
-              text: "Do not charge"
-            }
-          ]
-        }) }}
+            items: [
+              {
+                value: "charge",
+                text: "Charge"
+              },
+              {
+                value: "charge",
+                text: "Hold until further evidence"
+              },
+              {
+                value: "do-not-charge",
+                text: "Do not charge"
+              }
+            ]
+          })
+        }}
 
         {{ govukButton({ text: "Continue" }) }}
       </form>

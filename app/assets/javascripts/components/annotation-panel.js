@@ -125,6 +125,11 @@ App.AnnotationPanel.prototype.clearSelectionHighlight = function() {
 App.AnnotationPanel.prototype.hideNewCard = function() {
   this.newAnnotationCards.prop('hidden', true)
   this.newAnnotationCards.find('.js-annotation-note-input').val('')
+  this.newAnnotationCards.find('.js-annotation-ptp-reasoning').val('')
+  this.newAnnotationCards.find('input[name="pointsToProveCheckbox"]:checked')
+    .prop('checked', false)
+    .trigger('change')
+  this.annotationForm.find('.js-annotation-ptp-hidden').remove()
   this.activeAnnotationCard = null
   this.clearSelectionHighlight()
   this.selectedTextInput.val('')
@@ -253,7 +258,11 @@ App.AnnotationPanel.prototype.onAnnotateBtnClick = function(e) {
   this.activeAnnotationCard.prop('hidden', false)
   this.sidebarEmpty.prop('hidden', true)
   this.positionAllCards()
-  this.activeAnnotationCard.find('.js-annotation-note-input').focus()
+  if (this.pendingAnnotationType === 'evidence') {
+    this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').first().focus()
+  } else {
+    this.activeAnnotationCard.find('.js-annotation-note-input').focus()
+  }
 }
 
 App.AnnotationPanel.prototype.onRedactClick = function() {
@@ -348,11 +357,57 @@ App.AnnotationPanel.prototype.onToggleRedactionsClick = function() {
 }
 
 App.AnnotationPanel.prototype.onSaveClick = function() {
+  if (this.pendingAnnotationType === 'evidence') {
+    this.onSaveEvidenceClick()
+    return
+  }
   var noteInput = this.activeAnnotationCard.find('.js-annotation-note-input')
   var note = noteInput.val().trim()
   if (!note) { noteInput.focus(); return }
   this.typeHiddenInput.val(this.pendingAnnotationType)
   this.noteHiddenInput.val(note)
+  this.annotationForm[0].submit()
+}
+
+// Evidence annotations link one or more points to prove, each with its own
+// reasoning (revealed under its checkbox), rather than a single shared note.
+App.AnnotationPanel.prototype.onSaveEvidenceClick = function() {
+  var self = this
+  var checked = this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]:checked')
+
+  if (!checked.length) {
+    this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').first().focus()
+    return
+  }
+
+  var fields = []
+  var firstInvalid = null
+
+  checked.each(function() {
+    var pointId = $(this).val()
+    var textarea = self.activeAnnotationCard.find('.js-annotation-ptp-reasoning[data-point-to-prove-id="' + pointId + '"]')
+    var reasoning = textarea.val().trim()
+    if (!reasoning) {
+      if (!firstInvalid) firstInvalid = textarea
+      return
+    }
+    fields.push({ pointId: pointId, reasoning: reasoning })
+  })
+
+  if (firstInvalid) { firstInvalid.focus(); return }
+
+  this.annotationForm.find('.js-annotation-ptp-hidden').remove()
+  fields.forEach(function(field) {
+    $('<input>', {
+      type: 'hidden',
+      class: 'js-annotation-ptp-hidden',
+      name: 'pointsToProve[' + field.pointId + ']',
+      value: field.reasoning
+    }).appendTo(self.annotationForm)
+  })
+
+  this.typeHiddenInput.val('evidence')
+  this.noteHiddenInput.val('')
   this.annotationForm[0].submit()
 }
 

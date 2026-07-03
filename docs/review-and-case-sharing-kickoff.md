@@ -29,8 +29,8 @@
 
 ## Scope
 
-1. Update the review flow so annotations take into account things like charges, elements, points to prove and disclosure more realistically; handle action plans etc.
-2. Design for the 3 scenarios below see “Routes into CPS” below
+1. Update the review flow so annotations take into account things like charges, elements, points to prove and disclosure more realistically; handle action plans etc
+2. Design for the 3 “Routes into CPS” scenarios below
 3. Update the review flow so it clearly explains what will happen as a result of submitting the review - for example, that it will notify the advocate the case has been reviewed, with a link to go and look at it
 4. Design a first stab mock-up of what a defendant service might look like
 5. Design a first stab mock-up of what an advocate view might look like

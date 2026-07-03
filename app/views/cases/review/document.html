@@ -18,43 +18,12 @@
   <h1 class="govuk-heading-l">{{ document.name }}</h1>
 
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds-from-desktop">
-      {% set chargesHtml %}
-        <ul class="govuk-list govuk-list--bullet">
-          <li>Shoplifting</li>
-          <li>Burglary</li>
-        </ul>
-      {% endset %}
+    <div class="govuk-grid-column-full">
+      {% if charge %}
+        <h2 class="govuk-heading-m">{{ charge.description }}</h2>
 
-      {{
-        govukSummaryList({
-          classes: "govuk-!-margin-bottom-2",
-          rows: [
-            {
-              key: {
-                text: "Charge"
-              },
-              value: {
-                html: chargesHtml
-              },
-              actions: {
-                items: [
-                  {
-                    href: "#",
-                    text: "Add",
-                    visuallyHiddenText: "Add"
-                  },
-                  {
-                    href: "#",
-                    text: "Change",
-                    visuallyHiddenText: "Charge"
-                  }
-                ]
-              }
-            }
-          ]
-        })
-      }}
+        {{ govukSummaryList({ rows: pointsToProveRows }) }}
+      {% endif %}
     </div>
   </div>
 
@@ -93,37 +62,17 @@
             <div class="app-annotation-form">
               <div class="app-annotation-form__body">
                 {{
-                  govukTextarea({
-                    label: {
-                      text: "Note",
-                      classes: "govuk-label--s"
-                    },
-                    classes: "govuk-!-margin-bottom-0 js-annotation-note-input",
-                    rows: 3
-                  })
-                }}
-
-                {{
                   govukCheckboxes({
-                    name: "charge",
+                    name: "pointsToProveCheckbox",
                     fieldset: {
                       legend: {
-                        text: "Charge this relates to",
+                        text: "Point to prove",
                         isPageHeading: false,
                         classes: "govuk-fieldset__legend--s"
                       }
                     },
-                    classes: "govuk-checkboxes--small",
-                    items: [
-                      {
-                        value: "Shoplifting",
-                        text: "Shoplifting"
-                      },
-                      {
-                        value: "Burglary",
-                        text: "Burglary"
-                      }
-                    ]
+                    classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
+                    items: pointsToProveCheckboxItems
                   })
                 }}
 
@@ -150,7 +99,7 @@
                 {{
                   govukTextarea({
                     label: {
-                      text: "Note",
+                      text: "Reasoning",
                       classes: "govuk-label--s"
                     },
                     classes: "govuk-!-margin-bottom-0 js-annotation-note-input",
@@ -181,7 +130,7 @@
                 {{
                   govukTextarea({
                     label: {
-                      text: "Note",
+                      text: "Reasoning",
                       classes: "govuk-label--s"
                     },
                     classes: "govuk-!-margin-bottom-0 js-annotation-note-input",
@@ -222,7 +171,20 @@
                   </p>
                 </div>
 
-                <p class="app-annotation-card__note js-annotation-note">{{ annotation.note }}</p>
+                {% if annotation.type == 'evidence' and annotation.pointsToProve.length %}
+                  <dl class="app-annotation-card__points-to-prove">
+                    {% for item in annotation.pointsToProve %}
+                      <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">
+                        {{ item.pointToProve.description }}
+                      </dt>
+                      <dd class="app-annotation-card__note js-annotation-note govuk-!-margin-left-0">
+                        {{ item.reasoning }}
+                      </dd>
+                    {% endfor %}
+                  </dl>
+                {% else %}
+                  <p class="app-annotation-card__note js-annotation-note">{{ annotation.note }}</p>
+                {% endif %}
 
                 <a
                   href="/cases/{{ caseId }}/review/documents/{{ documentId }}/annotations/{{ annotation.id }}/remove?from=document"

@@ -18,17 +18,40 @@ const decisionFlashMap = {
 
 module.exports = (router) => {
   router.get('/cases/:caseId/make-charging-decision', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
     const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: { defendants: true },
+      where: { id: caseId },
+      include: {
+        defendants: {
+          include: { charges: { include: { pointsToProve: { orderBy: { order: 'asc' } } } } }
+        }
+      },
     })
 
     if (req.query.referrer) {
       req.session.data.chargingDecision = { ...req.session.data.chargingDecision, referrer: req.query.referrer }
     }
 
+    // Single defendant, single charge for now
+    const charge = _case.defendants[0]?.charges[0]
+    const pointsToProveRows = (charge?.pointsToProve || []).map(point => ({
+      key: { text: point.description },
+      value: { text: point.strength || 'Unknown' },
+      actions: {
+        items: [
+          {
+            href: `/cases/${caseId}/points-to-prove/${point.id}/edit?from=make-charging-decision`,
+            text: 'Change',
+            visuallyHiddenText: point.description
+          }
+        ]
+      }
+    }))
+
     res.render('cases/make-charging-decision/index', {
       _case,
+      charge,
+      pointsToProveRows,
       selectedDecision: req.session.data.chargingDecision?.decision,
     })
   })

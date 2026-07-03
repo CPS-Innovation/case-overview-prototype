@@ -12,5 +12,6 @@ module.exports = [
   { code: "W01", description: "POSSESSION OF AN OFFENSIVE WEAPON, contrary to section 1 of the Prevention of Crime Act 1953" },
   { code: "B11", description: "BURGLARY, contrary to section 9(1)(a) of the Theft Act 1968" },
   { code: "A02", description: "ACTUAL BODILY HARM, contrary to section 47 of the Offences Against the Person Act 1861" },
-  { code: "T01", description: "THREATENING BEHAVIOUR, contrary to section 4 of the Public Order Act 1986" }
+  { code: "T01", description: "THREATENING BEHAVIOUR, contrary to section 4 of the Public Order Act 1986" },
+  { code: "A03", description: "GRIEVOUS BODILY HARM WITH INTENT, contrary to section 18 of the Offences Against the Person Act 1861" }
 ]

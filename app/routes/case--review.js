@@ -162,7 +162,14 @@ module.exports = (router) => {
     const userId = req.session.data.user.id
 
     const [_case, document] = await Promise.all([
-      prisma.case.findUnique({ where: { id: caseId } }),
+      prisma.case.findUnique({
+        where: { id: caseId },
+        include: {
+          defendants: {
+            include: { charges: { include: { pointsToProve: { orderBy: { order: 'asc' } } } } }
+          }
+        }
+      }),
       prisma.document.findUnique({ where: { id: documentId } })
     ])
 
@@ -179,7 +186,8 @@ module.exports = (router) => {
     const [annotations, redactions, inadmissibles] = await Promise.all([
       prisma.caseReviewAnnotation.findMany({
         where: { caseReviewDocumentId: docReview.id },
-        orderBy: { createdAt: 'asc' }
+        orderBy: { createdAt: 'asc' },
+        include: { pointsToProve: { include: { pointToProve: true } } }
       }),
       prisma.caseReviewRedaction.findMany({
         where: { caseReviewDocumentId: docReview.id },
@@ -191,6 +199,35 @@ module.exports = (router) => {
       })
     ])
 
+    // Single defendant, single charge for now
+    const charge = _case.defendants[0]?.charges[0]
+    const pointsToProve = charge?.pointsToProve || []
+
+    const pointsToProveRows = pointsToProve.map(point => ({
+      key: { text: point.description },
+      value: { text: point.strength || 'Unknown' },
+      actions: {
+        items: [
+          {
+            href: `/cases/${caseId}/points-to-prove/${point.id}/edit?from=document&documentId=${documentId}`,
+            text: 'Change',
+            visuallyHiddenText: point.description
+          }
+        ]
+      }
+    }))
+
+    const pointsToProveCheckboxItems = pointsToProve.map(point => ({
+      value: String(point.id),
+      text: point.description,
+      conditional: {
+        html: `<div class="govuk-form-group govuk-!-margin-bottom-0">
+  <label class="govuk-label govuk-label--s" for="reasoning-${point.id}">Reasoning</label>
+  <textarea class="govuk-textarea govuk-!-margin-bottom-0 js-annotation-ptp-reasoning" id="reasoning-${point.id}" name="reasoning-${point.id}" rows="2" data-point-to-prove-id="${point.id}"></textarea>
+</div>`
+      }
+    }))
+
     const rawSections = generateDocumentContent(document)
     const annotatedSections = applyHighlights(rawSections, annotations)
     const redactedSections = applyRedactions(annotatedSections, redactions)
@@ -199,6 +236,9 @@ module.exports = (router) => {
     res.render('cases/review/document', {
       _case,
       document,
+      charge,
+      pointsToProveRows,
+      pointsToProveCheckboxItems,
       sections,
       annotations,
       redactions,
@@ -220,16 +260,42 @@ module.exports = (router) => {
     const review = await findOrCreateReview(caseId, userId)
     const docReview = await findOrCreateDocumentReview(review.id, documentId)
 
-    const { selectedText, type, note } = req.body
-    if (selectedText && type && note) {
-      await prisma.caseReviewAnnotation.create({
-        data: {
-          caseReviewDocumentId: docReview.id,
-          type,
-          selectedText,
-          note
-        }
-      })
+    const { selectedText, type } = req.body
+
+    if (type === 'evidence') {
+      const reasoningByPointId = req.body.pointsToProve || {}
+      const pointToProveIds = Object.keys(reasoningByPointId)
+        .filter(id => reasoningByPointId[id])
+        .map(id => parseInt(id))
+
+      if (selectedText && pointToProveIds.length) {
+        const points = await prisma.pointToProve.findMany({
+          where: { id: { in: pointToProveIds } }
+        })
+
+        const note = points
+          .map(point => `${point.description}: ${reasoningByPointId[point.id]}`)
+          .join('; ')
+
+        const annotation = await prisma.caseReviewAnnotation.create({
+          data: { caseReviewDocumentId: docReview.id, type, selectedText, note }
+        })
+
+        await prisma.caseReviewAnnotationPointToProve.createMany({
+          data: points.map(point => ({
+            annotationId: annotation.id,
+            pointToProveId: point.id,
+            reasoning: reasoningByPointId[point.id]
+          }))
+        })
+      }
+    } else {
+      const { note } = req.body
+      if (selectedText && type && note) {
+        await prisma.caseReviewAnnotation.create({
+          data: { caseReviewDocumentId: docReview.id, type, selectedText, note }
+        })
+      }
     }
 
     res.redirect(`/cases/${caseId}/review/documents/${documentId}`)
