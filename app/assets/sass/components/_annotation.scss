@@ -14,6 +14,7 @@
   // border: 1px solid #b1b4b6;
   @include app-box-shadow;
   cursor: pointer;
+  margin-bottom: 8px;
 
   &--blue {
     .app-annotation-card__tag {

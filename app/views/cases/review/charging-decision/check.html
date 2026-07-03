@@ -3,6 +3,13 @@
 {% set navId = 'cases' %}
 {% set pageName = "Charging decision" %}
 
+{%
+  set decisionLabels = {
+    "charge": "Charge",
+    "do-not-charge": "Do not charge"
+  }
+%}
+
 {% block beforeContent %}
   {{
     govukBackLink({
@@ -18,22 +25,36 @@
       <span class="govuk-caption-l">{{ _case.reference }}</span>
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
+      {% set defendantNames %}{% for d in selectedDefendants %}
+        {{ d.firstName }}
+        {{ d.lastName }}{% if not loop.last %},{% endif %}
+      {% endfor %}{% endset %}
+
       {{
         govukSummaryList({
           rows: [
             {
               key: { text: "Decision" },
-              value: {
-                text: ("Charge" if data.chargingDecision.decision == 'charge' else "Do not charge") if (data.chargingDecision and data.chargingDecision.decision) else "Not provided"
-              },
+              value: { text: decisionLabels[data.chargingDecision.decision] if (data.chargingDecision and data.chargingDecision.decision) else "Not provided" },
               actions: {
                 items: [{
-                  href: '/cases/' + _case.id + '/make-charging-decision',
+                  href: '/cases/' + _case.id + '/review/charging-decision',
                   text: "Change",
                   visuallyHiddenText: "charging decision"
                 }]
               }
-            }
+            },
+            {
+              key: { text: "Defendants" },
+              value: { text: defendantNames },
+              actions: {
+                items: [{
+                  href: '/cases/' + _case.id + '/review/charging-decision/defendants',
+                  text: "Change",
+                  visuallyHiddenText: "defendants"
+                }]
+              }
+            } if selectedDefendants
           ]
         })
       }}

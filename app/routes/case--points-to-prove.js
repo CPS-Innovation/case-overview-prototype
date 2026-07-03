@@ -5,7 +5,7 @@ function buildReturnUrl(caseId, from, documentId) {
   if (from === 'document' && documentId) {
     return `/cases/${caseId}/review/documents/${documentId}`
   }
-  return `/cases/${caseId}/make-charging-decision`
+  return `/cases/${caseId}/review/charging-decision`
 }
 
 module.exports = (router) => {

@@ -86,7 +86,7 @@
         {%
           set additionalInformationItems = additionalInformationItems.concat([{
             title: { text: "Charging decision" },
-            href: "/cases/" + _case.id + "/make-charging-decision/complete" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingAllAnswered) else "/cases/" + _case.id + "/make-charging-decision",
+            href: "/cases/" + _case.id + "/review/charging-decision/check" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingAllAnswered) else "/cases/" + _case.id + "/review/charging-decision",
             status: chargingStatus
           }])
         %}

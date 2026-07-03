@@ -107,9 +107,6 @@
       >
         <p class="app-annotation-card__tag govuk-!-font-size-16 govuk-!-margin-bottom-0">
           {{ typeLabel }}
-          {% if annotation.timestampSeconds != null %}
-            <span class="app-annotation-card__timecode">{{ annotation.selectedText }}</span>
-          {% endif %}
         </p>
 
         <div class="app-annotation-card__body">
@@ -119,6 +116,13 @@
               {{ annotation.createdAt | isoDateString | govukDateTime }}
             </p>
           </div>
+
+          {% if annotation.timestampSeconds != null %}
+            <dl class="app-annotation-card__points-to-prove">
+              <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">Timestamp</dt>
+              <dd class="app-annotation-card__note govuk-!-margin-left-0">{{ annotation.selectedText }}</dd>
+            </dl>
+          {% endif %}
 
           {% if annotation.type == 'evidence' and annotation.pointsToProve.length %}
             <dl class="app-annotation-card__points-to-prove">
