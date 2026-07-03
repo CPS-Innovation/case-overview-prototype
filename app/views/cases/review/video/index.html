@@ -1,0 +1,86 @@
+{% extends "_layouts/main.html" %}
+
+{% from "_components/page-header/macro.njk" import appPageHeader %}
+
+{% set navId = 'cases' %}
+{% set pageName = document.name %}
+{% set mainClasses = "govuk-!-padding-bottom-0" %}
+
+{% block beforeContent %}
+  {{
+    govukBackLink({
+      text: 'Back',
+      href: '/cases/' + caseId + '/review'
+    })
+  }}
+{% endblock %}
+
+{% block content %}
+  <span class="govuk-caption-l">{{ _case.reference }}</span>
+  <h1 class="govuk-heading-l">{{ document.name }}</h1>
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {% if offences.length %}
+        {% set offencesHtml %}
+          <p class="govuk-body">
+            <a class="govuk-link" href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1">Add offence</a>
+          </p>
+
+          {% for offence in offences %}
+            {{ appPageHeader({
+              classes: 'govuk-!-margin-bottom-1',
+              heading: {
+                level: 2,
+                text: offence.charge.description,
+                classes: 'govuk-heading-m'
+              },
+              items: [{
+                text: 'Change',
+                href: '/cases/' + caseId + '/review/documents/' + documentId + '/change-offence?reset=1'
+              }]
+            }) }}
+
+            {{ govukSummaryList({ rows: offence.pointsToProveRows }) }}
+          {% endfor %}
+        {% endset %}
+
+        {{ govukDetails({
+          summaryText: "Offences",
+          html: offencesHtml
+        }) }}
+      {% else %}
+        <p class="govuk-body">
+          <a class="govuk-link" href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1">Add offence</a>
+        </p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% include "cases/review/_toolbar.html" %}
+
+  <div class="app-document-area">
+    <div class="app-document-layout">
+      {% include "cases/documents/_document-pane-video.html" %}
+
+      {% include "cases/review/_annotation-sidebar.html" %}
+    </div>
+  </div>
+
+  {% include "cases/review/_annotation-form.html" %}
+{% endblock %}
+
+{% block pageScripts %}
+  {{ super() }}
+  <script src="/public/javascripts/components/video-annotation-panel.js"></script>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    new App.VideoAnnotationPanel({ container: $('#document-content') })
+    $('.js-annotation-note').each(function () {
+      new App.TextExpander({ container: $(this), maxLength: 50 })
+    })
+  </script>
+{% endblock %}

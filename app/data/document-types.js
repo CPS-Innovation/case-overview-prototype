@@ -5,5 +5,6 @@ module.exports = [
   'PPTX',
   'JPG',
   'PNG',
+  'MP4',
   'Other'
 ]

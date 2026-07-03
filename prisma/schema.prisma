@@ -297,7 +297,6 @@ model Charge {
   status              String
   offenceDate         DateTime
   plea                Plea?
-  particulars         String
   custodyTimeLimit    DateTime?
   statutoryTimeLimit  DateTime?
   isCount             Boolean   @default(false)
@@ -455,6 +454,7 @@ model CaseReviewAnnotation {
   type                 String
   selectedText         String
   note                 String
+  timestampSeconds     Float?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   caseReviewDocument   CaseReviewDocument @relation(fields: [caseReviewDocumentId], references: [id])
@@ -464,7 +464,7 @@ model CaseReviewAnnotation {
 model CaseReviewAnnotationPointToProve {
   id             Int                  @id @default(autoincrement())
   annotationId   Int
-  annotation     CaseReviewAnnotation @relation(fields: [annotationId], references: [id])
+  annotation     CaseReviewAnnotation @relation(fields: [annotationId], references: [id], onDelete: Cascade)
   pointToProveId Int
   pointToProve   PointToProve         @relation(fields: [pointToProveId], references: [id])
   reasoning      String

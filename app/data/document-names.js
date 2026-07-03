@@ -6,7 +6,7 @@ module.exports = [
   "Medical records",
   "Phone records",
   "Bank statements",
-  "CCTV footage",
+  "CCTV Footage",
   "Interview transcript",
   "Expert report",
   "Scene photographs",

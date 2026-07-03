@@ -223,7 +223,8 @@ module.exports = router => {
       }
     }
 
-    const sections = applyHighlights(generateDocumentContent(document), annotations)
+    const isVideo = document.type === 'MP4'
+    const sections = isVideo ? [] : applyHighlights(generateDocumentContent(document), annotations)
 
     res.render('cases/documents/document', {
       _case,
@@ -232,6 +233,8 @@ module.exports = router => {
       annotations,
       caseId,
       documentId,
+      isVideo,
+      videoUrl: isVideo ? '/public/videos/cctv-placeholder.mp4' : null,
       user: req.session.data.user
     })
   })

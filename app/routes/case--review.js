@@ -3,6 +3,8 @@ const prisma = new PrismaClient()
 const { generateDocumentContent } = require('../helpers/documentContent')
 const statuses = require('../data/case-statuses')
 const hearingStatuses = require('../data/hearing-statuses')
+const charges = require('../data/charges')
+const pointsToProveByChargeCode = require('../data/points-to-prove')
 
 // CPS only ever states what the charges should be - it never charges a
 // defendant directly. A "Charge" decision here moves the defendant to
@@ -98,6 +100,13 @@ function applyInadmissibles(sections, inadmissibles) {
   }))
 }
 
+function formatTimestamp(totalSeconds) {
+  const seconds = Math.max(0, Math.round(totalSeconds))
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
+
 function applyRedactions(sections, redactions) {
   if (!redactions.length) return sections
   const flatParagraphs = sections.flatMap(s => s.paragraphs)
@@ -183,12 +192,15 @@ module.exports = (router) => {
       })
     }
 
-    const [annotations, redactions, inadmissibles] = await Promise.all([
-      prisma.caseReviewAnnotation.findMany({
-        where: { caseReviewDocumentId: docReview.id },
-        orderBy: { createdAt: 'asc' },
-        include: { pointsToProve: { include: { pointToProve: true } } }
-      }),
+    const isVideo = document.type === 'MP4'
+
+    const annotations = await prisma.caseReviewAnnotation.findMany({
+      where: { caseReviewDocumentId: docReview.id },
+      orderBy: { createdAt: 'asc' },
+      include: { pointsToProve: { include: { pointToProve: true } } }
+    })
+
+    const [redactions, inadmissibles] = isVideo ? [[], []] : await Promise.all([
       prisma.caseReviewRedaction.findMany({
         where: { caseReviewDocumentId: docReview.id },
         orderBy: { createdAt: 'asc' }
@@ -199,23 +211,32 @@ module.exports = (router) => {
       })
     ])
 
-    // Single defendant, single charge for now
-    const charge = _case.defendants[0]?.charges[0]
-    const pointsToProve = charge?.pointsToProve || []
+    const defendantCharges = _case.defendants[0]?.charges || []
 
-    const pointsToProveRows = pointsToProve.map(point => ({
-      key: { text: point.description },
-      value: { text: point.strength || 'Unknown' },
-      actions: {
-        items: [
-          {
-            href: `/cases/${caseId}/points-to-prove/${point.id}/edit?from=document&documentId=${documentId}`,
-            text: 'Change',
-            visuallyHiddenText: point.description
-          }
-        ]
-      }
+    function buildPointsToProveRows(points) {
+      return points.map(point => ({
+        key: { text: point.description },
+        value: { text: point.strength || 'Unknown' },
+        actions: {
+          items: [
+            {
+              href: `/cases/${caseId}/review/documents/${documentId}/points-to-prove/${point.id}/edit`,
+              text: 'Change',
+              visuallyHiddenText: point.description
+            }
+          ]
+        }
+      }))
+    }
+
+    const offences = defendantCharges.map(charge => ({
+      charge,
+      pointsToProveRows: buildPointsToProveRows(charge.pointsToProve || [])
     }))
+
+    // Annotation still targets a single offence for now
+    const charge = defendantCharges[0]
+    const pointsToProve = charge?.pointsToProve || []
 
     const pointsToProveCheckboxItems = pointsToProve.map(point => ({
       value: String(point.id),
@@ -228,27 +249,272 @@ module.exports = (router) => {
       }
     }))
 
-    const rawSections = generateDocumentContent(document)
-    const annotatedSections = applyHighlights(rawSections, annotations)
-    const redactedSections = applyRedactions(annotatedSections, redactions)
-    const sections = applyInadmissibles(redactedSections, inadmissibles)
+    let sections = []
+    if (!isVideo) {
+      const rawSections = generateDocumentContent(document)
+      const annotatedSections = applyHighlights(rawSections, annotations)
+      const redactedSections = applyRedactions(annotatedSections, redactions)
+      sections = applyInadmissibles(redactedSections, inadmissibles)
+    }
 
-    res.render('cases/review/document', {
+    res.render(isVideo ? 'cases/review/video/index' : 'cases/review/document/index', {
       _case,
       document,
       charge,
-      pointsToProveRows,
+      offences,
       pointsToProveCheckboxItems,
       sections,
       annotations,
       redactions,
       inadmissibles,
+      isVideo,
+      videoUrl: isVideo ? '/public/videos/cctv-placeholder.mp4' : null,
       caseId,
       documentId,
       docReviewId: docReview.id,
       user: req.session.data.user,
       isReviewMode: true
     })
+  })
+
+  // Point to prove — edit strength
+  router.get('/cases/:caseId/review/documents/:documentId/points-to-prove/:pointToProveId/edit', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+    const pointToProveId = parseInt(req.params.pointToProveId)
+
+    const [_case, pointToProve] = await Promise.all([
+      prisma.case.findUnique({ where: { id: caseId } }),
+      prisma.pointToProve.findUnique({ where: { id: pointToProveId } })
+    ])
+
+    res.render('cases/review/points-to-prove/edit', { _case, pointToProve, caseId, documentId })
+  })
+
+  router.post('/cases/:caseId/review/documents/:documentId/points-to-prove/:pointToProveId/edit', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+    const pointToProveId = parseInt(req.params.pointToProveId)
+
+    await prisma.pointToProve.update({
+      where: { id: pointToProveId },
+      data: { strength: req.body.strength }
+    })
+
+    res.redirect(`/cases/${caseId}/review/documents/${documentId}`)
+  })
+
+  // Add offence — select offence
+  router.get('/cases/:caseId/review/documents/:documentId/add-offence', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+
+    const _case = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: { defendants: { include: { charges: true } } }
+    })
+
+    const existingChargeCodes = (_case.defendants[0]?.charges || []).map(c => c.chargeCode)
+
+    if (req.query.reset || !req.session.data.addOffence) {
+      req.session.data.addOffence = { chargeCodes: [] }
+    }
+
+    const offenceItems = charges
+      .filter(c => !existingChargeCodes.includes(c.code))
+      .map(c => ({
+        value: c.code,
+        text: c.description
+      }))
+
+    res.render('cases/review/add-offence/index', { _case, caseId, documentId, offenceItems })
+  })
+
+  router.post('/cases/:caseId/review/documents/:documentId/add-offence', (req, res) => {
+    const caseId = req.params.caseId
+    const documentId = req.params.documentId
+
+    const chargeCodes = req.body.addOffence?.chargeCodes
+    req.session.data.addOffence = {
+      ...req.session.data.addOffence,
+      chargeCodes: chargeCodes ? [].concat(chargeCodes) : []
+    }
+
+    res.redirect(`/cases/${caseId}/review/documents/${documentId}/add-offence/check`)
+  })
+
+  // Add offence — check answers
+  router.get('/cases/:caseId/review/documents/:documentId/add-offence/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+    const addOffence = req.session.data.addOffence || {}
+    const selectedCharges = charges.filter(c => (addOffence.chargeCodes || []).includes(c.code))
+
+    res.render('cases/review/add-offence/check', { _case, caseId, documentId, addOffence, selectedCharges })
+  })
+
+  router.post('/cases/:caseId/review/documents/:documentId/add-offence/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+    const userId = req.session.data.user.id
+
+    const _case = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: { defendants: true }
+    })
+    const defendant = _case.defendants[0]
+
+    const addOffence = req.session.data.addOffence || {}
+    const selectedCharges = charges.filter(c => (addOffence.chargeCodes || []).includes(c.code))
+
+    for (const selectedCharge of selectedCharges) {
+      const charge = await prisma.charge.create({
+        data: {
+          chargeCode: selectedCharge.code,
+          description: selectedCharge.description,
+          status: 'Under review',
+          offenceDate: new Date(),
+          isCount: false,
+          defendantId: defendant.id
+        }
+      })
+
+      const pointsToProve = pointsToProveByChargeCode[selectedCharge.code] || []
+      await prisma.pointToProve.createMany({
+        data: pointsToProve.map((description, index) => ({
+          description,
+          order: index,
+          chargeId: charge.id
+        }))
+      })
+
+      await prisma.activityLog.create({
+        data: {
+          userId,
+          model: 'Case',
+          recordId: caseId,
+          action: 'CREATE',
+          title: 'Offence added',
+          meta: { documentId, description: selectedCharge.description },
+          caseId
+        }
+      })
+    }
+
+    delete req.session.data.addOffence
+
+    res.redirect(`/cases/${caseId}/review/documents/${documentId}`)
+  })
+
+  // Change offence — select offence
+  router.get('/cases/:caseId/review/documents/:documentId/change-offence', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+
+    const _case = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: { defendants: { include: { charges: true } } }
+    })
+
+    const existingChargeCodes = (_case.defendants[0]?.charges || []).map(c => c.chargeCode)
+
+    if (req.query.reset || !req.session.data.changeOffence) {
+      req.session.data.changeOffence = { chargeCodes: existingChargeCodes }
+    }
+
+    const offenceItems = charges.map(c => ({
+      value: c.code,
+      text: c.description
+    }))
+
+    res.render('cases/review/change-offence/index', { _case, caseId, documentId, offenceItems })
+  })
+
+  router.post('/cases/:caseId/review/documents/:documentId/change-offence', (req, res) => {
+    const caseId = req.params.caseId
+    const documentId = req.params.documentId
+
+    const chargeCodes = req.body.changeOffence?.chargeCodes
+    req.session.data.changeOffence = {
+      ...req.session.data.changeOffence,
+      chargeCodes: chargeCodes ? [].concat(chargeCodes) : []
+    }
+
+    res.redirect(`/cases/${caseId}/review/documents/${documentId}/change-offence/check`)
+  })
+
+  // Change offence — check answers
+  router.get('/cases/:caseId/review/documents/:documentId/change-offence/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+
+    const _case = await prisma.case.findUnique({ where: { id: caseId } })
+    const changeOffence = req.session.data.changeOffence || {}
+    const selectedCharges = charges.filter(c => (changeOffence.chargeCodes || []).includes(c.code))
+
+    res.render('cases/review/change-offence/check', { _case, caseId, documentId, changeOffence, selectedCharges })
+  })
+
+  router.post('/cases/:caseId/review/documents/:documentId/change-offence/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const documentId = parseInt(req.params.documentId)
+    const userId = req.session.data.user.id
+
+    const _case = await prisma.case.findUnique({
+      where: { id: caseId },
+      include: { defendants: { include: { charges: { include: { pointsToProve: true } } } } }
+    })
+    const defendant = _case.defendants[0]
+
+    const changeOffence = req.session.data.changeOffence || {}
+    const selectedCharges = charges.filter(c => (changeOffence.chargeCodes || []).includes(c.code))
+
+    const existingChargeIds = defendant.charges.map(c => c.id)
+    const existingPointIds = defendant.charges.flatMap(c => c.pointsToProve.map(p => p.id))
+
+    await prisma.caseReviewAnnotationPointToProve.deleteMany({ where: { pointToProveId: { in: existingPointIds } } })
+    await prisma.pointToProve.deleteMany({ where: { chargeId: { in: existingChargeIds } } })
+    await prisma.charge.deleteMany({ where: { id: { in: existingChargeIds } } })
+
+    for (const selectedCharge of selectedCharges) {
+      const charge = await prisma.charge.create({
+        data: {
+          chargeCode: selectedCharge.code,
+          description: selectedCharge.description,
+          status: 'Under review',
+          offenceDate: new Date(),
+          isCount: false,
+          defendantId: defendant.id
+        }
+      })
+
+      const pointsToProve = pointsToProveByChargeCode[selectedCharge.code] || []
+      await prisma.pointToProve.createMany({
+        data: pointsToProve.map((description, index) => ({
+          description,
+          order: index,
+          chargeId: charge.id
+        }))
+      })
+
+      await prisma.activityLog.create({
+        data: {
+          userId,
+          model: 'Case',
+          recordId: caseId,
+          action: 'UPDATE',
+          title: 'Offence changed',
+          meta: { documentId, description: selectedCharge.description },
+          caseId
+        }
+      })
+    }
+
+    delete req.session.data.changeOffence
+
+    res.redirect(`/cases/${caseId}/review/documents/${documentId}`)
   })
 
   // Add annotation
@@ -260,7 +526,11 @@ module.exports = (router) => {
     const review = await findOrCreateReview(caseId, userId)
     const docReview = await findOrCreateDocumentReview(review.id, documentId)
 
-    const { selectedText, type } = req.body
+    const { type } = req.body
+    const timestampSeconds = req.body.timestampSeconds !== undefined && req.body.timestampSeconds !== ''
+      ? parseFloat(req.body.timestampSeconds)
+      : null
+    const selectedText = timestampSeconds !== null ? formatTimestamp(timestampSeconds) : req.body.selectedText
 
     if (type === 'evidence') {
       const reasoningByPointId = req.body.pointsToProve || {}
@@ -278,7 +548,7 @@ module.exports = (router) => {
           .join('; ')
 
         const annotation = await prisma.caseReviewAnnotation.create({
-          data: { caseReviewDocumentId: docReview.id, type, selectedText, note }
+          data: { caseReviewDocumentId: docReview.id, type, selectedText, note, timestampSeconds }
         })
 
         await prisma.caseReviewAnnotationPointToProve.createMany({
@@ -293,7 +563,7 @@ module.exports = (router) => {
       const { note } = req.body
       if (selectedText && type && note) {
         await prisma.caseReviewAnnotation.create({
-          data: { caseReviewDocumentId: docReview.id, type, selectedText, note }
+          data: { caseReviewDocumentId: docReview.id, type, selectedText, note, timestampSeconds }
         })
       }
     }
@@ -313,7 +583,7 @@ module.exports = (router) => {
       prisma.caseReviewAnnotation.findUnique({ where: { id: annotationId } })
     ])
 
-    res.render('cases/review/annotation-edit', { _case, document, annotation, caseId, documentId })
+    res.render('cases/review/annotations/edit', { _case, document, annotation, caseId, documentId })
   })
 
   // Edit annotation — POST
@@ -345,7 +615,7 @@ module.exports = (router) => {
 
     const from = req.query.from || 'list'
 
-    res.render('cases/review/annotation-remove', { _case, document, annotation, caseId, documentId, from })
+    res.render('cases/review/annotations/remove', { _case, document, annotation, caseId, documentId, from })
   })
 
   // Remove annotation — POST
@@ -354,6 +624,7 @@ module.exports = (router) => {
     const documentId = parseInt(req.params.documentId)
     const annotationId = parseInt(req.params.annotationId)
 
+    await prisma.caseReviewAnnotationPointToProve.deleteMany({ where: { annotationId } })
     await prisma.caseReviewAnnotation.delete({ where: { id: annotationId } })
 
     const from = req.body.from
@@ -532,7 +803,7 @@ module.exports = (router) => {
     const _case = await prisma.case.findUnique({ where: { id: caseId } })
     const review = await findOrCreateReview(caseId, userId)
 
-    res.render('cases/review/summary', { _case, caseId, summary: review.summary || '' })
+    res.render('cases/review/summary/index', { _case, caseId, summary: review.summary || '' })
   })
 
   // Summary form — POST
@@ -557,7 +828,7 @@ module.exports = (router) => {
     const _case = await prisma.case.findUnique({ where: { id: caseId } })
     const review = await findOrCreateReview(caseId, userId)
 
-    res.render('cases/review/summary-check', { _case, caseId, review })
+    res.render('cases/review/summary/check', { _case, caseId, review })
   })
 
   router.post('/cases/:caseId/review/summary/check', async (req, res) => {
@@ -597,7 +868,7 @@ module.exports = (router) => {
     }
     res.locals.data.reviewFirstHearing = req.session.data.reviewFirstHearing
 
-    res.render('cases/review/first-hearing', { _case, dateHintExample: buildDateHintExample() })
+    res.render('cases/review/first-hearing/index', { _case, dateHintExample: buildDateHintExample() })
   })
 
   router.post('/cases/:caseId/review/first-hearing', (req, res) => {
@@ -613,7 +884,7 @@ module.exports = (router) => {
   router.get('/cases/:caseId/review/first-hearing/time', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const _case = await prisma.case.findUnique({ where: { id: caseId } })
-    res.render('cases/review/first-hearing-time', { _case })
+    res.render('cases/review/first-hearing/time', { _case })
   })
 
   router.post('/cases/:caseId/review/first-hearing/time', (req, res) => {
@@ -629,7 +900,7 @@ module.exports = (router) => {
   router.get('/cases/:caseId/review/first-hearing/venue', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const _case = await prisma.case.findUnique({ where: { id: caseId } })
-    res.render('cases/review/first-hearing-venue', { _case })
+    res.render('cases/review/first-hearing/venue', { _case })
   })
 
   router.post('/cases/:caseId/review/first-hearing/venue', (req, res) => {
@@ -645,7 +916,7 @@ module.exports = (router) => {
   router.get('/cases/:caseId/review/first-hearing/check', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const _case = await prisma.case.findUnique({ where: { id: caseId } })
-    res.render('cases/review/first-hearing-check', { _case })
+    res.render('cases/review/first-hearing/check', { _case })
   })
 
   router.post('/cases/:caseId/review/first-hearing/check', (req, res) => {

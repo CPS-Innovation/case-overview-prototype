@@ -7,6 +7,7 @@ const { prosecutionDirections, defenceDirections } = require('./directions');
 const { addHearings } = require('./hearings');
 const { nextForcedHasHearing } = require('./charged-hearing-balance');
 const { createCtlLogEntries } = require('./ctl-log-entries');
+const { generateDocumentsData } = require('./documents');
 
 async function seedGeneralCases(prisma, dependencies, config) {
   const {
@@ -192,16 +193,7 @@ async function seedGeneralCases(prisma, dependencies, config) {
       });
     }
 
-    for (let d = 0; d < numDocuments; d++) {
-      const baseName = faker.helpers.arrayElement(documentNames);
-      const name = `${baseName} ${d + 1}`;
-      documentsData.push({
-        name,
-        description: faker.helpers.arrayElement(['This is a random description', 'This is another random description', faker.lorem.sentence()]),
-        type: faker.helpers.arrayElement(documentTypes),
-        size: faker.number.int({ min: 50, max: 5000 }),
-      });
-    }
+    documentsData.push(...generateDocumentsData(documentNames, documentTypes, numDocuments));
 
     // Generate 0-5 directions per case
     const numDirections = faker.number.int({ min: 0, max: 5 });

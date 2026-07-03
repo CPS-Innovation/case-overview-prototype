@@ -1062,6 +1062,26 @@
       </p>
     {% endif %}
 
+    {% if params.event.title == 'Offence added' or params.event.title == 'Offence changed' %}
+      <div class="app-activity-log__box">
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: { text: "URN" },
+              value: { text: params.event.case.reference }
+            } if params.showUrn,
+            {
+              key: { text: "Offence" },
+              value: { text: params.event.meta.description }
+            }
+          ]
+        }) }}
+      </div>
+      <p class="app-log-card__note--link">
+        <a class="govuk-link" href="/cases/{{ params.event.case.id }}/review/documents/{{ params.event.meta.documentId }}">View document</a>
+      </p>
+    {% endif %}
+
     {% if params.event.title == 'CTL log entry added' %}
       <div class="app-activity-log__box">
         {{ govukSummaryList({

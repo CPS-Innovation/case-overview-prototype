@@ -1,6 +1,7 @@
 const { faker } = require('@faker-js/faker');
 const statuses = require('../../app/data/case-statuses');
 const { generateCaseReference } = require('./identifiers');
+const { generateDocumentsData } = require('./documents');
 const { createDivergedCase } = require('./diverged-cases');
 const { addHearings } = require('./hearings');
 const { nextForcedHasHearing } = require('./charged-hearing-balance');
@@ -173,7 +174,6 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
           status: 'Charged',
           offenceDate: faker.date.past(),
           plea: faker.helpers.arrayElement(pleas),
-          particulars: faker.lorem.sentence(),
           custodyTimeLimit,
           isCount: false
         }
@@ -188,16 +188,7 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
     : null;
 
   const numDocuments = faker.number.int({ min: 5, max: 15 });
-  const documentsData = [];
-  for (let d = 0; d < numDocuments; d++) {
-    const baseName = faker.helpers.arrayElement(documentNames);
-    documentsData.push({
-      name: `${baseName} ${d + 1}`,
-      description: faker.helpers.arrayElement(['This is a random description', 'This is another random description', faker.lorem.sentence()]),
-      type: faker.helpers.arrayElement(documentTypes),
-      size: faker.number.int({ min: 50, max: 5000 }),
-    });
-  }
+  const documentsData = generateDocumentsData(documentNames, documentTypes, numDocuments);
 
   const extraDefendants = [];
   if (faker.datatype.boolean({ probability: 0.3 })) {
@@ -216,7 +207,6 @@ async function createCaseWithTask(prisma, user, taskConfig, config) {
             status: 'Charged',
             offenceDate: faker.date.past(),
             plea: faker.helpers.arrayElement(pleas),
-            particulars: faker.lorem.sentence(),
             isCount: false
           }
         }
@@ -354,7 +344,6 @@ async function createManyWitnessesCase(prisma, user, config) {
           status: "Charged",
           offenceDate: faker.date.past(),
           plea: faker.helpers.arrayElement(pleas),
-          particulars: faker.lorem.sentence(),
           custodyTimeLimit: null,
           statutoryTimeLimit: null,
           isCount: false
@@ -380,7 +369,6 @@ async function createManyWitnessesCase(prisma, user, config) {
             status: 'Charged',
             offenceDate: faker.date.past(),
             plea: faker.helpers.arrayElement(pleas),
-            particulars: faker.lorem.sentence(),
             isCount: false
           }
         }
@@ -396,16 +384,7 @@ async function createManyWitnessesCase(prisma, user, config) {
     : null;
 
   const numDocuments = faker.number.int({ min: 5, max: 15 });
-  const documentsData = [];
-  for (let d = 0; d < numDocuments; d++) {
-    const baseName = faker.helpers.arrayElement(documentNames);
-    documentsData.push({
-      name: `${baseName} ${d + 1}`,
-      description: faker.helpers.arrayElement(['This is a random description', 'This is another random description', faker.lorem.sentence()]),
-      type: faker.helpers.arrayElement(documentTypes),
-      size: faker.number.int({ min: 50, max: 5000 }),
-    });
-  }
+  const documentsData = generateDocumentsData(documentNames, documentTypes, numDocuments);
 
   const _case = await prisma.case.create({
     data: {
@@ -514,7 +493,6 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
           status: 'Charged',
           offenceDate: faker.date.past(),
           plea: faker.helpers.arrayElement(pleas),
-          particulars: faker.lorem.sentence(),
           isCount: false
         }
       }
@@ -524,16 +502,7 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
 
   const numDocuments = faker.number.int({ min: 3, max: 8 });
-  const documentsData = [];
-  for (let d = 0; d < numDocuments; d++) {
-    const baseName = faker.helpers.arrayElement(documentNames);
-    documentsData.push({
-      name: `${baseName} ${d + 1}`,
-      description: faker.helpers.arrayElement(['This is a random description', 'This is another random description', faker.lorem.sentence()]),
-      type: faker.helpers.arrayElement(documentTypes),
-      size: faker.number.int({ min: 50, max: 5000 }),
-    });
-  }
+  const documentsData = generateDocumentsData(documentNames, documentTypes, numDocuments);
 
   const _case = await prisma.case.create({
     data: {
@@ -605,6 +574,99 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
   return _case;
 }
 
+async function createReviewCase(prisma, user, taskName, config, hasCharge = true) {
+  const { defenceLawyers, charges, firstNames, lastNames, victims, types, complexities, policeUnits, ukCities, availableOperationNames, documentNames, documentTypes } = config;
+
+  const unitId = faker.helpers.arrayElement([RACHAEL_UNITS.WESSEX_CROWN_COURT, RACHAEL_UNITS.WESSEX_RASSO]);
+
+  const defendant = await prisma.defendant.create({
+    data: {
+      firstName: faker.helpers.arrayElement(firstNames),
+      lastName: faker.helpers.arrayElement(lastNames),
+      gender: faker.helpers.arrayElement(['Male', 'Female', 'Unknown']),
+      dateOfBirth: faker.date.birthdate({ min: 18, max: 75, mode: 'age' }),
+      remandStatus: null,
+      status: statuses.NOT_CHARGED,
+      needsReview: true,
+      defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
+      ...(hasCharge ? {
+        charges: {
+          create: {
+            chargeCode: faker.helpers.arrayElement(charges).code,
+            description: faker.helpers.arrayElement(charges).description,
+            status: 'Pre-charge',
+            offenceDate: faker.date.past(),
+            plea: null,
+            isCount: false
+          }
+        }
+      } : {})
+    }
+  });
+
+  const victimIds = faker.helpers.arrayElements(victims, faker.number.int({ min: 1, max: 2 })).map(v => ({ id: v.id }));
+
+  const operationName = (faker.datatype.boolean({ probability: 0.3 }) && availableOperationNames.length > 0)
+    ? availableOperationNames.pop()
+    : null;
+
+  const numDocuments = faker.number.int({ min: 5, max: 15 });
+  const documentsData = generateDocumentsData(documentNames, documentTypes, numDocuments);
+
+  const _case = await prisma.case.create({
+    data: {
+      reference: generateCaseReference(),
+      operationName,
+      type: faker.helpers.arrayElement(types),
+      complexity: faker.helpers.arrayElement(complexities),
+      unit: { connect: { id: unitId } },
+      policeUnit: { connect: { id: faker.helpers.arrayElement(policeUnits).id } },
+      defendants: { connect: { id: defendant.id } },
+      victims: { connect: victimIds },
+      location: {
+        create: {
+          name: faker.company.name(),
+          line1: faker.location.streetAddress(),
+          line2: faker.location.secondaryAddress(),
+          town: faker.helpers.arrayElement(ukCities),
+          postcode: faker.location.zipCode("WD# #SF"),
+        },
+      },
+      documents: {
+        createMany: {
+          data: documentsData,
+        },
+      },
+    }
+  });
+
+  await prisma.caseParalegalOfficer.create({
+    data: {
+      caseId: _case.id,
+      userId: user.id
+    }
+  });
+
+  const dueDate = faker.date.soon({ days: 5 });
+  dueDate.setHours(23, 59, 59, 999);
+  await prisma.task.create({
+    data: {
+      name: taskName,
+      reminderType: null,
+      reminderDate: new Date(dueDate.getTime() - 3 * 24 * 60 * 60 * 1000),
+      dueDate,
+      escalationDate: new Date(dueDate.getTime() + 2 * 24 * 60 * 60 * 1000),
+      completedDate: null,
+      caseId: _case.id,
+      assignedToUserId: user.id
+    }
+  });
+
+  await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
+
+  return _case;
+}
+
 async function seedRachaelCases(prisma, dependencies, config) {
   const { defenceLawyers, victims, policeUnits, availableOperationNames, colleagues } = dependencies;
   const { charges, firstNames, lastNames, pleas, types, complexities, taskNames, ukCities, documentNames, documentTypes } = config;
@@ -651,7 +713,11 @@ async function seedRachaelCases(prisma, dependencies, config) {
   await createDivergedCase(prisma, rachaelHarvey, RACHAEL_UNITS.WESSEX_CROWN_COURT, RACHAEL_STATUSES, fullConfig);
   await createDivergedCase(prisma, rachaelHarvey, RACHAEL_UNITS.WESSEX_CROWN_COURT, [statuses.NOT_CHARGED, statuses.CHARGES_PENDING, statuses.CHARGED], fullConfig);
 
-  return RACHAEL_TASKS.length + 1 + 20 + 1 + 1;
+  // Cases awaiting a charging decision (not charged, needs review)
+  await createReviewCase(prisma, rachaelHarvey, 'Make charging decision', fullConfig);
+  await createReviewCase(prisma, rachaelHarvey, 'Make charging decision', fullConfig, false);
+
+  return RACHAEL_TASKS.length + 1 + 20 + 1 + 1 + 2;
 }
 
 module.exports = {

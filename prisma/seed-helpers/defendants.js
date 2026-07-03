@@ -123,14 +123,7 @@ async function seedDefendants(prisma, defenceLawyers) {
 
     // Build charges data
     selectedCharges.forEach((charge, index) => {
-      // Generate particulars with random date and victim
       const offenceDate = faker.date.past();
-      const particularsDate = offenceDate.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-      const victimName = `${faker.helpers.arrayElement(firstNames)} ${faker.helpers.arrayElement(lastNames)}`;
 
       // For CTL/STL defendants, at least one charge must have the time limit
       // For first charge, always apply it. For additional charges, 50% chance
@@ -150,7 +143,6 @@ async function seedDefendants(prisma, defenceLawyers) {
         status: faker.helpers.arrayElement(chargeStatuses),
         offenceDate: offenceDate,
         plea: faker.helpers.arrayElement(pleas),
-        particulars: `On the ${particularsDate} ${charge.code === 'B10' ? 'stole' : charge.code === 'A01' ? 'assaulted' : charge.code === 'C03' ? 'damaged property belonging to' : 'committed an offence against'} ${victimName}.`,
         custodyTimeLimit: ctl,
         statutoryTimeLimit: stl,
         isCount: faker.datatype.boolean(0.3), // 30% are counts
