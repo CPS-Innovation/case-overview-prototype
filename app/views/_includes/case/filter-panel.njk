@@ -14,7 +14,7 @@
     values: selectedStatusFilters
   }) if statusItems.length }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[review]",
     name: "caseListFilters[review]",
     classes: "govuk-checkboxes--small",
@@ -26,9 +26,9 @@
     },
     items: reviewItems,
     values: selectedReviewFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[firstHearing]",
     name: "caseListFilters[firstHearing]",
     classes: "govuk-checkboxes--small",
@@ -40,9 +40,9 @@
     },
     items: firstHearingItems,
     values: selectedFirstHearingFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[hearingStatuses]",
     name: "caseListFilters[hearingStatuses]",
     classes: "govuk-checkboxes--small",
@@ -54,9 +54,9 @@
     },
     items: hearingStatusItems,
     values: selectedHearingStatusFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[defendants]",
     name: "caseListFilters[defendants]",
     classes: "govuk-checkboxes--small",
@@ -68,9 +68,9 @@
     },
     items: defendantItems,
     values: selectedDefendantFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[statusMix]",
     name: "caseListFilters[statusMix]",
     classes: "govuk-checkboxes--small",
@@ -82,9 +82,9 @@
     },
     items: statusMixItems,
     values: selectedStatusMixFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[policeRequests]",
     name: "caseListFilters[policeRequests]",
     classes: "govuk-checkboxes--small",
@@ -96,7 +96,7 @@
     },
     items: policeRequestsItems,
     values: data.caseListFilters.policeRequests
-  }) }}
+  }) }} #}
 
   {{ appCheckboxFilter({
     idPrefix: "caseListFilters[prosecutors]",
@@ -164,7 +164,7 @@
     values: data.caseListFilters.complexities
   }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[custodyTimeLimitRange]",
     name: "caseListFilters[custodyTimeLimitRange]",
     classes: "govuk-checkboxes--small",
@@ -176,9 +176,9 @@
     },
     items: custodyTimeLimitRangeItems,
     values: selectedCustodyTimeLimitRangeFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[statutoryTimeLimitRange]",
     name: "caseListFilters[statutoryTimeLimitRange]",
     classes: "govuk-checkboxes--small",
@@ -190,9 +190,9 @@
     },
     items: statutoryTimeLimitRangeItems,
     values: selectedStatutoryTimeLimitRangeFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[paceClockRange]",
     name: "caseListFilters[paceClockRange]",
     classes: "govuk-checkboxes--small",
@@ -204,9 +204,9 @@
     },
     items: paceClockRangeItems,
     values: selectedPaceClockRangeFilters
-  }) }}
+  }) }} #}
 
-  {{ govukCheckboxes({
+  {# {{ govukCheckboxes({
     idPrefix: "caseListFilters[hearingPrepDateRange]",
     name: "caseListFilters[hearingPrepDateRange]",
     classes: "govuk-checkboxes--small",
@@ -218,7 +218,7 @@
     },
     items: hearingPrepDateRangeItems,
     values: selectedHearingPrepDateRangeFilters
-  }) }}
+  }) }} #}
 
   {% if data.user.role == "Manager" %}
     {{ govukCheckboxes({
