@@ -5,7 +5,7 @@
   {{
     govukBackLink({
       text: 'Back',
-      href: "/cases/:caseId/police-requests/:requestId" | replace(':caseId', _case.id) | replace(':requestId', requestId)
+      href: "/cases/:caseId/information-requests/:requestId" | replace(':caseId', _case.id) | replace(':requestId', requestId)
     })
   }}
 {% endblock %}

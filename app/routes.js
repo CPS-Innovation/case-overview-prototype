@@ -66,10 +66,10 @@ router.use('/cases/:caseId*', async (req, res, next) => {
     res.locals.caseHearings = hearings
     res.locals.activeHearings = hearings.filter(h => h.status !== 'Hearing complete')
 
-    const pendingPoliceRequestItemCount = await prisma.policeRequestItem.count({
-      where: { policeRequest: { caseId }, receivedDate: null, cancelledDate: null }
+    const pendingInformationRequestItemCount = await prisma.informationRequestItem.count({
+      where: { informationRequest: { caseId }, receivedDate: null, cancelledDate: null }
     })
-    res.locals.hasPendingPoliceRequest = pendingPoliceRequestItemCount > 0
+    res.locals.hasPendingInformationRequest = pendingInformationRequestItemCount > 0
   }
   next()
 })
@@ -98,7 +98,7 @@ require('./routes/case--notes--add-note')(router)
 require('./routes/case--notes')(router)
 require('./routes/case--ctl-log--add-entry')(router)
 require('./routes/case--ctl-log')(router)
-require('./routes/case--police-requests')(router)
+require('./routes/case--information-requests')(router)
 require('./routes/case--activity')(router)
 require('./routes/case--tasks')(router)
 require('./routes/case--directions')(router)

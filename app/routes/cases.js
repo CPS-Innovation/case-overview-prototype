@@ -432,7 +432,7 @@ module.exports = (router) => {
     let selectedPaceClockRangeFilters = _.get(req.session.data.caseListFilters, 'paceClockRange', [])
     let selectedUnitFilters = _.get(req.session.data.caseListFilters, 'unit', [])
     let selectedPoliceUnitFilters = _.get(req.session.data.caseListFilters, 'policeUnit', [])
-    let selectedPoliceRequestsFilters = _.get(req.session.data.caseListFilters, 'policeRequests', [])
+    let selectedInformationRequestsFilters = _.get(req.session.data.caseListFilters, 'informationRequests', [])
     let selectedComplexityFilters = _.get(req.session.data.caseListFilters, 'complexities', [])
     let selectedTypeFilters = _.get(req.session.data.caseListFilters, 'types', [])
     let selectedProsecutorFilters = _.get(req.session.data.caseListFilters, 'prosecutors', [])
@@ -738,11 +738,11 @@ module.exports = (router) => {
       })
     }
 
-    if (selectedPoliceRequestsFilters?.length) {
+    if (selectedInformationRequestsFilters?.length) {
       selectedFilters.categories.push({
-        heading: { text: 'Police requests' },
-        items: selectedPoliceRequestsFilters.map(function (label) {
-          return { text: label, href: '/cases/remove-police-requests/' + encodeURIComponent(label) }
+        heading: { text: 'Information requests' },
+        items: selectedInformationRequestsFilters.map(function (label) {
+          return { text: label, href: '/cases/remove-information-requests/' + encodeURIComponent(label) }
         }),
       })
     }
@@ -802,23 +802,23 @@ module.exports = (router) => {
       where.AND.push({ OR: monthRangeFilters })
     }
 
-    if (selectedPoliceRequestsFilters?.length) {
-      const policeRequestsFilters = []
+    if (selectedInformationRequestsFilters?.length) {
+      const informationRequestsFilters = []
 
-      if (selectedPoliceRequestsFilters.includes('Has pending requests')) {
-        policeRequestsFilters.push({
-          policeRequests: { some: { items: { some: { receivedDate: null } } } },
+      if (selectedInformationRequestsFilters.includes('Has pending requests')) {
+        informationRequestsFilters.push({
+          informationRequests: { some: { items: { some: { receivedDate: null } } } },
         })
       }
 
-      if (selectedPoliceRequestsFilters.includes('No pending requests')) {
-        policeRequestsFilters.push({
-          NOT: { policeRequests: { some: { items: { some: { receivedDate: null } } } } },
+      if (selectedInformationRequestsFilters.includes('No pending requests')) {
+        informationRequestsFilters.push({
+          NOT: { informationRequests: { some: { items: { some: { receivedDate: null } } } } },
         })
       }
 
-      if (policeRequestsFilters.length) {
-        where.AND.push({ OR: policeRequestsFilters })
+      if (informationRequestsFilters.length) {
+        where.AND.push({ OR: informationRequestsFilters })
       }
     }
 
@@ -944,19 +944,19 @@ module.exports = (router) => {
         location: true,
         tasks: true,
         dga: { include: { failureReasons: true } },
-        policeRequests: { include: { items: true } },
+        informationRequests: { include: { items: true } },
       },
     })
 
     const hearingStatusOrder = ['Hearing preparation needed', 'Hearing pending', 'Hearing outcome needed']
 
     cases = cases.map((c) => {
-      const outstandingPoliceRequests = (c.policeRequests || []).filter((r) =>
+      const outstandingInformationRequests = (c.informationRequests || []).filter((r) =>
         r.items.some((item) => item.receivedDate === null),
       )
       const outstandingRequestDeadline =
-        outstandingPoliceRequests.length > 0
-          ? new Date(Math.min(...outstandingPoliceRequests.map((r) => new Date(r.deadline))))
+        outstandingInformationRequests.length > 0
+          ? new Date(Math.min(...outstandingInformationRequests.map((r) => new Date(r.deadline))))
           : null
 
       const uniqueActive = [...new Set(c.hearings.map(h => h.status).filter(s => s && s !== 'Hearing complete'))]
@@ -1183,7 +1183,7 @@ module.exports = (router) => {
       { text: 'Later', value: 'later' }
     ]
 
-    let policeRequestsItems = [
+    let informationRequestsItems = [
       'Has pending requests',
       'No pending requests',
     ].map((label) => ({ text: label, value: label }))
@@ -1350,7 +1350,7 @@ module.exports = (router) => {
       selectedPaceClockRangeFilters,
       hearingPrepDateRangeItems,
       selectedHearingPrepDateRangeFilters,
-      policeRequestsItems,
+      informationRequestsItems,
       unitItems,
       policeUnitItems,
       selectedPoliceUnitItems,
@@ -1492,11 +1492,11 @@ module.exports = (router) => {
     res.redirect('/cases')
   })
 
-  router.get('/cases/remove-police-requests/:label', (req, res) => {
-    const currentFilters = _.get(req, 'session.data.caseListFilters.policeRequests', [])
+  router.get('/cases/remove-information-requests/:label', (req, res) => {
+    const currentFilters = _.get(req, 'session.data.caseListFilters.informationRequests', [])
     _.set(
       req,
-      'session.data.caseListFilters.policeRequests',
+      'session.data.caseListFilters.informationRequests',
       _.pull(currentFilters, decodeURIComponent(req.params.label)),
     )
     res.redirect('/cases')

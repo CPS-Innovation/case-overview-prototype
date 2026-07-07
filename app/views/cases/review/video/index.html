@@ -35,10 +35,16 @@
                 text: offence.charge.description,
                 classes: 'govuk-heading-m'
               },
-              items: [{
-                text: 'Change',
-                href: '/cases/' + caseId + '/review/documents/' + documentId + '/change-offence?reset=1'
-              }]
+              items: [
+                {
+                  text: 'Change',
+                  href: '/cases/' + caseId + '/review/documents/' + documentId + '/change-offence?reset=1'
+                },
+                {
+                  text: 'Remove',
+                  href: '/cases/' + caseId + '/review/documents/' + documentId + '/offences/' + offence.charge.id + '/remove'
+                }
+              ]
             }) }}
 
             {{ govukSummaryList({ rows: offence.pointsToProveRows }) }}

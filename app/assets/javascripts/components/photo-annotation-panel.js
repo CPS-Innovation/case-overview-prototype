@@ -1,8 +1,7 @@
-App.VideoAnnotationPanel = function(params) {
+App.PhotoAnnotationPanel = function(params) {
   this.container = params.container
 
-  this.video              = $('#document-video')
-  this.typeBtns           = $('.js-video-annotate-btn')
+  this.typeBtns           = $('.js-photo-annotate-btn')
   this.newAnnotationCards = $('.js-new-annotation-card')
   this.activeAnnotationCard = null
   this.sidebarInner         = $('.js-sidebar-inner')
@@ -10,7 +9,7 @@ App.VideoAnnotationPanel = function(params) {
   this.annotationForm       = $('#annotation-form')
   this.typeHiddenInput      = $('#annotation-type-hidden')
   this.noteHiddenInput      = $('#annotation-note-hidden')
-  this.timestampHiddenInput = $('#annotation-timestamp-hidden')
+  this.selectedTextHiddenInput = $('#annotation-selected-text')
   this.saveBtn              = $('.js-save-annotation')
   this.cancelBtn            = $('.js-cancel-annotation')
 
@@ -18,12 +17,11 @@ App.VideoAnnotationPanel = function(params) {
   this.documentId = this.container.data('document-id')
 
   this.pendingAnnotationType = null
-  this.pendingTimestamp      = null
 
   this.setupEvents()
 }
 
-App.VideoAnnotationPanel.prototype.setupEvents = function() {
+App.PhotoAnnotationPanel.prototype.setupEvents = function() {
   this.typeBtns.on('click', $.proxy(this, 'onTypeBtnClick'))
   this.saveBtn.on('click', $.proxy(this, 'onSaveClick'))
   this.cancelBtn.on('click', $.proxy(this, 'onCancelClick'))
@@ -34,14 +32,8 @@ App.VideoAnnotationPanel.prototype.setupEvents = function() {
   $(document).on('mousedown', $.proxy(this, 'onDocumentMousedown'))
 }
 
-// Pausing captures the moment the user wants to annotate, and gives them a
-// still frame to refer to while writing the note.
-App.VideoAnnotationPanel.prototype.onTypeBtnClick = function(e) {
-  var video = this.video[0]
-  video.pause()
-
+App.PhotoAnnotationPanel.prototype.onTypeBtnClick = function(e) {
   this.pendingAnnotationType = $(e.currentTarget).data('type')
-  this.pendingTimestamp = video.currentTime
 
   this.newAnnotationCards.prop('hidden', true)
   this.activeAnnotationCard = this.newAnnotationCards.filter('.js-new-annotation-card--' + this.pendingAnnotationType)
@@ -56,7 +48,7 @@ App.VideoAnnotationPanel.prototype.onTypeBtnClick = function(e) {
   }
 }
 
-App.VideoAnnotationPanel.prototype.hideNewCard = function() {
+App.PhotoAnnotationPanel.prototype.hideNewCard = function() {
   this.newAnnotationCards.prop('hidden', true)
   this.newAnnotationCards.find('.js-annotation-note-input').val('')
   this.newAnnotationCards.find('.js-annotation-ptp-reasoning').val('')
@@ -66,10 +58,9 @@ App.VideoAnnotationPanel.prototype.hideNewCard = function() {
   this.annotationForm.find('.js-annotation-ptp-hidden').remove()
   this.activeAnnotationCard = null
   this.pendingAnnotationType = null
-  this.pendingTimestamp = null
 }
 
-App.VideoAnnotationPanel.prototype.onSaveClick = function() {
+App.PhotoAnnotationPanel.prototype.onSaveClick = function() {
   if (!this.pendingAnnotationType) return
   if (this.pendingAnnotationType === 'evidence' && this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').length) {
     this.onSaveEvidenceClick()
@@ -80,13 +71,13 @@ App.VideoAnnotationPanel.prototype.onSaveClick = function() {
   if (!note) { noteInput.focus(); return }
   this.typeHiddenInput.val(this.pendingAnnotationType)
   this.noteHiddenInput.val(note)
-  this.timestampHiddenInput.val(this.pendingTimestamp)
+  this.selectedTextHiddenInput.val('Whole photo')
   this.annotationForm[0].submit()
 }
 
 // Evidence annotations link one or more points to prove, each with its own
 // reasoning (revealed under its checkbox), rather than a single shared note.
-App.VideoAnnotationPanel.prototype.onSaveEvidenceClick = function() {
+App.PhotoAnnotationPanel.prototype.onSaveEvidenceClick = function() {
   var self = this
   var checked = this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]:checked')
 
@@ -123,11 +114,11 @@ App.VideoAnnotationPanel.prototype.onSaveEvidenceClick = function() {
 
   this.typeHiddenInput.val('evidence')
   this.noteHiddenInput.val('')
-  this.timestampHiddenInput.val(this.pendingTimestamp)
+  this.selectedTextHiddenInput.val('Whole photo')
   this.annotationForm[0].submit()
 }
 
-App.VideoAnnotationPanel.prototype.onCancelClick = function(e) {
+App.PhotoAnnotationPanel.prototype.onCancelClick = function(e) {
   e.preventDefault()
   this.hideNewCard()
   if (!$('.js-annotation-card').length) {
@@ -135,27 +126,22 @@ App.VideoAnnotationPanel.prototype.onCancelClick = function(e) {
   }
 }
 
-App.VideoAnnotationPanel.prototype.onCardClick = function(e) {
+App.PhotoAnnotationPanel.prototype.onCardClick = function(e) {
   if ($(e.target).closest('a, .js-annotation-edit-form').length) return
   var card = $(e.currentTarget)
-  var timestampSeconds = card.data('timestamp-seconds')
 
   this.deselectAllCards()
   card.addClass('is-selected app-annotation-card--active')
-
-  if (timestampSeconds !== undefined && this.video[0]) {
-    this.video[0].currentTime = timestampSeconds
-  }
 }
 
-App.VideoAnnotationPanel.prototype.onDocumentMousedown = function(e) {
+App.PhotoAnnotationPanel.prototype.onDocumentMousedown = function(e) {
   if ($(e.target).closest('.js-annotation-card').length) return
   this.deselectAllCards()
 }
 
 // Closes any card left mid-edit so a deselected card never keeps its edit
 // form open with no way to see it's still unsaved.
-App.VideoAnnotationPanel.prototype.deselectAllCards = function() {
+App.PhotoAnnotationPanel.prototype.deselectAllCards = function() {
   var self = this
   $('.js-annotation-card').removeClass('is-selected app-annotation-card--active').each(function() {
     self.hideAnnotationEditForm($(this))
@@ -164,7 +150,7 @@ App.VideoAnnotationPanel.prototype.deselectAllCards = function() {
 
 // Resets an in-progress edit (note text, checked points and their reasoning)
 // back to the values it was opened with, then hides it.
-App.VideoAnnotationPanel.prototype.hideAnnotationEditForm = function(card) {
+App.PhotoAnnotationPanel.prototype.hideAnnotationEditForm = function(card) {
   var form = card.find('.js-annotation-edit-form')
   if (!form.length || form.prop('hidden')) return
 
@@ -176,7 +162,7 @@ App.VideoAnnotationPanel.prototype.hideAnnotationEditForm = function(card) {
   card.find('.js-annotation-view').prop('hidden', false)
 }
 
-App.VideoAnnotationPanel.prototype.onChangeAnnotationClick = function(e) {
+App.PhotoAnnotationPanel.prototype.onChangeAnnotationClick = function(e) {
   e.preventDefault()
   var link = $(e.currentTarget)
   var card = link.closest('.js-annotation-card')
@@ -198,7 +184,7 @@ App.VideoAnnotationPanel.prototype.onChangeAnnotationClick = function(e) {
   }
 }
 
-App.VideoAnnotationPanel.prototype.onCancelChangeAnnotationClick = function(e) {
+App.PhotoAnnotationPanel.prototype.onCancelChangeAnnotationClick = function(e) {
   e.preventDefault()
   this.hideAnnotationEditForm($(e.currentTarget).closest('.js-annotation-card'))
 }
@@ -206,7 +192,7 @@ App.VideoAnnotationPanel.prototype.onCancelChangeAnnotationClick = function(e) {
 // Evidence edits only submit reasoning for points that are actually checked —
 // mirrors onSaveEvidenceClick so an unchecked point's leftover reasoning text
 // never gets linked by accident.
-App.VideoAnnotationPanel.prototype.onSaveChangeAnnotationClick = function(e) {
+App.PhotoAnnotationPanel.prototype.onSaveChangeAnnotationClick = function(e) {
   var form = $(e.currentTarget).closest('form')
   var checked = form.find('input[name="pointsToProveCheckbox"]:checked')
 

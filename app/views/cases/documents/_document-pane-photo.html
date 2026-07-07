@@ -1,19 +1,19 @@
 <div class="app-document-pane">
-  <div class="app-document app-document--video">
+  <div class="app-document app-document--photo">
     <div
       class="app-document__content"
       id="document-content"
       data-case-id="{{ caseId }}"
       data-document-id="{{ documentId }}"
     >
-      <video id="document-video" class="app-document__video" src="{{ videoUrl }}" controls></video>
+      <img src="{{ photoUrl }}" alt="{{ document.name }}" class="app-document__photo" />
 
       {% if isReviewMode %}
-        <div class="app-video-annotation-actions govuk-button-group govuk-!-margin-bottom-0">
+        <div class="app-photo-annotation-actions govuk-button-group govuk-!-margin-bottom-0">
           {{
             govukButton({
               text: "Mark as evidence",
-              classes: "govuk-button--secondary js-video-annotate-btn",
+              classes: "govuk-button--secondary js-photo-annotate-btn",
               type: "button",
               attributes: { "data-type": "evidence" }
             })
@@ -21,7 +21,7 @@
           {{
             govukButton({
               text: "Mark as disclosure",
-              classes: "govuk-button--secondary js-video-annotate-btn",
+              classes: "govuk-button--secondary js-photo-annotate-btn",
               type: "button",
               attributes: { "data-type": "disclosure" }
             })
@@ -29,7 +29,7 @@
           {{
             govukButton({
               text: "Add information request",
-              classes: "govuk-button--secondary js-video-annotate-btn",
+              classes: "govuk-button--secondary js-photo-annotate-btn",
               type: "button",
               attributes: { "data-type": "information-request" }
             })

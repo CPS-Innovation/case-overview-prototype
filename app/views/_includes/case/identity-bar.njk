@@ -55,13 +55,13 @@
       ]
     }
   ] %}
-{% elif hasPendingPoliceRequest %}
+{% elif hasPendingInformationRequest %}
   {% set identityBarMenus = [
     {
       items: [
         {
           text: 'Simulate: Information received',
-          href: '/cases/' + _case.id + '/police-requests/simulate-received?referrer=' + path,
+          href: '/cases/' + _case.id + '/information-requests/simulate-received?referrer=' + path,
           classes: 'app-button--blue'
         }
       ]

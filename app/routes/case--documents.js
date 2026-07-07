@@ -224,7 +224,8 @@ module.exports = router => {
     }
 
     const isVideo = document.type === 'MP4'
-    const sections = isVideo ? [] : applyHighlights(generateDocumentContent(document), annotations)
+    const isPhoto = document.type === 'JPG' || document.type === 'PNG'
+    const sections = (isVideo || isPhoto) ? [] : applyHighlights(generateDocumentContent(document), annotations)
 
     res.render('cases/documents/document', {
       _case,
@@ -234,7 +235,9 @@ module.exports = router => {
       caseId,
       documentId,
       isVideo,
+      isPhoto,
       videoUrl: isVideo ? '/public/videos/cctv-placeholder.mp4' : null,
+      photoUrl: isPhoto ? '/public/images/evidence-photo-placeholder.jpg' : null,
       user: req.session.data.user
     })
   })

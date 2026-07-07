@@ -41,6 +41,12 @@ App.AnnotationPanel = function(params) {
   this.pendingRemoveInadmissibleId = null
   this.formSelectionDocumentY      = null
 
+  // Cards can grow after opening (e.g. GOV.UK conditional checkbox reveals
+  // adding a reasoning textarea), which happens outside our own event
+  // handlers. Watching height directly means every card, current and future,
+  // stays correctly spaced without us having to know what caused the resize.
+  this.resizeObserver = new ResizeObserver($.proxy(this, 'repositionCards'))
+
   this.setupEvents()
   this.positionAllCards()
   this.handleUrlHash()
@@ -58,6 +64,9 @@ App.AnnotationPanel.prototype.setupEvents = function() {
   this.saveBtn.on('click', $.proxy(this, 'onSaveClick'))
   this.cancelBtn.on('click', $.proxy(this, 'onCancelClick'))
   this.sidebarInner.on('click', '.js-annotation-card', $.proxy(this, 'onCardClick'))
+  this.sidebarInner.on('click', '.js-change-annotation', $.proxy(this, 'onChangeAnnotationClick'))
+  this.sidebarInner.on('click', '.js-cancel-change-annotation', $.proxy(this, 'onCancelChangeAnnotationClick'))
+  this.sidebarInner.on('click', '.js-save-change-annotation', $.proxy(this, 'onSaveChangeAnnotationClick'))
   $(document).on('mousedown', $.proxy(this, 'onDocumentMousedown'))
   $(document).on('keydown', $.proxy(this, 'onDocumentKeydown'))
   $(window).on('resize', $.proxy(this, 'positionAllCards'))
@@ -147,6 +156,7 @@ App.AnnotationPanel.prototype.positionAllCards = function() {
   var sidebarRect = this.sidebarInner[0].getBoundingClientRect()
   var MIN_GAP = 8
   var items = []
+  var self = this
 
   $('.js-annotation-card[data-annotation-id]').each(function() {
     var card = this
@@ -158,6 +168,7 @@ App.AnnotationPanel.prototype.positionAllCards = function() {
       markCentreY = markRect.top + markRect.height / 2 - sidebarRect.top
     }
     items.push({ card: card, height: card.offsetHeight, markCentreY: markCentreY, idealTop: markCentreY - card.offsetHeight / 2 })
+    self.resizeObserver.observe(card)
   })
 
   var formCard = this.activeAnnotationCard ? this.activeAnnotationCard[0] : null
@@ -165,6 +176,7 @@ App.AnnotationPanel.prototype.positionAllCards = function() {
     var formViewportY = this.formSelectionDocumentY - window.scrollY
     var formMarkCentreY = formViewportY - sidebarRect.top
     items.push({ card: formCard, height: formCard.offsetHeight, markCentreY: formMarkCentreY, idealTop: formMarkCentreY - formCard.offsetHeight / 2 })
+    this.resizeObserver.observe(formCard)
   }
 
   if (!items.length) return
@@ -258,8 +270,9 @@ App.AnnotationPanel.prototype.onAnnotateBtnClick = function(e) {
   this.activeAnnotationCard.prop('hidden', false)
   this.sidebarEmpty.prop('hidden', true)
   this.positionAllCards()
-  if (this.pendingAnnotationType === 'evidence') {
-    this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').first().focus()
+  var checkboxes = this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]')
+  if (this.pendingAnnotationType === 'evidence' && checkboxes.length) {
+    checkboxes.first().focus()
   } else {
     this.activeAnnotationCard.find('.js-annotation-note-input').focus()
   }
@@ -357,7 +370,7 @@ App.AnnotationPanel.prototype.onToggleRedactionsClick = function() {
 }
 
 App.AnnotationPanel.prototype.onSaveClick = function() {
-  if (this.pendingAnnotationType === 'evidence') {
+  if (this.pendingAnnotationType === 'evidence' && this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').length) {
     this.onSaveEvidenceClick()
     return
   }
@@ -420,12 +433,105 @@ App.AnnotationPanel.prototype.onCancelClick = function(e) {
 }
 
 App.AnnotationPanel.prototype.onCardClick = function(e) {
-  if ($(e.target).closest('a').length) return
+  if ($(e.target).closest('a, .js-annotation-edit-form').length) return
   var card = $(e.currentTarget)
-  $('.js-annotation-card').removeClass('is-selected app-annotation-card--active')
+  this.deselectAllCards()
   card.addClass('is-selected')
   this.activateMark(card.data('annotation-id'))
   this.repositionCards()
+}
+
+// Closes any card left mid-edit so a deselected card never keeps its edit
+// form open with no way to see it's still unsaved.
+App.AnnotationPanel.prototype.deselectAllCards = function() {
+  var self = this
+  $('.js-annotation-card').removeClass('is-selected app-annotation-card--active').each(function() {
+    self.hideAnnotationEditForm($(this))
+  })
+}
+
+// Resets an in-progress edit (note text, checked points and their reasoning)
+// back to the values it was opened with, then hides it.
+App.AnnotationPanel.prototype.hideAnnotationEditForm = function(card) {
+  var form = card.find('.js-annotation-edit-form')
+  if (!form.length || form.prop('hidden')) return
+
+  form.find('textarea').each(function() { this.value = this.defaultValue })
+  form.find('input[name="pointsToProveCheckbox"]').each(function() { this.checked = this.defaultChecked })
+  form.find('.js-annotation-ptp-hidden').remove()
+
+  form.prop('hidden', true)
+  card.find('.js-annotation-view').prop('hidden', false)
+}
+
+App.AnnotationPanel.prototype.onChangeAnnotationClick = function(e) {
+  e.preventDefault()
+  var link = $(e.currentTarget)
+  var card = link.closest('.js-annotation-card')
+  var editForm = card.find('.js-annotation-edit-form')
+  var checkboxForm = editForm.find('.js-annotation-edit-checkboxes')
+  var noteForm = editForm.find('.js-annotation-edit-note')
+  var target = link.data('edit-target')
+  var showCheckboxes = target ? target === 'checkboxes' : checkboxForm.length > 0
+
+  card.find('.js-annotation-view').prop('hidden', true)
+  editForm.prop('hidden', false)
+  checkboxForm.prop('hidden', !showCheckboxes)
+  noteForm.prop('hidden', showCheckboxes)
+
+  if (showCheckboxes) {
+    checkboxForm.find('input[name="pointsToProveCheckbox"]').first().focus()
+  } else {
+    noteForm.find('textarea').first().focus()
+  }
+  this.repositionCards()
+}
+
+App.AnnotationPanel.prototype.onCancelChangeAnnotationClick = function(e) {
+  e.preventDefault()
+  this.hideAnnotationEditForm($(e.currentTarget).closest('.js-annotation-card'))
+  this.repositionCards()
+}
+
+// Evidence edits only submit reasoning for points that are actually checked —
+// mirrors onSaveEvidenceClick so an unchecked point's leftover reasoning text
+// never gets linked by accident.
+App.AnnotationPanel.prototype.onSaveChangeAnnotationClick = function(e) {
+  var form = $(e.currentTarget).closest('form')
+  var checked = form.find('input[name="pointsToProveCheckbox"]:checked')
+
+  if (!checked.length) {
+    form.find('input[name="pointsToProveCheckbox"]').first().focus()
+    return
+  }
+
+  var fields = []
+  var firstInvalid = null
+
+  checked.each(function() {
+    var pointId = $(this).val()
+    var textarea = form.find('.js-annotation-ptp-reasoning[data-point-to-prove-id="' + pointId + '"]')
+    var reasoning = textarea.val().trim()
+    if (!reasoning) {
+      if (!firstInvalid) firstInvalid = textarea
+      return
+    }
+    fields.push({ pointId: pointId, reasoning: reasoning })
+  })
+
+  if (firstInvalid) { firstInvalid.focus(); return }
+
+  form.find('.js-annotation-ptp-hidden').remove()
+  fields.forEach(function(field) {
+    $('<input>', {
+      type: 'hidden',
+      class: 'js-annotation-ptp-hidden',
+      name: 'pointsToProve[' + field.pointId + ']',
+      value: field.reasoning
+    }).appendTo(form)
+  })
+
+  form[0].submit()
 }
 
 App.AnnotationPanel.prototype.onDocumentMousedown = function(e) {
@@ -433,7 +539,7 @@ App.AnnotationPanel.prototype.onDocumentMousedown = function(e) {
     this.hidePopup()
   }
   if (!$(e.target).closest('.js-annotation-card').length) {
-    $('.js-annotation-card').removeClass('is-selected app-annotation-card--active')
+    this.deselectAllCards()
     this.activateMark(null)
     this.repositionCards()
   }

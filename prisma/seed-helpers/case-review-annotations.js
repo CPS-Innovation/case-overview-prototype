@@ -1,0 +1,141 @@
+const { faker } = require('@faker-js/faker')
+const statuses = require('../../app/data/case-statuses')
+const annotationSnippets = require('../../app/data/annotation-snippets')
+
+const photoTypes = ['JPG', 'PNG']
+
+// Mirrors selectTemplate() in app/helpers/documentContent.js so the snippets
+// picked here always exist in the paragraphs the review page renders.
+function selectSnippets(documentName) {
+  const lower = documentName.toLowerCase()
+  if (lower.includes('witness statement')) return annotationSnippets.witnessStatement
+  if (lower.includes('cctv')) return annotationSnippets.cctvReport
+  if (lower.includes('forensic') || lower.includes('lab result')) return annotationSnippets.forensicReport
+  if (lower.includes('interview transcript')) return annotationSnippets.interviewTranscript
+  if (lower.includes('medical')) return annotationSnippets.medicalReport
+  return annotationSnippets.policeReport
+}
+
+function formatTimestamp(totalSeconds) {
+  const mins = Math.floor(totalSeconds / 60)
+  const secs = totalSeconds % 60
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
+
+// Builds the candidate list (snippet + selectedText) for a document, ready
+// to be picked from without replacement.
+function buildCandidates(document) {
+  if (document.type === 'MP4') {
+    const seconds = faker.helpers.arrayElements([5, 20, 45, 70, 95, 130, 165, 210, 250], 3).sort((a, b) => a - b)
+    return annotationSnippets.video.map((snippet, index) => ({
+      ...snippet,
+      selectedText: formatTimestamp(seconds[index])
+    }))
+  }
+  if (photoTypes.includes(document.type)) {
+    return annotationSnippets.photo.map(snippet => ({ ...snippet, selectedText: 'Whole photo' }))
+  }
+  return selectSnippets(document.name)
+}
+
+// Evidence annotations link to a real point to prove about half the time,
+// mirroring how the review page joins "description: reasoning" into the
+// annotation note when points are selected via the UI.
+function buildNoteAndLinks(snippet, pointsToProve) {
+  if (snippet.type === 'evidence' && pointsToProve.length && faker.datatype.boolean()) {
+    const point = faker.helpers.arrayElement(pointsToProve)
+    return {
+      note: `${point.description}: ${snippet.note}`,
+      links: [{ pointToProveId: point.id, reasoning: snippet.note }]
+    }
+  }
+  return { note: snippet.note, links: [] }
+}
+
+async function seedCaseReviewAnnotations(prisma, { users }) {
+  const cases = await prisma.case.findMany({
+    where: {
+      // Case-level review data (document status, annotations) isn't scoped
+      // to a single defendant, so a case is only in scope once every
+      // defendant is actually charged - otherwise a still-pending charging
+      // decision for a co-defendant would show up looking already reviewed.
+      AND: [
+        { defendants: { some: { status: statuses.CHARGED } } },
+        { defendants: { none: { status: statuses.NOT_CHARGED, needsReview: true } } }
+      ]
+    },
+    include: {
+      documents: true,
+      prosecutors: true,
+      defendants: {
+        where: { status: statuses.CHARGED },
+        include: { charges: { include: { pointsToProve: true } } }
+      }
+    }
+  })
+
+  let reviewCount = 0
+  let documentReviewCount = 0
+  let annotationCount = 0
+
+  for (const _case of cases) {
+    const lead = _case.prosecutors.find(p => p.isLead) || _case.prosecutors[0]
+    const userId = lead ? lead.userId : faker.helpers.arrayElement(users).id
+    const pointsToProve = _case.defendants.flatMap(d => d.charges.flatMap(c => c.pointsToProve))
+
+    const review = await prisma.caseReview.create({
+      data: { caseId: _case.id, userId }
+    })
+    reviewCount++
+
+    for (const document of _case.documents) {
+      const status = faker.helpers.weightedArrayElement([
+        { value: 'reviewed', weight: 40 },
+        { value: 'in_progress', weight: 25 },
+        { value: 'not_started', weight: 35 }
+      ])
+
+      const docReview = await prisma.caseReviewDocument.create({
+        data: { caseReviewId: review.id, documentId: document.id, status }
+      })
+      documentReviewCount++
+
+      if (status === 'not_started') continue
+
+      const candidates = buildCandidates(document)
+      const numAnnotations = status === 'reviewed'
+        ? faker.number.int({ min: 2, max: candidates.length })
+        : faker.number.int({ min: 0, max: 2 })
+
+      const chosen = faker.helpers.arrayElements(candidates, Math.min(numAnnotations, candidates.length))
+
+      for (const snippet of chosen) {
+        const { note, links } = buildNoteAndLinks(snippet, pointsToProve)
+
+        const annotation = await prisma.caseReviewAnnotation.create({
+          data: {
+            caseReviewDocumentId: docReview.id,
+            type: snippet.type,
+            selectedText: snippet.selectedText,
+            note
+          }
+        })
+        annotationCount++
+
+        if (links.length) {
+          await prisma.caseReviewAnnotationPointToProve.createMany({
+            data: links.map(link => ({
+              annotationId: annotation.id,
+              pointToProveId: link.pointToProveId,
+              reasoning: link.reasoning
+            }))
+          })
+        }
+      }
+    }
+  }
+
+  return { reviews: reviewCount, documentReviews: documentReviewCount, annotations: annotationCount }
+}
+
+module.exports = { seedCaseReviewAnnotations }

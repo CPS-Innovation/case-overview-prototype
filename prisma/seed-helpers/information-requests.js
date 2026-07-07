@@ -56,7 +56,7 @@ function daysFromNow(n) {
   return d;
 }
 
-async function seedPoliceRequests(prisma) {
+async function seedInformationRequests(prisma) {
   const allCases = await prisma.case.findMany({
     select: { id: true, defendants: { select: { id: true } } },
     skip: 50,
@@ -85,7 +85,7 @@ async function seedPoliceRequests(prisma) {
       const sentDate = daysAgo(faker.number.int({ min: 5, max: 14 }));
       const itemDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
 
-      await prisma.policeRequest.create({
+      await prisma.informationRequest.create({
         data: {
           caseId,
           sentDate,
@@ -106,7 +106,7 @@ async function seedPoliceRequests(prisma) {
       const sentDate = daysAgo(faker.number.int({ min: 28, max: 56 }));
       const itemDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 5 }));
 
-      await prisma.policeRequest.create({
+      await prisma.informationRequest.create({
         data: {
           caseId,
           sentDate,
@@ -128,7 +128,7 @@ async function seedPoliceRequests(prisma) {
       const allDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 3, max: 5 }));
       const receivedDate = daysAgo(faker.number.int({ min: 2, max: 7 }));
 
-      await prisma.policeRequest.create({
+      await prisma.informationRequest.create({
         data: {
           caseId,
           sentDate,
@@ -153,7 +153,7 @@ async function seedPoliceRequests(prisma) {
       const receivedDate = daysAgo(faker.number.int({ min: 3, max: 14 }));
       const itemDescriptions = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
 
-      await prisma.policeRequest.create({
+      await prisma.informationRequest.create({
         data: {
           caseId,
           sentDate,
@@ -176,7 +176,7 @@ async function seedPoliceRequests(prisma) {
       const received1 = daysAgo(50);
       const descriptions1 = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 3 }));
 
-      await prisma.policeRequest.create({
+      await prisma.informationRequest.create({
         data: {
           caseId,
           sentDate: sent1,
@@ -196,7 +196,7 @@ async function seedPoliceRequests(prisma) {
       const sent2 = daysAgo(faker.number.int({ min: 5, max: 14 }));
       const descriptions2 = faker.helpers.arrayElements(ITEM_DESCRIPTIONS, faker.number.int({ min: 2, max: 4 }));
 
-      await prisma.policeRequest.create({
+      await prisma.informationRequest.create({
         data: {
           caseId,
           sentDate: sent2,
@@ -218,4 +218,4 @@ async function seedPoliceRequests(prisma) {
   return count;
 }
 
-module.exports = { seedPoliceRequests };
+module.exports = { seedInformationRequests };

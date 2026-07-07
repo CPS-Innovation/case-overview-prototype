@@ -1,12 +1,22 @@
 const { faker } = require("@faker-js/faker");
 const pointsToProveByChargeCode = require("../../app/data/points-to-prove.js");
+const statuses = require("../../app/data/case-statuses.js");
 
-// Seeds PointToProve rows for every Charge in the database, using the legal
-// elements defined per charge code in app/data/points-to-prove.js. Runs after
-// all case-generation seeders so it picks up charges created anywhere in the
-// seed process, without each seed-helper having to create them individually.
+// Seeds PointToProve rows for charges belonging to CHARGED defendants only,
+// using the legal elements defined per charge code in
+// app/data/points-to-prove.js. Runs after all case-generation seeders so it
+// picks up charges created anywhere in the seed process, without each
+// seed-helper having to create them individually.
+//
+// Charges for defendants who aren't yet CHARGED (NOT_CHARGED/CHARGES_PENDING)
+// deliberately get no points-to-prove — those charges exist only to carry
+// custody/statutory time limit dates, and the review offences panel uses
+// "has points-to-prove" to decide whether an offence has been confirmed.
 async function seedPointsToProve(prisma) {
-  const charges = await prisma.charge.findMany({ select: { id: true, chargeCode: true } });
+  const charges = await prisma.charge.findMany({
+    where: { defendant: { status: statuses.CHARGED } },
+    select: { id: true, chargeCode: true }
+  });
 
   const rows = [];
   charges.forEach(charge => {

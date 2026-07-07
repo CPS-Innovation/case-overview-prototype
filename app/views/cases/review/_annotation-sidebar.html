@@ -6,20 +6,38 @@
     >
       <div class="app-annotation-form">
         <div class="app-annotation-form__body">
-          {{
-            govukCheckboxes({
-              name: "pointsToProveCheckbox",
-              fieldset: {
-                legend: {
-                  text: "Elements of the offence",
-                  isPageHeading: false,
-                  classes: "govuk-fieldset__legend--s"
-                }
-              },
-              classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
-              items: pointsToProveCheckboxItems
-            })
-          }}
+          {% if hasPointsToProve %}
+            {% for offence in offences %}
+              {% if offence.pointsToProveCheckboxItems.length %}
+                {{
+                  govukCheckboxes({
+                    name: "pointsToProveCheckbox",
+                    idPrefix: "ptp-charge-" + offence.charge.id,
+                    fieldset: {
+                      legend: {
+                        text: offence.charge.description,
+                        isPageHeading: false,
+                        classes: "govuk-fieldset__legend--s"
+                      }
+                    },
+                    classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
+                    items: offence.pointsToProveCheckboxItems
+                  })
+                }}
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            {{
+              govukTextarea({
+                label: {
+                  text: "Evidence note",
+                  classes: "govuk-label--s"
+                },
+                classes: "govuk-!-margin-bottom-0 js-annotation-note-input",
+                rows: 3
+              })
+            }}
+          {% endif %}
 
           <div class="govuk-button-group govuk-!-margin-bottom-0">
             {{
@@ -44,7 +62,7 @@
           {{
             govukTextarea({
               label: {
-                text: "Reasoning",
+                text: "Disclosure note",
                 classes: "govuk-label--s"
               },
               classes: "govuk-!-margin-bottom-0 js-annotation-note-input",
@@ -67,7 +85,7 @@
     </div>
 
     <div
-      class="app-annotation-sidebar__new js-new-annotation-card js-new-annotation-card--police-request"
+      class="app-annotation-sidebar__new js-new-annotation-card js-new-annotation-card--information-request"
       hidden
     >
       <div class="app-annotation-form">
@@ -75,7 +93,7 @@
           {{
             govukTextarea({
               label: {
-                text: "Reasoning",
+                text: "Information request note",
                 classes: "govuk-label--s"
               },
               classes: "govuk-!-margin-bottom-0 js-annotation-note-input",
@@ -98,53 +116,197 @@
     </div>
 
     {% for annotation in annotations %}
-      {% set typeLabel = 'Evidence' if annotation.type == 'evidence' else ('Disclosure' if annotation.type == 'disclosure' else 'Police request') %}
+      {% set typeLabel = 'Evidence' if annotation.type == 'evidence' else ('Disclosure' if annotation.type == 'disclosure' else 'Information request') %}
       {% set tagColour = 'blue' if annotation.type == 'evidence' else ('purple' if annotation.type == 'disclosure' else 'orange') %}
+      {% set noteLabel = 'Evidence note' if annotation.type == 'evidence' else ('Disclosure note' if annotation.type == 'disclosure' else 'Information request note') %}
       <div
         class="app-annotation-card js-annotation-card app-annotation-card--{{ tagColour }}"
         data-annotation-id="{{ annotation.id }}"
         {% if annotation.timestampSeconds != null %}data-timestamp-seconds="{{ annotation.timestampSeconds }}"{% endif %}
       >
-        <p class="app-annotation-card__tag govuk-!-font-size-16 govuk-!-margin-bottom-0">
-          {{ typeLabel }}
-        </p>
+        <div class="js-annotation-view">
+          <p class="app-annotation-card__tag govuk-!-font-size-16 govuk-!-margin-bottom-0">
+            {{ typeLabel }}
+          </p>
 
-        <div class="app-annotation-card__body">
-          <div class="app-annotation-card__header">
-            <p class="app-annotation-card__name">{{ user.firstName }} {{ user.lastName }}</p>
-            <p class="app-annotation-card__time">
-              {{ annotation.createdAt | isoDateString | govukDateTime }}
+          <div class="app-annotation-card__body">
+            <div class="app-annotation-card__header">
+              <p class="app-annotation-card__name">{{ user.firstName }} {{ user.lastName }}</p>
+              <p class="app-annotation-card__time">
+                {{ annotation.createdAt | isoDateString | govukDateTime }}
+              </p>
+            </div>
+
+            {% if annotation.timestampSeconds != null %}
+              <dl class="app-annotation-card__points-to-prove">
+                <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">
+                  Timestamp
+                </dt>
+                <dd class="app-annotation-card__note govuk-!-margin-left-0">
+                  {{ annotation.selectedText }}
+                </dd>
+              </dl>
+            {% endif %}
+
+            {% if annotation.type == 'evidence' and annotation.pointsToProve.length %}
+              <dl class="app-annotation-card__points-to-prove">
+                {% for item in annotation.pointsToProve %}
+                  <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">
+                    {{ item.pointToProve.description }}
+                  </dt>
+                  <dd class="app-annotation-card__note js-annotation-note govuk-!-margin-left-0">
+                    {{ item.reasoning }}
+                  </dd>
+                {% endfor %}
+              </dl>
+            {% else %}
+              <p class="app-annotation-card__note js-annotation-note">{{ annotation.note }}</p>
+            {% endif %}
+
+            {% set isUnlinkedEvidence = annotation.type == 'evidence' and not annotation.pointsToProve.length and hasPointsToProve %}
+            {% set editUrl = '/cases/' + caseId + '/review/documents/' + documentId + '/annotations/' + annotation.id + '/edit' %}
+
+            <p class="app-annotation-card__actions govuk-body-s govuk-!-margin-bottom-0">
+              <a href="#" class="govuk-link js-change-annotation"{% if isUnlinkedEvidence %} data-edit-target="note"{% endif %}>
+                Change
+              </a>
+              <a
+                href="/cases/{{ caseId }}/review/documents/{{ documentId }}/annotations/{{ annotation.id }}/remove?from=document"
+                class="govuk-link govuk-!-margin-left-3"
+              >
+                Remove
+              </a>
+              {% if isUnlinkedEvidence %}
+                <a href="#" class="govuk-link js-change-annotation govuk-!-margin-left-3" data-edit-target="checkboxes">
+                  Link
+                </a>
+              {% endif %}
             </p>
           </div>
+        </div>
 
-          {% if annotation.timestampSeconds != null %}
-            <dl class="app-annotation-card__points-to-prove">
-              <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">Timestamp</dt>
-              <dd class="app-annotation-card__note govuk-!-margin-left-0">{{ annotation.selectedText }}</dd>
-            </dl>
-          {% endif %}
+        <div class="app-annotation-form js-annotation-edit-form" hidden>
+          <div class="app-annotation-form__body">
+            {% if isUnlinkedEvidence %}
+              <form method="post" action="{{ editUrl }}" class="js-annotation-edit-checkboxes" hidden>
+                {% for offence in annotation.editOffences %}
+                  {% if offence.pointsToProveCheckboxItems.length %}
+                    {{
+                      govukCheckboxes({
+                        name: "pointsToProveCheckbox",
+                        idPrefix: "ptp-" + annotation.id + "-charge-" + offence.charge.id,
+                        fieldset: {
+                          legend: {
+                            text: offence.charge.description,
+                            isPageHeading: false,
+                            classes: "govuk-fieldset__legend--s"
+                          }
+                        },
+                        classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
+                        items: offence.pointsToProveCheckboxItems
+                      })
+                    }}
+                  {% endif %}
+                {% endfor %}
 
-          {% if annotation.type == 'evidence' and annotation.pointsToProve.length %}
-            <dl class="app-annotation-card__points-to-prove">
-              {% for item in annotation.pointsToProve %}
-                <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">
-                  {{ item.pointToProve.description }}
-                </dt>
-                <dd class="app-annotation-card__note js-annotation-note govuk-!-margin-left-0">
-                  {{ item.reasoning }}
-                </dd>
-              {% endfor %}
-            </dl>
-          {% else %}
-            <p class="app-annotation-card__note js-annotation-note">{{ annotation.note }}</p>
-          {% endif %}
+                <div class="govuk-button-group govuk-!-margin-bottom-0">
+                  {{
+                    govukButton({
+                      text: "Save",
+                      classes: "govuk-button--small govuk-!-margin-bottom-0 js-save-change-annotation",
+                      attributes: { type: "button" }
+                    })
+                  }}
+                  <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
+                </div>
+              </form>
 
-          <a
-            href="/cases/{{ caseId }}/review/documents/{{ documentId }}/annotations/{{ annotation.id }}/remove?from=document"
-            class="govuk-link govuk-body-s app-annotation-card__remove"
-          >
-            Remove
-          </a>
+              <form method="post" action="{{ editUrl }}" class="js-annotation-edit-note">
+                {{
+                  govukTextarea({
+                    name: "note",
+                    id: "note-" + annotation.id,
+                    value: annotation.note,
+                    label: {
+                      text: noteLabel,
+                      classes: "govuk-label--s"
+                    },
+                    classes: "govuk-!-margin-bottom-0",
+                    rows: 3
+                  })
+                }}
+
+                <div class="govuk-button-group govuk-!-margin-bottom-0">
+                  {{
+                    govukButton({
+                      text: "Save",
+                      classes: "govuk-button--small govuk-!-margin-bottom-0"
+                    })
+                  }}
+                  <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
+                </div>
+              </form>
+            {% elif annotation.type == 'evidence' and hasPointsToProve %}
+              <form method="post" action="{{ editUrl }}" class="js-annotation-edit-checkboxes">
+                {% for offence in annotation.editOffences %}
+                  {% if offence.pointsToProveCheckboxItems.length %}
+                    {{
+                      govukCheckboxes({
+                        name: "pointsToProveCheckbox",
+                        idPrefix: "ptp-" + annotation.id + "-charge-" + offence.charge.id,
+                        fieldset: {
+                          legend: {
+                            text: offence.charge.description,
+                            isPageHeading: false,
+                            classes: "govuk-fieldset__legend--s"
+                          }
+                        },
+                        classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
+                        items: offence.pointsToProveCheckboxItems
+                      })
+                    }}
+                  {% endif %}
+                {% endfor %}
+
+                <div class="govuk-button-group govuk-!-margin-bottom-0">
+                  {{
+                    govukButton({
+                      text: "Save",
+                      classes: "govuk-button--small govuk-!-margin-bottom-0 js-save-change-annotation",
+                      attributes: { type: "button" }
+                    })
+                  }}
+                  <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
+                </div>
+              </form>
+            {% else %}
+              <form method="post" action="{{ editUrl }}" class="js-annotation-edit-note">
+                {{
+                  govukTextarea({
+                    name: "note",
+                    id: "note-" + annotation.id,
+                    value: annotation.note,
+                    label: {
+                      text: noteLabel,
+                      classes: "govuk-label--s"
+                    },
+                    classes: "govuk-!-margin-bottom-0",
+                    rows: 3
+                  })
+                }}
+
+                <div class="govuk-button-group govuk-!-margin-bottom-0">
+                  {{
+                    govukButton({
+                      text: "Save",
+                      classes: "govuk-button--small govuk-!-margin-bottom-0"
+                    })
+                  }}
+                  <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
+                </div>
+              </form>
+            {% endif %}
+          </div>
         </div>
       </div>
     {% endfor %}

@@ -85,11 +85,10 @@
   margin-bottom: govuk-spacing(2);
 }
 
-.app-annotation-card__remove {
-  @include govuk-font(16);
+.app-annotation-card__actions {
   display: none;
 
   .app-annotation-card.is-selected & {
-    display: inline;
+    display: block;
   }
 }

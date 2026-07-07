@@ -1,6 +1,6 @@
 {% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
-{% set secondaryNavId = 'police-requests' %}
+{% set secondaryNavId = 'information-requests' %}
 {% from "_components/page-header/macro.njk" import appPageHeader %}
 
 {% block beforeContent %}
@@ -12,8 +12,8 @@
           href: "/cases/:caseId" | replace(':caseId', _case.id)
         },
         {
-          text: 'Police requests',
-          href: "/cases/:caseId/police-requests" | replace(':caseId', _case.id)
+          text: 'Information requests',
+          href: "/cases/:caseId/information-requests" | replace(':caseId', _case.id)
         }
       ]
     })
@@ -24,12 +24,12 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-l">
-        {% if policeRequest.description and policeRequest.description.length > 75 %}
-          {{ policeRequest.description | truncate(75) }}
-        {% elif policeRequest.description %}
-          {{ policeRequest.description }}
+        {% if informationRequest.description and informationRequest.description.length > 75 %}
+          {{ informationRequest.description | truncate(75) }}
+        {% elif informationRequest.description %}
+          {{ informationRequest.description }}
         {% else %}
-          Request sent {{ policeRequest.sentDate | isoDateString | govukDate }}
+          Request sent {{ informationRequest.sentDate | isoDateString | govukDate }}
         {% endif %}
       </h1>
 
@@ -38,11 +38,11 @@
           rows: [
             {
               key: { text: 'Description' },
-              value: { text: policeRequest.description }
-            } if policeRequest.description,
+              value: { text: informationRequest.description }
+            } if informationRequest.description,
             {
               key: { text: 'Sent' },
-              value: { text: policeRequest.sentDate | isoDateString | govukDate }
+              value: { text: informationRequest.sentDate | isoDateString | govukDate }
             }
           ]
         })
@@ -50,7 +50,7 @@
 
       <h2 class="govuk-heading-m govuk-!-margin-top-6">Items requested</h2>
 
-      {% for item in policeRequest.items %}
+      {% for item in informationRequest.items %}
 
         {% if item.status === 'Pending' %}
           {{ appPageHeader({
@@ -59,11 +59,11 @@
             items: [
               {
                 text: 'Mark as received',
-                href: '/cases/' + _case.id + '/police-requests/' + policeRequest.id + '/items/' + item.id + '/mark-received'
+                href: '/cases/' + _case.id + '/information-requests/' + informationRequest.id + '/items/' + item.id + '/mark-received'
               },
               {
                 text: 'Cancel request',
-                href: '/cases/' + _case.id + '/police-requests/' + policeRequest.id + '/items/' + item.id + '/cancel'
+                href: '/cases/' + _case.id + '/information-requests/' + informationRequest.id + '/items/' + item.id + '/cancel'
               }
             ]
           }) }}
@@ -79,7 +79,7 @@
             rows: [
               {
                 key: { text: 'Status' },
-                value: { html: govukTag({ text: item.status, classes: item.status | policeRequestStatusTagClass }) }
+                value: { html: govukTag({ text: item.status, classes: item.status | informationRequestStatusTagClass }) }
               },
               {
                 key: { text: 'Category' },

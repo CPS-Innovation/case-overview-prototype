@@ -9,7 +9,7 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <span class="govuk-caption-l">{{ _case.reference }} - create police request</span>
+      <span class="govuk-caption-l">{{ _case.reference }} - create information request</span>
       <h1 class="govuk-heading-l">Items requested</h1>
 
       {% for item in items %}
@@ -22,7 +22,7 @@
           },
           items: [{
             text: 'Delete item',
-            href: '/cases/' + _case.id + '/police-requests/new/items/' + loop.index0 + '/delete'
+            href: '/cases/' + _case.id + '/information-requests/new/items/' + loop.index0 + '/delete'
           }]
         }) }}
 
@@ -32,22 +32,22 @@
               {
                 key: { text: "Category" },
                 value: { text: item.category },
-                actions: { items: [{ href: '/cases/' + _case.id + '/police-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "category" }] }
+                actions: { items: [{ href: '/cases/' + _case.id + '/information-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "category" }] }
               },
               {
                 key: { text: "Description" },
                 value: { text: item.description },
-                actions: { items: [{ href: '/cases/' + _case.id + '/police-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "description" }] }
+                actions: { items: [{ href: '/cases/' + _case.id + '/information-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "description" }] }
               },
               {
                 key: { text: "Due date" },
                 value: { text: item.formattedDueDate },
-                actions: { items: [{ href: '/cases/' + _case.id + '/police-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "due date" }] }
+                actions: { items: [{ href: '/cases/' + _case.id + '/information-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "due date" }] }
               },
               {
                 key: { text: "Defendants" },
                 value: { text: item.defendantNames or "—" },
-                actions: { items: [{ href: '/cases/' + _case.id + '/police-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "defendants" }] }
+                actions: { items: [{ href: '/cases/' + _case.id + '/information-requests/new/items/' + loop.index0 + '/edit', text: "Change", visuallyHiddenText: "defendants" }] }
               } if _case.defendants.length > 1
             ]
           })

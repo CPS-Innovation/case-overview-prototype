@@ -67,84 +67,24 @@
 
   <div class="app-document-area">
     <div class="app-document-layout">
-      {% include "cases/documents/_document-pane-text.html" %}
+      {% include "cases/documents/_document-pane-photo.html" %}
 
       {% include "cases/review/_annotation-sidebar.html" %}
     </div>
   </div>
 
-  <div class="app-annotation-popup js-annotation-popup" hidden aria-hidden="true">
-    <div class="app-annotation-popup__actions js-selection-actions">
-      <button type="button" class="app-annotation-popup__btn js-annotate-btn" data-type="evidence">
-        Evidence
-      </button>
-      <button
-        type="button"
-        class="app-annotation-popup__btn js-annotate-btn"
-        data-type="disclosure"
-      >
-        Disclosure
-      </button>
-      <button
-        type="button"
-        class="app-annotation-popup__btn js-annotate-btn"
-        data-type="information-request"
-      >
-        Information request
-      </button>
-      <button type="button" class="app-annotation-popup__btn js-redact-btn">Redact</button>
-      <button type="button" class="app-annotation-popup__btn js-inadmissible-btn">
-        Inadmissible
-      </button>
-    </div>
-    <div class="app-annotation-popup__actions js-redaction-actions" hidden>
-      <button type="button" class="app-annotation-popup__btn js-remove-redaction-btn">
-        Unredact
-      </button>
-    </div>
-    <div class="app-annotation-popup__actions js-inadmissible-actions" hidden>
-      <button type="button" class="app-annotation-popup__btn js-remove-inadmissible-btn">
-        Restore
-      </button>
-    </div>
-  </div>
-
   {% include "cases/review/_annotation-form.html" %}
-
-  <form
-    method="post"
-    action="/cases/{{ caseId }}/review/documents/{{ documentId }}/redactions/add"
-    id="redaction-form"
-    hidden
-  >
-    <input type="hidden" name="selectedText" id="redaction-selected-text" />
-    <input type="hidden" name="paragraphIndex" id="redaction-paragraph-index" />
-    <input type="hidden" name="occurrenceIndex" id="redaction-occurrence-index" />
-  </form>
-
-  <form method="post" id="redaction-remove-form" hidden></form>
-
-  <form
-    method="post"
-    action="/cases/{{ caseId }}/review/documents/{{ documentId }}/inadmissibles/add"
-    id="inadmissible-form"
-    hidden
-  >
-    <input type="hidden" name="selectedText" id="inadmissible-selected-text" />
-  </form>
-
-  <form method="post" id="inadmissible-remove-form" hidden></form>
 {% endblock %}
 
 {% block pageScripts %}
   {{ super() }}
-  <script src="/public/javascripts/components/annotation-panel.js"></script>
+  <script src="/public/javascripts/components/photo-annotation-panel.js"></script>
 {% endblock %}
 
 {% block scripts %}
   {{ super() }}
   <script>
-    new App.AnnotationPanel({ container: $('#document-content') })
+    new App.PhotoAnnotationPanel({ container: $('#document-content') })
     $('.js-annotation-note').each(function () {
       new App.TextExpander({ container: $(this), maxLength: 50 })
     })

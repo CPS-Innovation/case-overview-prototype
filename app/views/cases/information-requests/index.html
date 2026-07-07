@@ -1,7 +1,7 @@
 {% extends "_layouts/main.html" %}
 {% set navId = 'cases' %}
-{% set secondaryNavId = 'police-requests' %}
-{% set pageName = "Police requests (:total)" | replace(':total', policeRequests.length | formatNumber) %}
+{% set secondaryNavId = 'information-requests' %}
+{% set pageName = "Information requests (:total)" | replace(':total', informationRequests.length | formatNumber) %}
 
 {% block beforeContent %}
   {% include "_includes/case/identity-bar.njk" %}
@@ -18,13 +18,13 @@
       {{
         govukButton({
           text: "Create request",
-          href: "/cases/" + _case.id + "/police-requests/new"
+          href: "/cases/" + _case.id + "/information-requests/new"
         })
       }}
 
-      {% if policeRequests.length %}
+      {% if informationRequests.length %}
         <div class="app-list">
-          {% for request in policeRequests %}
+          {% for request in informationRequests %}
             {% set descriptionPreview %}
               {% if request.description and request.description.length > 75 %}
                 {{ request.description | truncate(75) }}
@@ -39,14 +39,14 @@
               <h2 class="govuk-heading-s govuk-!-margin-bottom-1">
                 <div>
                   <a
-                    href="/cases/{{ _case.id }}/police-requests/{{ request.id }}"
+                    href="/cases/{{ _case.id }}/information-requests/{{ request.id }}"
                     class="govuk-link--no-visited-state"
                   >
                     {{ descriptionPreview | trim }}
                   </a>
                 </div>
                 <div class="app-list__tag">
-                  {{ govukTag({ text: request.status, classes: request.status | policeRequestStatusTagClass }) }}
+                  {{ govukTag({ text: request.status, classes: request.status | informationRequestStatusTagClass }) }}
                 </div>
               </h2>
 
@@ -69,7 +69,7 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="govuk-body">There are no police requests for this case.</p>
+        <p class="govuk-body">There are no information requests for this case.</p>
       {% endif %}
     </div>
   </div>

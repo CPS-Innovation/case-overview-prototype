@@ -5,7 +5,7 @@
   {{
     govukBackLink({
       text: 'Back',
-      href: "/cases/:caseId/police-requests/:requestId" | replace(':caseId', _case.id) | replace(':requestId', policeRequest.id)
+      href: "/cases/:caseId/information-requests/:requestId" | replace(':caseId', _case.id) | replace(':requestId', informationRequest.id)
     })
   }}
 {% endblock %}
@@ -14,12 +14,12 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <span class="govuk-caption-l">{{ _case.reference }}</span>
-      <h1 class="govuk-heading-l">Edit police request</h1>
+      <h1 class="govuk-heading-l">Edit information request</h1>
 
       <form method="post">
 
         {{ govukTextarea({
-          name: "policeRequest[description]",
+          name: "informationRequest[description]",
           id: "description",
           label: {
             text: "Description",
@@ -28,7 +28,7 @@
           hint: {
             text: "Briefly describe why you are making this request."
           },
-          value: policeRequest.description
+          value: informationRequest.description
         }) }}
 
         {{ govukDateInput({
@@ -41,25 +41,25 @@
           },
           hint: { text: "For example, 31 3 2025" },
           items: [
-            { name: "policeRequest[sentDate][day]", label: "Day", classes: "govuk-input--width-2", value: policeRequest.sentDateFields.day },
-            { name: "policeRequest[sentDate][month]", label: "Month", classes: "govuk-input--width-2", value: policeRequest.sentDateFields.month },
-            { name: "policeRequest[sentDate][year]", label: "Year", classes: "govuk-input--width-4", value: policeRequest.sentDateFields.year }
+            { name: "informationRequest[sentDate][day]", label: "Day", classes: "govuk-input--width-2", value: informationRequest.sentDateFields.day },
+            { name: "informationRequest[sentDate][month]", label: "Month", classes: "govuk-input--width-2", value: informationRequest.sentDateFields.month },
+            { name: "informationRequest[sentDate][year]", label: "Year", classes: "govuk-input--width-4", value: informationRequest.sentDateFields.year }
           ]
         }) }}
 
         <h2 class="govuk-heading-m">Items requested</h2>
 
-        {% for item in policeRequest.items %}
+        {% for item in informationRequest.items %}
           <div class="govuk-form-group">
             <fieldset class="govuk-fieldset">
               <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
                 Item {{ loop.index }}
               </legend>
 
-              <input type="hidden" name="policeRequest[items][{{ loop.index0 }}][id]" value="{{ item.id }}">
+              <input type="hidden" name="informationRequest[items][{{ loop.index0 }}][id]" value="{{ item.id }}">
 
               {{ govukSelect({
-                name: "policeRequest[items][" + loop.index0 + "][category]",
+                name: "informationRequest[items][" + loop.index0 + "][category]",
                 id: "item-" + loop.index0 + "-category",
                 label: { text: "Category" },
                 value: item.category,
@@ -67,7 +67,7 @@
               }) }}
 
               {{ govukInput({
-                name: "policeRequest[items][" + loop.index0 + "][description]",
+                name: "informationRequest[items][" + loop.index0 + "][description]",
                 id: "item-" + loop.index0 + "-description",
                 label: { text: "Description" },
                 value: item.description
@@ -83,15 +83,15 @@
                 },
                 hint: { text: "For example, 31 3 2025" },
                 items: [
-                  { name: "policeRequest[items][" + loop.index0 + "][dueDate][day]", label: "Day", classes: "govuk-input--width-2", value: item.dueDateFields.day },
-                  { name: "policeRequest[items][" + loop.index0 + "][dueDate][month]", label: "Month", classes: "govuk-input--width-2", value: item.dueDateFields.month },
-                  { name: "policeRequest[items][" + loop.index0 + "][dueDate][year]", label: "Year", classes: "govuk-input--width-4", value: item.dueDateFields.year }
+                  { name: "informationRequest[items][" + loop.index0 + "][dueDate][day]", label: "Day", classes: "govuk-input--width-2", value: item.dueDateFields.day },
+                  { name: "informationRequest[items][" + loop.index0 + "][dueDate][month]", label: "Month", classes: "govuk-input--width-2", value: item.dueDateFields.month },
+                  { name: "informationRequest[items][" + loop.index0 + "][dueDate][year]", label: "Year", classes: "govuk-input--width-4", value: item.dueDateFields.year }
                 ]
               }) }}
 
               {% if defendantItems.length > 1 %}
                 {{ govukCheckboxes({
-                  name: "policeRequest[items][" + loop.index0 + "][defendants]",
+                  name: "informationRequest[items][" + loop.index0 + "][defendants]",
                   idPrefix: "item-" + loop.index0 + "-defendants",
                   fieldset: {
                     legend: {
