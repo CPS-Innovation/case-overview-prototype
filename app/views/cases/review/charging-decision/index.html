@@ -19,9 +19,12 @@
       <h1 class="govuk-heading-l">Decision</h1>
 
       {% if charge %}
-        <h2 class="govuk-heading-m">{{ charge.description }}</h2>
+        {% set insetContent %}
+          <h2 class="govuk-heading-m">{{ charge.description }}</h2>
 
-        {{ govukSummaryList({ rows: pointsToProveRows }) }}
+          {{ govukSummaryList({ rows: pointsToProveRows }) }}
+        {% endset %}
+        {{ govukInsetText({ html: insetContent }) }}
       {% endif %}
 
       <form method="post">
@@ -42,7 +45,7 @@
                 text: "Charge"
               },
               {
-                value: "charge",
+                value: "hold",
                 text: "Hold until further evidence"
               },
               {

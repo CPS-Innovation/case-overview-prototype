@@ -115,12 +115,20 @@
         ]
       %}
 
+      {%
+        set chargingDecisionLabels = {
+          "charge": "Charge",
+          "hold": "Hold until further evidence",
+          "do-not-charge": "Do not charge"
+        }
+      %}
+
       {% if needsChargingDecision %}
         {%
           set additionalInformationRows = additionalInformationRows.concat([{
             key: { text: "Charging decision" },
             value: {
-              text: ("Charge" if data.chargingDecision.decision == 'charge' else "Do not charge") if (data.chargingDecision and data.chargingDecision.decision) else "Not provided"
+              text: chargingDecisionLabels[data.chargingDecision.decision] if (data.chargingDecision and data.chargingDecision.decision) else "Not provided"
             },
             actions: {
               items: [{

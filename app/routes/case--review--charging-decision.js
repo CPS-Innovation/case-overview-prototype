@@ -18,20 +18,11 @@ module.exports = (router) => {
       req.session.data.chargingDecision = { ...req.session.data.chargingDecision, referrer: req.query.referrer }
     }
 
-    // Single defendant, single charge for now
-    const charge = _case.defendants[0]?.charges[0]
+    // Single defendant for now; select the charge currently pending a decision
+    const charge = _case.defendants[0]?.charges.find(c => c.status === 'Under review')
     const pointsToProveRows = (charge?.pointsToProve || []).map(point => ({
       key: { text: point.description },
-      value: { text: point.strength || 'Unknown' },
-      actions: {
-        items: [
-          {
-            href: `/cases/${caseId}/points-to-prove/${point.id}/edit?from=make-charging-decision`,
-            text: 'Change',
-            visuallyHiddenText: point.description
-          }
-        ]
-      }
+      value: { text: point.strength || 'Unknown' }
     }))
 
     res.render('cases/review/charging-decision/index', {
