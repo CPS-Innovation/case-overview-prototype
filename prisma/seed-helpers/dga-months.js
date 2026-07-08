@@ -133,11 +133,44 @@ async function seedDGAMonths(prisma, defendants) {
       'You have not stated whether the victim was offered the opportunity to complete a Victim Personal Statement.',
   }
 
-  // 12 months: May 2026 (most recent) → June 2025.
-  // May/April/March have unrecorded outcomes; February and earlier are fully completed.
+  // 15 months: August 2026 (most recent) → June 2025.
+  // August/July/June/May have unrecorded outcomes; April/March have passed deadlines; February and earlier are fully completed.
   // To revert to the original dynamic 4-month config, restore the block that was here
   // (uses getActiveDGAMonth / offsetMonth — those functions are still available above).
   const monthConfigs = [
+    {
+      name: 'August 2026',
+      year: 2026,
+      month: 7,
+      policeUnits: [
+        { name: 'Metropolitan Police', state: 'not-started', sentToPoliceDate: new Date(2026, 7, 5), casesPerUnit: 6 },
+        { name: 'Metropolitan Police', state: 'compliant',   sentToPoliceDate: new Date(2026, 7, 5), casesPerUnit: 3 },
+        { name: 'Thames Valley Police', state: 'not-started', sentToPoliceDate: new Date(2026, 7, 3), casesPerUnit: 4 },
+        { name: 'Thames Valley Police', state: 'compliant',   sentToPoliceDate: new Date(2026, 7, 3), casesPerUnit: 2 }
+      ]
+    },
+    {
+      name: 'July 2026',
+      year: 2026,
+      month: 6,
+      policeUnits: [
+        { name: 'Metropolitan Police', state: 'not-started', sentToPoliceDate: new Date(2026, 6, 3), casesPerUnit: 8 },
+        { name: 'Metropolitan Police', state: 'compliant',   sentToPoliceDate: new Date(2026, 6, 3), casesPerUnit: 3 },
+        { name: 'Thames Valley Police', state: 'not-started', sentToPoliceDate: new Date(2026, 6, 2), casesPerUnit: 4 },
+        { name: 'Thames Valley Police', state: 'compliant',   sentToPoliceDate: new Date(2026, 6, 2), casesPerUnit: 2 }
+      ]
+    },
+    {
+      name: 'June 2026',
+      year: 2026,
+      month: 5,
+      policeUnits: [
+        { name: 'Metropolitan Police', state: 'not-started', sentToPoliceDate: new Date(2026, 6, 5), casesPerUnit: 6 },
+        { name: 'Metropolitan Police', state: 'compliant',   sentToPoliceDate: new Date(2026, 6, 5), casesPerUnit: 5 },
+        { name: 'Thames Valley Police', state: 'not-started', sentToPoliceDate: new Date(2026, 6, 3), casesPerUnit: 5 },
+        { name: 'Thames Valley Police', state: 'compliant',   sentToPoliceDate: new Date(2026, 6, 3), casesPerUnit: 3 }
+      ]
+    },
     {
       name: 'May 2026',
       year: 2026,
