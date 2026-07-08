@@ -40,7 +40,7 @@ App.PhotoAnnotationPanel.prototype.onTypeBtnClick = function(e) {
   this.activeAnnotationCard.prop('hidden', false)
   this.sidebarEmpty.prop('hidden', true)
 
-  var checkboxes = this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]')
+  var checkboxes = this.activeAnnotationCard.find('input[name="elementsCheckbox"]')
   if (this.pendingAnnotationType === 'evidence' && checkboxes.length) {
     checkboxes.first().focus()
   } else {
@@ -51,18 +51,18 @@ App.PhotoAnnotationPanel.prototype.onTypeBtnClick = function(e) {
 App.PhotoAnnotationPanel.prototype.hideNewCard = function() {
   this.newAnnotationCards.prop('hidden', true)
   this.newAnnotationCards.find('.js-annotation-note-input').val('')
-  this.newAnnotationCards.find('.js-annotation-ptp-reasoning').val('')
-  this.newAnnotationCards.find('input[name="pointsToProveCheckbox"]:checked')
+  this.newAnnotationCards.find('.js-annotation-element-reasoning').val('')
+  this.newAnnotationCards.find('input[name="elementsCheckbox"]:checked')
     .prop('checked', false)
     .trigger('change')
-  this.annotationForm.find('.js-annotation-ptp-hidden').remove()
+  this.annotationForm.find('.js-annotation-element-hidden').remove()
   this.activeAnnotationCard = null
   this.pendingAnnotationType = null
 }
 
 App.PhotoAnnotationPanel.prototype.onSaveClick = function() {
   if (!this.pendingAnnotationType) return
-  if (this.pendingAnnotationType === 'evidence' && this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').length) {
+  if (this.pendingAnnotationType === 'evidence' && this.activeAnnotationCard.find('input[name="elementsCheckbox"]').length) {
     this.onSaveEvidenceClick()
     return
   }
@@ -75,14 +75,14 @@ App.PhotoAnnotationPanel.prototype.onSaveClick = function() {
   this.annotationForm[0].submit()
 }
 
-// Evidence annotations link one or more points to prove, each with its own
+// Evidence annotations link one or more elements, each with its own
 // reasoning (revealed under its checkbox), rather than a single shared note.
 App.PhotoAnnotationPanel.prototype.onSaveEvidenceClick = function() {
   var self = this
-  var checked = this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]:checked')
+  var checked = this.activeAnnotationCard.find('input[name="elementsCheckbox"]:checked')
 
   if (!checked.length) {
-    this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').first().focus()
+    this.activeAnnotationCard.find('input[name="elementsCheckbox"]').first().focus()
     return
   }
 
@@ -90,24 +90,24 @@ App.PhotoAnnotationPanel.prototype.onSaveEvidenceClick = function() {
   var firstInvalid = null
 
   checked.each(function() {
-    var pointId = $(this).val()
-    var textarea = self.activeAnnotationCard.find('.js-annotation-ptp-reasoning[data-point-to-prove-id="' + pointId + '"]')
+    var elementId = $(this).val()
+    var textarea = self.activeAnnotationCard.find('.js-annotation-element-reasoning[data-element-id="' + elementId + '"]')
     var reasoning = textarea.val().trim()
     if (!reasoning) {
       if (!firstInvalid) firstInvalid = textarea
       return
     }
-    fields.push({ pointId: pointId, reasoning: reasoning })
+    fields.push({ elementId: elementId, reasoning: reasoning })
   })
 
   if (firstInvalid) { firstInvalid.focus(); return }
 
-  this.annotationForm.find('.js-annotation-ptp-hidden').remove()
+  this.annotationForm.find('.js-annotation-element-hidden').remove()
   fields.forEach(function(field) {
     $('<input>', {
       type: 'hidden',
-      class: 'js-annotation-ptp-hidden',
-      name: 'pointsToProve[' + field.pointId + ']',
+      class: 'js-annotation-element-hidden',
+      name: 'elements[' + field.elementId + ']',
       value: field.reasoning
     }).appendTo(self.annotationForm)
   })
@@ -148,15 +148,15 @@ App.PhotoAnnotationPanel.prototype.deselectAllCards = function() {
   })
 }
 
-// Resets an in-progress edit (note text, checked points and their reasoning)
+// Resets an in-progress edit (note text, checked elements and their reasoning)
 // back to the values it was opened with, then hides it.
 App.PhotoAnnotationPanel.prototype.hideAnnotationEditForm = function(card) {
   var form = card.find('.js-annotation-edit-form')
   if (!form.length || form.prop('hidden')) return
 
   form.find('textarea').each(function() { this.value = this.defaultValue })
-  form.find('input[name="pointsToProveCheckbox"]').each(function() { this.checked = this.defaultChecked })
-  form.find('.js-annotation-ptp-hidden').remove()
+  form.find('input[name="elementsCheckbox"]').each(function() { this.checked = this.defaultChecked })
+  form.find('.js-annotation-element-hidden').remove()
 
   form.prop('hidden', true)
   card.find('.js-annotation-view').prop('hidden', false)
@@ -178,7 +178,7 @@ App.PhotoAnnotationPanel.prototype.onChangeAnnotationClick = function(e) {
   noteForm.prop('hidden', showCheckboxes)
 
   if (showCheckboxes) {
-    checkboxForm.find('input[name="pointsToProveCheckbox"]').first().focus()
+    checkboxForm.find('input[name="elementsCheckbox"]').first().focus()
   } else {
     noteForm.find('textarea').first().focus()
   }
@@ -189,15 +189,15 @@ App.PhotoAnnotationPanel.prototype.onCancelChangeAnnotationClick = function(e) {
   this.hideAnnotationEditForm($(e.currentTarget).closest('.js-annotation-card'))
 }
 
-// Evidence edits only submit reasoning for points that are actually checked —
-// mirrors onSaveEvidenceClick so an unchecked point's leftover reasoning text
+// Evidence edits only submit reasoning for elements that are actually checked —
+// mirrors onSaveEvidenceClick so an unchecked element's leftover reasoning text
 // never gets linked by accident.
 App.PhotoAnnotationPanel.prototype.onSaveChangeAnnotationClick = function(e) {
   var form = $(e.currentTarget).closest('form')
-  var checked = form.find('input[name="pointsToProveCheckbox"]:checked')
+  var checked = form.find('input[name="elementsCheckbox"]:checked')
 
   if (!checked.length) {
-    form.find('input[name="pointsToProveCheckbox"]').first().focus()
+    form.find('input[name="elementsCheckbox"]').first().focus()
     return
   }
 
@@ -205,24 +205,24 @@ App.PhotoAnnotationPanel.prototype.onSaveChangeAnnotationClick = function(e) {
   var firstInvalid = null
 
   checked.each(function() {
-    var pointId = $(this).val()
-    var textarea = form.find('.js-annotation-ptp-reasoning[data-point-to-prove-id="' + pointId + '"]')
+    var elementId = $(this).val()
+    var textarea = form.find('.js-annotation-element-reasoning[data-element-id="' + elementId + '"]')
     var reasoning = textarea.val().trim()
     if (!reasoning) {
       if (!firstInvalid) firstInvalid = textarea
       return
     }
-    fields.push({ pointId: pointId, reasoning: reasoning })
+    fields.push({ elementId: elementId, reasoning: reasoning })
   })
 
   if (firstInvalid) { firstInvalid.focus(); return }
 
-  form.find('.js-annotation-ptp-hidden').remove()
+  form.find('.js-annotation-element-hidden').remove()
   fields.forEach(function(field) {
     $('<input>', {
       type: 'hidden',
-      class: 'js-annotation-ptp-hidden',
-      name: 'pointsToProve[' + field.pointId + ']',
+      class: 'js-annotation-element-hidden',
+      name: 'elements[' + field.elementId + ']',
       value: field.reasoning
     }).appendTo(form)
   })

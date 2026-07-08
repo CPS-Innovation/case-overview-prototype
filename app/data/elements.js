@@ -1,5 +1,5 @@
-// Points to prove (legal elements) for each charge code in ./charges.js.
-// Used to seed PointToProve rows for every Charge created in the database.
+// Elements (points to prove) for each charge code in ./charges.js.
+// Used to seed Element rows for every Charge created in the database.
 module.exports = {
   B10: [
     "The defendant appropriated property",

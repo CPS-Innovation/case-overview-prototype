@@ -6,13 +6,13 @@
     >
       <div class="app-annotation-form">
         <div class="app-annotation-form__body">
-          {% if hasPointsToProve %}
+          {% if hasElements %}
             {% for offence in offences %}
-              {% if offence.pointsToProveCheckboxItems.length %}
+              {% if offence.elementCheckboxItems.length %}
                 {{
                   govukCheckboxes({
-                    name: "pointsToProveCheckbox",
-                    idPrefix: "ptp-charge-" + offence.charge.id,
+                    name: "elementsCheckbox",
+                    idPrefix: "element-charge-" + offence.charge.id,
                     fieldset: {
                       legend: {
                         text: offence.charge.description,
@@ -20,8 +20,8 @@
                         classes: "govuk-fieldset__legend--s"
                       }
                     },
-                    classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
-                    items: offence.pointsToProveCheckboxItems
+                    classes: "govuk-checkboxes--small js-annotation-element-checkboxes",
+                    items: offence.elementCheckboxItems
                   })
                 }}
               {% endif %}
@@ -138,7 +138,7 @@
             </div>
 
             {% if annotation.timestampSeconds != null %}
-              <dl class="app-annotation-card__points-to-prove">
+              <dl class="app-annotation-card__elements">
                 <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">
                   Timestamp
                 </dt>
@@ -148,11 +148,11 @@
               </dl>
             {% endif %}
 
-            {% if annotation.type == 'evidence' and annotation.pointsToProve.length %}
-              <dl class="app-annotation-card__points-to-prove">
-                {% for item in annotation.pointsToProve %}
+            {% if annotation.type == 'evidence' and annotation.elements.length %}
+              <dl class="app-annotation-card__elements">
+                {% for item in annotation.elements %}
                   <dt class="govuk-!-font-weight-bold govuk-body-s govuk-!-margin-bottom-0">
-                    {{ item.pointToProve.description }}
+                    {{ item.element.description }}
                   </dt>
                   <dd class="app-annotation-card__note js-annotation-note govuk-!-margin-left-0">
                     {{ item.reasoning }}
@@ -163,7 +163,7 @@
               <p class="app-annotation-card__note js-annotation-note">{{ annotation.note }}</p>
             {% endif %}
 
-            {% set isUnlinkedEvidence = annotation.type == 'evidence' and not annotation.pointsToProve.length and hasPointsToProve %}
+            {% set isUnlinkedEvidence = annotation.type == 'evidence' and not annotation.elements.length and hasElements %}
             {% set editUrl = '/cases/' + caseId + '/review/documents/' + documentId + '/annotations/' + annotation.id + '/edit' %}
 
             <p class="app-annotation-card__actions govuk-body-s govuk-!-margin-bottom-0">
@@ -190,11 +190,11 @@
             {% if isUnlinkedEvidence %}
               <form method="post" action="{{ editUrl }}" class="js-annotation-edit-checkboxes" hidden>
                 {% for offence in annotation.editOffences %}
-                  {% if offence.pointsToProveCheckboxItems.length %}
+                  {% if offence.elementCheckboxItems.length %}
                     {{
                       govukCheckboxes({
-                        name: "pointsToProveCheckbox",
-                        idPrefix: "ptp-" + annotation.id + "-charge-" + offence.charge.id,
+                        name: "elementsCheckbox",
+                        idPrefix: "element-" + annotation.id + "-charge-" + offence.charge.id,
                         fieldset: {
                           legend: {
                             text: offence.charge.description,
@@ -202,8 +202,8 @@
                             classes: "govuk-fieldset__legend--s"
                           }
                         },
-                        classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
-                        items: offence.pointsToProveCheckboxItems
+                        classes: "govuk-checkboxes--small js-annotation-element-checkboxes",
+                        items: offence.elementCheckboxItems
                       })
                     }}
                   {% endif %}
@@ -246,14 +246,14 @@
                   <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
                 </div>
               </form>
-            {% elif annotation.type == 'evidence' and hasPointsToProve %}
+            {% elif annotation.type == 'evidence' and hasElements %}
               <form method="post" action="{{ editUrl }}" class="js-annotation-edit-checkboxes">
                 {% for offence in annotation.editOffences %}
-                  {% if offence.pointsToProveCheckboxItems.length %}
+                  {% if offence.elementCheckboxItems.length %}
                     {{
                       govukCheckboxes({
-                        name: "pointsToProveCheckbox",
-                        idPrefix: "ptp-" + annotation.id + "-charge-" + offence.charge.id,
+                        name: "elementsCheckbox",
+                        idPrefix: "element-" + annotation.id + "-charge-" + offence.charge.id,
                         fieldset: {
                           legend: {
                             text: offence.charge.description,
@@ -261,8 +261,8 @@
                             classes: "govuk-fieldset__legend--s"
                           }
                         },
-                        classes: "govuk-checkboxes--small js-annotation-ptp-checkboxes",
-                        items: offence.pointsToProveCheckboxItems
+                        classes: "govuk-checkboxes--small js-annotation-element-checkboxes",
+                        items: offence.elementCheckboxItems
                       })
                     }}
                   {% endif %}

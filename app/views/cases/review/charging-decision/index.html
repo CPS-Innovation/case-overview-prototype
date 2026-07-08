@@ -22,7 +22,7 @@
         {% set insetContent %}
           <h2 class="govuk-heading-m">{{ charge.description }}</h2>
 
-          {{ govukSummaryList({ rows: pointsToProveRows }) }}
+          {{ govukSummaryList({ rows: elementRows }) }}
         {% endset %}
         {{ govukInsetText({ html: insetContent }) }}
       {% endif %}

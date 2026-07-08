@@ -1,11 +1,10 @@
-const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const { addTimeLimitDates } = require('../helpers/timeLimit')
 const { addCaseStatus } = require('../helpers/caseStatus')
 
 module.exports = router => {
-  router.get("/cases/:caseId", async (req, res) => {
+  router.get("/cases/:caseId/narrative", async (req, res) => {
     let _case = await prisma.case.findUnique({
       where: { id: parseInt(req.params.caseId) },
       include: {
@@ -25,7 +24,11 @@ module.exports = router => {
         },
         defendants: {
           include: {
-            charges: true,
+            charges: {
+              include: {
+                elements: { orderBy: { order: 'asc' } }
+              }
+            },
             defenceLawyer: true
           }
         },
@@ -41,49 +44,19 @@ module.exports = router => {
     addTimeLimitDates(_case)
     addCaseStatus(_case)
 
-    res.render("cases/overview/index", { _case })
-  })
-
-  router.get("/cases/:caseId/complexity-calculation", async (req, res) => {
-    let _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
+    const submittedReview = await prisma.caseReview.findFirst({
+      where: { caseId: parseInt(req.params.caseId), status: 'submitted' },
       include: {
-        unit: true,
-        prosecutors: {
+        documents: {
           include: {
-            user: true
-          },
-          orderBy: {
-            isLead: 'desc'
+            document: true,
+            annotations: { orderBy: { createdAt: 'asc' } }
           }
-        },
-        paralegalOfficers: {
-          include: {
-            user: true
-          }
-        },
-        defendants: {
-          include: {
-            charges: true,
-            defenceLawyer: true
-          }
-        },
-        hearings: {
-          orderBy: {
-            startDate: 'asc'
-          },
-          take: 1
-        },
-        location: true,
-        tasks: true,
-        dga: true
+        }
       },
+      orderBy: { createdAt: 'desc' }
     })
 
-    addTimeLimitDates(_case)
-    addCaseStatus(_case)
-
-    res.render("cases/complexity-calculation/index", { _case })
+    res.render("cases/narrative/index", { _case, submittedReview })
   })
-
 }

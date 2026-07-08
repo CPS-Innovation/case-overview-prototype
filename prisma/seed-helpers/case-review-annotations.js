@@ -38,15 +38,15 @@ function buildCandidates(document) {
   return selectSnippets(document.name)
 }
 
-// Evidence annotations link to a real point to prove about half the time,
+// Evidence annotations link to a real element about half the time,
 // mirroring how the review page joins "description: reasoning" into the
-// annotation note when points are selected via the UI.
-function buildNoteAndLinks(snippet, pointsToProve) {
-  if (snippet.type === 'evidence' && pointsToProve.length && faker.datatype.boolean()) {
-    const point = faker.helpers.arrayElement(pointsToProve)
+// annotation note when elements are selected via the UI.
+function buildNoteAndLinks(snippet, elements) {
+  if (snippet.type === 'evidence' && elements.length && faker.datatype.boolean()) {
+    const element = faker.helpers.arrayElement(elements)
     return {
-      note: `${point.description}: ${snippet.note}`,
-      links: [{ pointToProveId: point.id, reasoning: snippet.note }]
+      note: `${element.description}: ${snippet.note}`,
+      links: [{ elementId: element.id, reasoning: snippet.note }]
     }
   }
   return { note: snippet.note, links: [] }
@@ -69,7 +69,7 @@ async function seedCaseReviewAnnotations(prisma, { users }) {
       prosecutors: true,
       defendants: {
         where: { status: statuses.CHARGED },
-        include: { charges: { include: { pointsToProve: true } } }
+        include: { charges: { include: { elements: true } } }
       }
     }
   })
@@ -81,7 +81,7 @@ async function seedCaseReviewAnnotations(prisma, { users }) {
   for (const _case of cases) {
     const lead = _case.prosecutors.find(p => p.isLead) || _case.prosecutors[0]
     const userId = lead ? lead.userId : faker.helpers.arrayElement(users).id
-    const pointsToProve = _case.defendants.flatMap(d => d.charges.flatMap(c => c.pointsToProve))
+    const elements = _case.defendants.flatMap(d => d.charges.flatMap(c => c.elements))
 
     const review = await prisma.caseReview.create({
       data: { caseId: _case.id, userId }
@@ -110,7 +110,7 @@ async function seedCaseReviewAnnotations(prisma, { users }) {
       const chosen = faker.helpers.arrayElements(candidates, Math.min(numAnnotations, candidates.length))
 
       for (const snippet of chosen) {
-        const { note, links } = buildNoteAndLinks(snippet, pointsToProve)
+        const { note, links } = buildNoteAndLinks(snippet, elements)
 
         const annotation = await prisma.caseReviewAnnotation.create({
           data: {
@@ -123,10 +123,10 @@ async function seedCaseReviewAnnotations(prisma, { users }) {
         annotationCount++
 
         if (links.length) {
-          await prisma.caseReviewAnnotationPointToProve.createMany({
+          await prisma.caseReviewAnnotationElement.createMany({
             data: links.map(link => ({
               annotationId: annotation.id,
-              pointToProveId: link.pointToProveId,
+              elementId: link.elementId,
               reasoning: link.reasoning
             }))
           })

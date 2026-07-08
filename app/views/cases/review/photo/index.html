@@ -1,5 +1,4 @@
 {% extends "_layouts/main.html" %}
-
 {% from "_components/page-header/macro.njk" import appPageHeader %}
 
 {% set navId = 'cases' %}
@@ -24,40 +23,54 @@
       {% if offences.length %}
         {% set offencesHtml %}
           <p class="govuk-body">
-            <a class="govuk-link" href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1">Add offence</a>
+            <a
+              class="govuk-link"
+              href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1"
+            >
+              Add offence
+            </a>
           </p>
 
           {% for offence in offences %}
-            {{ appPageHeader({
-              classes: 'govuk-!-margin-bottom-1',
-              heading: {
-                level: 2,
-                text: offence.charge.description,
-                classes: 'govuk-heading-m'
-              },
-              items: [
-                {
-                  text: 'Change',
-                  href: '/cases/' + caseId + '/review/documents/' + documentId + '/change-offence?reset=1'
+            {{
+              appPageHeader({
+                classes: 'govuk-!-margin-bottom-1',
+                heading: {
+                  level: 2,
+                  text: offence.charge.description,
+                  classes: 'govuk-heading-m'
                 },
-                {
-                  text: 'Remove',
-                  href: '/cases/' + caseId + '/review/documents/' + documentId + '/offences/' + offence.charge.id + '/remove'
-                }
-              ]
-            }) }}
+                items: [
+                  {
+                    text: 'Change',
+                    href: '/cases/' + caseId + '/review/documents/' + documentId + '/change-offence?reset=1'
+                  },
+                  {
+                    text: 'Remove',
+                    href: '/cases/' + caseId + '/review/documents/' + documentId + '/offences/' + offence.charge.id + '/remove'
+                  }
+                ]
+              })
+            }}
 
-            {{ govukSummaryList({ rows: offence.pointsToProveRows }) }}
+            {{ govukSummaryList({ rows: offence.elementRows }) }}
           {% endfor %}
         {% endset %}
 
-        {{ govukDetails({
-          summaryText: "Offences",
-          html: offencesHtml
-        }) }}
+        {{
+          govukDetails({
+            summaryText: "Offences and element strength assessment",
+            html: offencesHtml
+          })
+        }}
       {% else %}
         <p class="govuk-body">
-          <a class="govuk-link" href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1">Add offence</a>
+          <a
+            class="govuk-link"
+            href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1"
+          >
+            Add offence
+          </a>
         </p>
       {% endif %}
     </div>
@@ -68,7 +81,6 @@
   <div class="app-document-area">
     <div class="app-document-layout">
       {% include "cases/documents/_document-pane-photo.html" %}
-
       {% include "cases/review/_annotation-sidebar.html" %}
     </div>
   </div>

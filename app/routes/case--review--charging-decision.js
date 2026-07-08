@@ -9,7 +9,7 @@ module.exports = (router) => {
       where: { id: caseId },
       include: {
         defendants: {
-          include: { charges: { include: { pointsToProve: { orderBy: { order: 'asc' } } } } }
+          include: { charges: { include: { elements: { orderBy: { order: 'asc' } } } } }
         }
       },
     })
@@ -20,15 +20,15 @@ module.exports = (router) => {
 
     // Single defendant for now; select the charge currently pending a decision
     const charge = _case.defendants[0]?.charges.find(c => c.status === 'Under review')
-    const pointsToProveRows = (charge?.pointsToProve || []).map(point => ({
-      key: { text: point.description },
-      value: { text: point.strength || 'Unknown' }
+    const elementRows = (charge?.elements || []).map(element => ({
+      key: { text: element.description },
+      value: { text: element.strength || 'Not assessed' }
     }))
 
     res.render('cases/review/charging-decision/index', {
       _case,
       charge,
-      pointsToProveRows,
+      elementRows,
       selectedDecision: req.session.data.chargingDecision?.decision,
     })
   })

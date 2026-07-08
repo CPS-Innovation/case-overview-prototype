@@ -9,27 +9,27 @@ function buildReturnUrl(caseId, from, documentId) {
 }
 
 module.exports = (router) => {
-  router.get('/cases/:caseId/points-to-prove/:pointToProveId/edit', async (req, res) => {
+  router.get('/cases/:caseId/elements/:elementId/edit', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
-    const pointToProveId = parseInt(req.params.pointToProveId)
+    const elementId = parseInt(req.params.elementId)
     const from = req.query.from || 'make-charging-decision'
     const documentId = req.query.documentId || ''
 
-    const [_case, pointToProve] = await Promise.all([
+    const [_case, element] = await Promise.all([
       prisma.case.findUnique({ where: { id: caseId } }),
-      prisma.pointToProve.findUnique({ where: { id: pointToProveId } })
+      prisma.element.findUnique({ where: { id: elementId } })
     ])
 
-    res.render('cases/points-to-prove/edit', { _case, pointToProve, caseId, from, documentId })
+    res.render('cases/elements/edit', { _case, element, caseId, from, documentId })
   })
 
-  router.post('/cases/:caseId/points-to-prove/:pointToProveId/edit', async (req, res) => {
+  router.post('/cases/:caseId/elements/:elementId/edit', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
-    const pointToProveId = parseInt(req.params.pointToProveId)
+    const elementId = parseInt(req.params.elementId)
     const { from, documentId, strength } = req.body
 
-    await prisma.pointToProve.update({
-      where: { id: pointToProveId },
+    await prisma.element.update({
+      where: { id: elementId },
       data: { strength }
     })
 

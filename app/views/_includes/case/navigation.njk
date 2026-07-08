@@ -7,6 +7,11 @@
     current: secondaryNavId == 'overview'
   },
   {
+    text: "Narrative",
+    href: "/cases/:caseId/narrative" | replace(':caseId', _case.id),
+    current: secondaryNavId == 'narrative'
+  },
+  {
     text: "Key evidence",
     href: "/cases/:caseId/key-evidence" | replace(':caseId', _case.id),
     current: secondaryNavId == 'key-evidence'

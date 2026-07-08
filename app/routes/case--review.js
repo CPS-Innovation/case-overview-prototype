@@ -5,7 +5,7 @@ const { generateDocumentContent } = require('../helpers/documentContent')
 const statuses = require('../data/case-statuses')
 const hearingStatuses = require('../data/hearing-statuses')
 const charges = require('../data/charges')
-const pointsToProveByChargeCode = require('../data/points-to-prove')
+const elementsByChargeCode = require('../data/elements')
 
 // CPS only ever states what the charges should be - it never charges a
 // defendant directly. A "Charge" decision here moves the defendant to
@@ -104,19 +104,19 @@ function applyInadmissibles(sections, inadmissibles) {
   }))
 }
 
-function buildPointsToProveCheckboxItems(points, options) {
+function buildElementCheckboxItems(elements, options) {
   const idPrefix = options?.idPrefix || 'reasoning'
-  const linkedByPointId = options?.linkedByPointId || {}
-  return points.map(point => {
-    const linkedReasoning = linkedByPointId[point.id]
+  const linkedByElementId = options?.linkedByElementId || {}
+  return elements.map(element => {
+    const linkedReasoning = linkedByElementId[element.id]
     return {
-      value: String(point.id),
-      text: point.description,
+      value: String(element.id),
+      text: element.description,
       checked: linkedReasoning !== undefined,
       conditional: {
         html: `<div class="govuk-form-group govuk-!-margin-bottom-0">
-  <label class="govuk-label govuk-label--s" for="${idPrefix}-${point.id}">Reasoning</label>
-  <textarea class="govuk-textarea govuk-!-margin-bottom-0 js-annotation-ptp-reasoning" id="${idPrefix}-${point.id}" name="${idPrefix}-${point.id}" rows="2" data-point-to-prove-id="${point.id}">${_.escape(linkedReasoning || '')}</textarea>
+  <label class="govuk-label govuk-label--s" for="${idPrefix}-${element.id}">Reasoning</label>
+  <textarea class="govuk-textarea govuk-!-margin-bottom-0 js-annotation-element-reasoning" id="${idPrefix}-${element.id}" name="${idPrefix}-${element.id}" rows="2" data-element-id="${element.id}">${_.escape(linkedReasoning || '')}</textarea>
 </div>`
       }
     }
@@ -198,7 +198,7 @@ module.exports = (router) => {
         where: { id: caseId },
         include: {
           defendants: {
-            include: { charges: { include: { pointsToProve: { orderBy: { order: 'asc' } } } } }
+            include: { charges: { include: { elements: { orderBy: { order: 'asc' } } } } }
           }
         }
       }),
@@ -221,7 +221,7 @@ module.exports = (router) => {
     const annotations = await prisma.caseReviewAnnotation.findMany({
       where: { caseReviewDocumentId: docReview.id },
       orderBy: { createdAt: 'asc' },
-      include: { pointsToProve: { include: { pointToProve: true } } }
+      include: { elements: { include: { element: true } } }
     })
 
     const [redactions, inadmissibles] = (isVideo || isPhoto) ? [[], []] : await Promise.all([
@@ -235,53 +235,49 @@ module.exports = (router) => {
       })
     ])
 
-    // Charges without points-to-prove aren't confirmed offences yet (e.g. a
-    // charge seeded purely to carry a custody/statutory time limit date) —
-    // exclude them so the offences panel stays empty until an offence is
-    // actually added.
-    const defendantCharges = (_case.defendants[0]?.charges || []).filter(c => c.pointsToProve?.length)
+    const defendantCharges = _case.defendants[0]?.charges || []
 
-    function buildPointsToProveRows(points) {
-      return points.map(point => ({
-        key: { text: point.description },
-        value: { text: point.strength || 'Unknown' },
+    function buildElementRows(elements) {
+      return elements.map(element => ({
+        key: { text: element.description },
+        value: { text: element.strength || 'Not assessed' },
         actions: {
           items: [
             {
-              href: `/cases/${caseId}/review/documents/${documentId}/points-to-prove/${point.id}/edit`,
+              href: `/cases/${caseId}/review/documents/${documentId}/elements/${element.id}/edit`,
               text: 'Change',
-              visuallyHiddenText: point.description
+              visuallyHiddenText: element.description
             }
           ]
         }
       }))
     }
 
-    // Evidence annotations can link points to prove from any confirmed
-    // offence, so each offence gets its own checkbox group in the sidebar
-    // rather than one flat list assuming a single offence.
+    // Evidence annotations can link elements from any offence, so each
+    // offence gets its own checkbox group in the sidebar rather than one
+    // flat list assuming a single offence.
     const offences = defendantCharges.map(charge => ({
       charge,
-      pointsToProveRows: buildPointsToProveRows(charge.pointsToProve || []),
-      pointsToProveCheckboxItems: buildPointsToProveCheckboxItems(charge.pointsToProve || [], {
+      elementRows: buildElementRows(charge.elements || []),
+      elementCheckboxItems: buildElementCheckboxItems(charge.elements || [], {
         idPrefix: `reasoning-charge-${charge.id}`
       })
     }))
 
-    const hasPointsToProve = offences.some(offence => offence.pointsToProveCheckboxItems.length)
+    const hasElements = offences.some(offence => offence.elementCheckboxItems.length)
 
     // Each evidence annotation gets its own copy of the checkbox groups, pre-checked
-    // and pre-filled with whatever points it's already linked to, so "Change"
+    // and pre-filled with whatever elements it's already linked to, so "Change"
     // can re-open the same form used when the evidence was first added.
     annotations.forEach(annotation => {
       if (annotation.type !== 'evidence') return
-      const linkedByPointId = {}
-      annotation.pointsToProve.forEach(item => { linkedByPointId[item.pointToProveId] = item.reasoning })
+      const linkedByElementId = {}
+      annotation.elements.forEach(item => { linkedByElementId[item.elementId] = item.reasoning })
       annotation.editOffences = offences.map(offence => ({
         charge: offence.charge,
-        pointsToProveCheckboxItems: buildPointsToProveCheckboxItems(offence.charge.pointsToProve || [], {
+        elementCheckboxItems: buildElementCheckboxItems(offence.charge.elements || [], {
           idPrefix: `reasoning-${annotation.id}-charge-${offence.charge.id}`,
-          linkedByPointId
+          linkedByElementId
         })
       }))
     })
@@ -302,7 +298,7 @@ module.exports = (router) => {
       _case,
       document,
       offences,
-      hasPointsToProve,
+      hasElements,
       sections,
       annotations,
       redactions,
@@ -319,27 +315,27 @@ module.exports = (router) => {
     })
   })
 
-  // Point to prove — edit strength
-  router.get('/cases/:caseId/review/documents/:documentId/points-to-prove/:pointToProveId/edit', async (req, res) => {
+  // Element — edit strength
+  router.get('/cases/:caseId/review/documents/:documentId/elements/:elementId/edit', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const documentId = parseInt(req.params.documentId)
-    const pointToProveId = parseInt(req.params.pointToProveId)
+    const elementId = parseInt(req.params.elementId)
 
-    const [_case, pointToProve] = await Promise.all([
+    const [_case, element] = await Promise.all([
       prisma.case.findUnique({ where: { id: caseId } }),
-      prisma.pointToProve.findUnique({ where: { id: pointToProveId } })
+      prisma.element.findUnique({ where: { id: elementId } })
     ])
 
-    res.render('cases/review/points-to-prove/edit', { _case, pointToProve, caseId, documentId })
+    res.render('cases/review/elements/edit', { _case, element, caseId, documentId })
   })
 
-  router.post('/cases/:caseId/review/documents/:documentId/points-to-prove/:pointToProveId/edit', async (req, res) => {
+  router.post('/cases/:caseId/review/documents/:documentId/elements/:elementId/edit', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const documentId = parseInt(req.params.documentId)
-    const pointToProveId = parseInt(req.params.pointToProveId)
+    const elementId = parseInt(req.params.elementId)
 
-    await prisma.pointToProve.update({
-      where: { id: pointToProveId },
+    await prisma.element.update({
+      where: { id: elementId },
       data: { strength: req.body.strength }
     })
 
@@ -423,9 +419,9 @@ module.exports = (router) => {
         }
       })
 
-      const pointsToProve = pointsToProveByChargeCode[selectedCharge.code] || []
-      await prisma.pointToProve.createMany({
-        data: pointsToProve.map((description, index) => ({
+      const elementDescriptions = elementsByChargeCode[selectedCharge.code] || []
+      await prisma.element.createMany({
+        data: elementDescriptions.map((description, index) => ({
           description,
           order: index,
           chargeId: charge.id
@@ -506,7 +502,7 @@ module.exports = (router) => {
 
     const _case = await prisma.case.findUnique({
       where: { id: caseId },
-      include: { defendants: { include: { charges: { include: { pointsToProve: true } } } } }
+      include: { defendants: { include: { charges: { include: { elements: true } } } } }
     })
     const defendant = _case.defendants[0]
 
@@ -514,10 +510,10 @@ module.exports = (router) => {
     const selectedCharges = charges.filter(c => (changeOffence.chargeCodes || []).includes(c.code))
 
     const existingChargeIds = defendant.charges.map(c => c.id)
-    const existingPointIds = defendant.charges.flatMap(c => c.pointsToProve.map(p => p.id))
+    const existingElementIds = defendant.charges.flatMap(c => c.elements.map(e => e.id))
 
-    await prisma.caseReviewAnnotationPointToProve.deleteMany({ where: { pointToProveId: { in: existingPointIds } } })
-    await prisma.pointToProve.deleteMany({ where: { chargeId: { in: existingChargeIds } } })
+    await prisma.caseReviewAnnotationElement.deleteMany({ where: { elementId: { in: existingElementIds } } })
+    await prisma.element.deleteMany({ where: { chargeId: { in: existingChargeIds } } })
     await prisma.charge.deleteMany({ where: { id: { in: existingChargeIds } } })
 
     for (const selectedCharge of selectedCharges) {
@@ -532,9 +528,9 @@ module.exports = (router) => {
         }
       })
 
-      const pointsToProve = pointsToProveByChargeCode[selectedCharge.code] || []
-      await prisma.pointToProve.createMany({
-        data: pointsToProve.map((description, index) => ({
+      const elementDescriptions = elementsByChargeCode[selectedCharge.code] || []
+      await prisma.element.createMany({
+        data: elementDescriptions.map((description, index) => ({
           description,
           order: index,
           chargeId: charge.id
@@ -568,13 +564,13 @@ module.exports = (router) => {
     const [_case, document, charge] = await Promise.all([
       prisma.case.findUnique({ where: { id: caseId } }),
       prisma.document.findUnique({ where: { id: documentId } }),
-      prisma.charge.findUnique({ where: { id: chargeId }, include: { pointsToProve: true } })
+      prisma.charge.findUnique({ where: { id: chargeId }, include: { elements: true } })
     ])
 
-    const pointIds = charge.pointsToProve.map(p => p.id)
-    const linkedAnnotations = pointIds.length
-      ? await prisma.caseReviewAnnotationPointToProve.findMany({
-          where: { pointToProveId: { in: pointIds } },
+    const elementIds = charge.elements.map(e => e.id)
+    const linkedAnnotations = elementIds.length
+      ? await prisma.caseReviewAnnotationElement.findMany({
+          where: { elementId: { in: elementIds } },
           distinct: ['annotationId']
         })
       : []
@@ -598,12 +594,12 @@ module.exports = (router) => {
 
     const charge = await prisma.charge.findUnique({
       where: { id: chargeId },
-      include: { pointsToProve: true }
+      include: { elements: true }
     })
-    const pointIds = charge.pointsToProve.map(p => p.id)
+    const elementIds = charge.elements.map(e => e.id)
 
-    await prisma.caseReviewAnnotationPointToProve.deleteMany({ where: { pointToProveId: { in: pointIds } } })
-    await prisma.pointToProve.deleteMany({ where: { chargeId } })
+    await prisma.caseReviewAnnotationElement.deleteMany({ where: { elementId: { in: elementIds } } })
+    await prisma.element.deleteMany({ where: { chargeId } })
     await prisma.charge.delete({ where: { id: chargeId } })
 
     await prisma.activityLog.create({
@@ -636,32 +632,32 @@ module.exports = (router) => {
       : null
     const selectedText = timestampSeconds !== null ? formatTimestamp(timestampSeconds) : req.body.selectedText
 
-    const reasoningByPointId = req.body.pointsToProve || {}
-    const pointToProveIds = Object.keys(reasoningByPointId)
-      .filter(id => reasoningByPointId[id])
+    const reasoningByElementId = req.body.elements || {}
+    const elementIds = Object.keys(reasoningByElementId)
+      .filter(id => reasoningByElementId[id])
       .map(id => parseInt(id))
 
-    // Evidence is only linked to points to prove when some are selected — if
+    // Evidence is only linked to elements when some are selected — if
     // none exist yet (no offence added) it falls back to a plain note, same
     // as disclosure and information-request, and can be linked later.
-    if (type === 'evidence' && selectedText && pointToProveIds.length) {
-      const points = await prisma.pointToProve.findMany({
-        where: { id: { in: pointToProveIds } }
+    if (type === 'evidence' && selectedText && elementIds.length) {
+      const elements = await prisma.element.findMany({
+        where: { id: { in: elementIds } }
       })
 
-      const note = points
-        .map(point => `${point.description}: ${reasoningByPointId[point.id]}`)
+      const note = elements
+        .map(element => `${element.description}: ${reasoningByElementId[element.id]}`)
         .join('; ')
 
       const annotation = await prisma.caseReviewAnnotation.create({
         data: { caseReviewDocumentId: docReview.id, type, selectedText, note, timestampSeconds }
       })
 
-      await prisma.caseReviewAnnotationPointToProve.createMany({
-        data: points.map(point => ({
+      await prisma.caseReviewAnnotationElement.createMany({
+        data: elements.map(element => ({
           annotationId: annotation.id,
-          pointToProveId: point.id,
-          reasoning: reasoningByPointId[point.id]
+          elementId: element.id,
+          reasoning: reasoningByElementId[element.id]
         }))
       })
     } else {
@@ -682,26 +678,26 @@ module.exports = (router) => {
     const documentId = parseInt(req.params.documentId)
     const annotationId = parseInt(req.params.annotationId)
 
-    const reasoningByPointId = req.body.pointsToProve || {}
-    const pointToProveIds = Object.keys(reasoningByPointId)
-      .filter(id => reasoningByPointId[id])
+    const reasoningByElementId = req.body.elements || {}
+    const elementIds = Object.keys(reasoningByElementId)
+      .filter(id => reasoningByElementId[id])
       .map(id => parseInt(id))
 
-    if (pointToProveIds.length) {
-      const points = await prisma.pointToProve.findMany({
-        where: { id: { in: pointToProveIds } }
+    if (elementIds.length) {
+      const elements = await prisma.element.findMany({
+        where: { id: { in: elementIds } }
       })
 
-      const note = points
-        .map(point => `${point.description}: ${reasoningByPointId[point.id]}`)
+      const note = elements
+        .map(element => `${element.description}: ${reasoningByElementId[element.id]}`)
         .join('; ')
 
-      await prisma.caseReviewAnnotationPointToProve.deleteMany({ where: { annotationId } })
-      await prisma.caseReviewAnnotationPointToProve.createMany({
-        data: points.map(point => ({
+      await prisma.caseReviewAnnotationElement.deleteMany({ where: { annotationId } })
+      await prisma.caseReviewAnnotationElement.createMany({
+        data: elements.map(element => ({
           annotationId,
-          pointToProveId: point.id,
-          reasoning: reasoningByPointId[point.id]
+          elementId: element.id,
+          reasoning: reasoningByElementId[element.id]
         }))
       })
 
@@ -743,7 +739,7 @@ module.exports = (router) => {
     const documentId = parseInt(req.params.documentId)
     const annotationId = parseInt(req.params.annotationId)
 
-    await prisma.caseReviewAnnotationPointToProve.deleteMany({ where: { annotationId } })
+    await prisma.caseReviewAnnotationElement.deleteMany({ where: { annotationId } })
     await prisma.caseReviewAnnotation.delete({ where: { id: annotationId } })
 
     const from = req.body.from

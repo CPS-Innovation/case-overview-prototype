@@ -10,7 +10,6 @@
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
-
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
           <span class="govuk-caption-l">{{ _case.reference }}</span>
@@ -74,22 +73,24 @@
             </tbody>
           </table>
         {% else %}
-          {{ govukSummaryList({
-            classes: "govuk-!-margin-bottom-4",
-            rows: [
-              {
-                key: { text: document.name },
-                value: { text: "Not provided" },
-                actions: {
-                  items: [{
-                    href: "/cases/" + _case.id + "/review/documents/" + document.id,
-                    text: "Add",
-                    visuallyHiddenText: document.name
-                  }]
+          {{
+            govukSummaryList({
+              classes: "govuk-!-margin-bottom-4",
+              rows: [
+                {
+                  key: { text: document.name },
+                  value: { text: "Not provided" },
+                  actions: {
+                    items: [{
+                      href: "/cases/" + _case.id + "/review/documents/" + document.id,
+                      text: "Add",
+                      visuallyHiddenText: document.name
+                    }]
+                  }
                 }
-              }
-            ]
-          }) }}
+              ]
+            })
+          }}
         {% endif %}
       {% endfor %}
 
@@ -175,14 +176,30 @@
                 <li>the advocate, that the review is done and the decision is no further action</li>
               </ul>
             {% else %}
-              <p class="govuk-body">When you submit this review, we will notify:</p>
+              <h2 class="govuk-heading-m govuk-!-margin-top-5">When you submit this review</h2>
+
+              <p>We’ll send the suggested charges to the police.</p>
+
+              <p>We’ll also send your requests for more information.</p>
+              <!-- make this dynamic-->
+
+              <p>
+                If the police charge the defendant with your suggested charges, we’ll share all
+                documents which have evidence connected to the charges or are required for
+                disclosure.
+              </p>
+
+              <p>We’ll share them with:</p>
+
               <ul class="govuk-list govuk-list--bullet">
-                <li>the police, that you have stated what the charges should be</li>
-                <li>
-                  the advocate, that the review is done and the decision is to charge, with any
-                  additional orders
-                </li>
+                <li>the defendant and their lawyer, if they have one</li>
+                <li>the court</li>
               </ul>
+
+              <p>
+                If the police charges do not match your suggestions, the case will instead be marked
+                for a further review.
+              </p>
             {% endif %}
           {% else %}
             <p class="govuk-body">When you submit this review, we will notify:</p>
@@ -198,7 +215,6 @@
           </form>
         </div>
       </div>
-
     </div>
   </div>
 {% endblock %}
