@@ -18,8 +18,8 @@ module.exports = (router) => {
       req.session.data.chargingDecision = { ...req.session.data.chargingDecision, referrer: req.query.referrer }
     }
 
-    // Single defendant for now; select the charge currently pending a decision
-    const charge = _case.defendants[0]?.charges.find(c => c.status === 'Under review')
+    // Single defendant, single charge for now
+    const charge = _case.defendants[0]?.charges[0]
     const elementRows = (charge?.elements || []).map(element => ({
       key: { text: element.description },
       value: { text: element.strength || 'Not assessed' }

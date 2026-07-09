@@ -7,7 +7,7 @@
   {{
     govukBackLink({
       text: 'Back',
-      href: '/cases/' + _case.id
+      href: '/cases/' + _case.id + '/review'
     })
   }}
 {% endblock %}
@@ -41,15 +41,15 @@
             },
             items: [
               {
-                value: "charge",
+                value: "Charge",
                 text: "Charge"
               },
               {
-                value: "hold",
+                value: "Hold until further evidence",
                 text: "Hold until further evidence"
               },
               {
-                value: "do-not-charge",
+                value: "Do not charge",
                 text: "Do not charge"
               }
             ]

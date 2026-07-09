@@ -494,19 +494,29 @@ App.AnnotationPanel.prototype.onChangeAnnotationClick = function(e) {
   var card = link.closest('.js-annotation-card')
   var editForm = card.find('.js-annotation-edit-form')
   var checkboxForm = editForm.find('.js-annotation-edit-checkboxes')
+  var disclosureCheckboxForm = editForm.find('.js-annotation-edit-checkboxes-disclosure')
   var noteForm = editForm.find('.js-annotation-edit-note')
+  var tagCheckboxes = editForm.find('.js-annotation-edit-tag-checkboxes')
+  var tagDisclosureCheckboxes = editForm.find('.js-annotation-edit-tag-checkboxes-disclosure')
+  var tagNote = editForm.find('.js-annotation-edit-tag-note')
   var target = link.data('edit-target')
-  var showCheckboxes = target ? target === 'checkboxes' : checkboxForm.length > 0
+  var showDisclosureCheckboxes = target === 'checkboxes-disclosure'
+  var showCheckboxes = showDisclosureCheckboxes ? false : (target ? target === 'checkboxes' : checkboxForm.length > 0)
 
   card.find('.js-annotation-view').prop('hidden', true)
   editForm.prop('hidden', false)
   checkboxForm.prop('hidden', !showCheckboxes)
-  noteForm.prop('hidden', showCheckboxes)
+  disclosureCheckboxForm.prop('hidden', !showDisclosureCheckboxes)
+  noteForm.prop('hidden', showCheckboxes || showDisclosureCheckboxes)
+  tagCheckboxes.prop('hidden', !showCheckboxes)
+  tagDisclosureCheckboxes.prop('hidden', !showDisclosureCheckboxes)
+  tagNote.prop('hidden', showCheckboxes || showDisclosureCheckboxes)
 
-  if (showCheckboxes) {
-    checkboxForm.find('input[name="elementsCheckbox"]').first().focus()
+  var activeForm = showDisclosureCheckboxes ? disclosureCheckboxForm : (showCheckboxes ? checkboxForm : noteForm)
+  if (activeForm.find('input[name="elementsCheckbox"]').length) {
+    activeForm.find('input[name="elementsCheckbox"]').first().focus()
   } else {
-    noteForm.find('textarea').first().focus()
+    activeForm.find('textarea').first().focus()
   }
   this.repositionCards()
 }

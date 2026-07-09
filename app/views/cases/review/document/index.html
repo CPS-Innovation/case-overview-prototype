@@ -76,12 +76,12 @@
     </div>
   </div>
 
-  {% include "cases/review/_toolbar.html" %}
+  {% include "_includes/review/toolbar.njk" %}
 
   <div class="app-document-area">
     <div class="app-document-layout">
       {% include "cases/documents/_document-pane-text.html" %}
-      {% include "cases/review/_annotation-sidebar.html" %}
+      {% include "_includes/review/annotation-sidebar.njk" %}
     </div>
   </div>
 
@@ -128,7 +128,7 @@
     </div>
   </div>
 
-  {% include "cases/review/_annotation-form.html" %}
+  {% include "_includes/review/annotation-form.njk" %}
 
   <form
     method="post"

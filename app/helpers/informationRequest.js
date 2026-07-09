@@ -1,3 +1,23 @@
+const ITEM_CATEGORIES = [
+  'Documents and forms',
+  'Footage',
+  'Statements',
+  'Forensic evidence',
+  'Medical evidence',
+  'Records',
+  'Exhibits',
+  'Other',
+]
+
+const ORDINALS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
+function ordinal(n) {
+  return ORDINALS[n - 1] || String(n)
+}
+
+function buildDefendantItems(defendants) {
+  return defendants.map(d => ({ value: String(d.id), text: `${d.firstName} ${d.lastName}` }))
+}
+
 function buildDate({ day, month, year }) {
   return new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
 }
@@ -18,7 +38,7 @@ function formatDefendantNames(ids, defendants) {
 }
 
 // Shared by the standalone "Information requests" flow (creates immediately)
-// and the review "Action plan" task (creates when the review is submitted).
+// and the review "Information request" task (creates when the review is submitted).
 async function createInformationRequestFromSession(prisma, caseId, sessionData, userId) {
   const { description, sentDate, items } = sessionData
 
@@ -68,6 +88,9 @@ async function createInformationRequestFromSession(prisma, caseId, sessionData, 
 }
 
 module.exports = {
+  ITEM_CATEGORIES,
+  ordinal,
+  buildDefendantItems,
   buildDate,
   formatSessionDate,
   cleanDefendantIds,

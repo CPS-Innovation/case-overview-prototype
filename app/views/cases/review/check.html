@@ -120,26 +120,18 @@
 
       {%
         set additionalInformationRows = additionalInformationRows.concat([{
-          key: { text: "Action plan" },
+          key: { text: "Information request" },
           value: {
-            text: data.newInformationRequest.description if (data.newInformationRequest and data.newInformationRequest.description) else "Not provided"
+            text: data.reviewInformationRequest.description if (data.reviewInformationRequest and data.reviewInformationRequest.description) else "Not provided"
           },
           actions: {
             items: [{
-              href: "/cases/" + _case.id + "/review/action-plan/check" if data.newInformationRequest else "/cases/" + _case.id + "/information-requests/new?context=review",
+              href: "/cases/" + _case.id + "/review/information-request/check" if data.reviewInformationRequest else "/cases/" + _case.id + "/review/information-request",
               text: "Change",
-              visuallyHiddenText: "action plan"
+              visuallyHiddenText: "information request"
             }]
           }
         }])
-      %}
-
-      {%
-        set chargingDecisionLabels = {
-          "charge": "Charge",
-          "hold": "Hold until further evidence",
-          "do-not-charge": "Do not charge"
-        }
       %}
 
       {% if needsChargingDecision %}
@@ -147,7 +139,7 @@
           set additionalInformationRows = additionalInformationRows.concat([{
             key: { text: "Charging decision" },
             value: {
-              text: chargingDecisionLabels[data.chargingDecision.decision] if (data.chargingDecision and data.chargingDecision.decision) else "Not provided"
+              text: data.chargingDecision.decision if (data.chargingDecision and data.chargingDecision.decision) else "Not provided"
             },
             actions: {
               items: [{
@@ -187,7 +179,7 @@
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
           {% if needsChargingDecision %}
-            {% if data.chargingDecision and data.chargingDecision.decision == 'do-not-charge' %}
+            {% if data.chargingDecision and data.chargingDecision.decision == 'Do not charge' %}
               <p class="govuk-body">When you submit this review, we will notify:</p>
               <ul class="govuk-list govuk-list--bullet">
                 <li>the police, that the case has been marked as no further action</li>

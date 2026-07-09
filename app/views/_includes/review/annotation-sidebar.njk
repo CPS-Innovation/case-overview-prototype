@@ -232,18 +232,40 @@
                 Remove
               </a>
               {% if isLinkable %}
-                <a href="#" class="govuk-link js-change-annotation" data-edit-target="checkboxes">
-                  Link to {{ 'disclosure' if annotation.type == 'disclosure' else 'evidence' }}
-                </a>
+                {% if annotation.type == 'note' %}
+                  <a href="#" class="govuk-link js-change-annotation" data-edit-target="checkboxes">
+                    Convert to evidence
+                  </a>
+                  <a href="#" class="govuk-link js-change-annotation" data-edit-target="checkboxes-disclosure">
+                    Convert to disclosure
+                  </a>
+                {% else %}
+                  <a href="#" class="govuk-link js-change-annotation" data-edit-target="checkboxes">
+                    Link to {{ 'disclosure' if annotation.type == 'disclosure' else 'evidence' }}
+                  </a>
+                {% endif %}
               {% endif %}
             </div>
           </div>
         </div>
 
         <div class="app-annotation-form js-annotation-edit-form" hidden>
-          <div class="app-annotation-form__body">
-            {% if isLinkable %}
+          {% if isLinkable %}
+            <div class="app-annotation-card--{{ 'purple' if annotation.type == 'disclosure' else 'blue' }} js-annotation-edit-tag-checkboxes" hidden>
+              <p class="app-annotation-card__tag govuk-!-margin-bottom-0">{{ 'Disclosure' if annotation.type == 'disclosure' else 'Evidence' }}</p>
+            </div>
+            {% if annotation.type == 'note' %}
+              <div class="app-annotation-card--purple js-annotation-edit-tag-checkboxes-disclosure" hidden>
+                <p class="app-annotation-card__tag govuk-!-margin-bottom-0">Disclosure</p>
+              </div>
+            {% endif %}
+            <div class="app-annotation-card--{{ tagColour }} js-annotation-edit-tag-note" hidden>
+              <p class="app-annotation-card__tag govuk-!-margin-bottom-0">{{ typeLabel }}</p>
+            </div>
+
+            <div class="app-annotation-form__body">
               <form method="post" action="{{ editUrl }}" class="js-annotation-edit-checkboxes" hidden>
+                <input type="hidden" name="linkAsType" value="{{ 'disclosure' if annotation.type == 'disclosure' else 'evidence' }}" />
                 {% for offence in annotation.editOffences %}
                   {% if offence.elementCheckboxItems.length %}
                     {{
@@ -276,6 +298,42 @@
                 </div>
               </form>
 
+              {% if annotation.type == 'note' %}
+                <form method="post" action="{{ editUrl }}" class="js-annotation-edit-checkboxes-disclosure" hidden>
+                  <input type="hidden" name="linkAsType" value="disclosure" />
+                  {% for offence in annotation.editDisclosureOffences %}
+                    {% if offence.elementCheckboxItems.length %}
+                      {{
+                        govukCheckboxes({
+                          name: "elementsCheckbox",
+                          idPrefix: "disclosure-element-" + annotation.id + "-charge-" + offence.charge.id,
+                          fieldset: {
+                            legend: {
+                              text: offence.charge.description,
+                              isPageHeading: false,
+                              classes: "govuk-fieldset__legend--s"
+                            }
+                          },
+                          classes: "govuk-checkboxes--small js-annotation-element-checkboxes",
+                          items: offence.elementCheckboxItems
+                        })
+                      }}
+                    {% endif %}
+                  {% endfor %}
+
+                  <div class="govuk-button-group govuk-!-margin-bottom-0">
+                    {{
+                      govukButton({
+                        text: "Save",
+                        classes: "govuk-button--small govuk-!-margin-bottom-0 js-save-change-annotation",
+                        attributes: { type: "button" }
+                      })
+                    }}
+                    <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
+                  </div>
+                </form>
+              {% endif %}
+
               <form method="post" action="{{ editUrl }}" class="js-annotation-edit-note">
                 {{
                   govukTextarea({
@@ -301,7 +359,13 @@
                   <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
                 </div>
               </form>
-            {% elif (annotation.type == 'evidence' or annotation.type == 'disclosure') and hasElements %}
+            </div>
+          {% elif (annotation.type == 'evidence' or annotation.type == 'disclosure') and hasElements %}
+            <div class="app-annotation-card--{{ tagColour }}">
+              <p class="app-annotation-card__tag govuk-!-margin-bottom-0">{{ typeLabel }}</p>
+            </div>
+
+            <div class="app-annotation-form__body">
               <form method="post" action="{{ editUrl }}" class="js-annotation-edit-checkboxes">
                 {% for offence in annotation.editOffences %}
                   {% if offence.elementCheckboxItems.length %}
@@ -334,7 +398,13 @@
                   <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
                 </div>
               </form>
-            {% else %}
+            </div>
+          {% else %}
+            <div class="app-annotation-card--{{ tagColour }}">
+              <p class="app-annotation-card__tag govuk-!-margin-bottom-0">{{ typeLabel }}</p>
+            </div>
+
+            <div class="app-annotation-form__body">
               <form method="post" action="{{ editUrl }}" class="js-annotation-edit-note">
                 {{
                   govukTextarea({
@@ -360,8 +430,8 @@
                   <a href="#" class="govuk-link js-cancel-change-annotation">Cancel</a>
                 </div>
               </form>
-            {% endif %}
-          </div>
+            </div>
+          {% endif %}
         </div>
       </div>
     {% endfor %}

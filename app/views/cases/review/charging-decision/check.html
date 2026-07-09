@@ -3,14 +3,6 @@
 {% set navId = 'cases' %}
 {% set pageName = "Charging decision" %}
 
-{%
-  set decisionLabels = {
-    "charge": "Charge",
-    "hold": "Hold until further evidence",
-    "do-not-charge": "Do not charge"
-  }
-%}
-
 {% block beforeContent %}
   {{
     govukBackLink({
@@ -36,7 +28,7 @@
           rows: [
             {
               key: { text: "Decision" },
-              value: { text: decisionLabels[data.chargingDecision.decision] if (data.chargingDecision and data.chargingDecision.decision) else "Not provided" },
+              value: { text: data.chargingDecision.decision if (data.chargingDecision and data.chargingDecision.decision) else "Not provided" },
               actions: {
                 items: [{
                   href: '/cases/' + _case.id + '/review/charging-decision',

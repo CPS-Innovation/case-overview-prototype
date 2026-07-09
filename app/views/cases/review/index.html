@@ -63,12 +63,12 @@
         {% set chargingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
-      {% if data.newInformationRequest and data.newInformationRequest.complete == true %}
-        {% set actionPlanStatus = { text: "Completed" } %}
-      {% elif data.newInformationRequest %}
-        {% set actionPlanStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
+      {% if data.reviewInformationRequest and data.reviewInformationRequest.complete == true %}
+        {% set informationRequestStatus = { text: "Completed" } %}
+      {% elif data.reviewInformationRequest %}
+        {% set informationRequestStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
       {% else %}
-        {% set actionPlanStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
+        {% set informationRequestStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
       {% if data.reviewFirstHearing and data.reviewFirstHearing.confirmed %}
@@ -91,9 +91,9 @@
 
       {%
         set additionalInformationItems = additionalInformationItems.concat([{
-          title: { text: "Action plan" },
-          href: "/cases/" + _case.id + "/review/action-plan/check" if data.newInformationRequest else "/cases/" + _case.id + "/information-requests/new?context=review",
-          status: actionPlanStatus
+          title: { text: "Information request" },
+          href: "/cases/" + _case.id + "/review/information-request/check" if data.reviewInformationRequest else "/cases/" + _case.id + "/review/information-request",
+          status: informationRequestStatus
         }])
       %}
 

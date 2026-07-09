@@ -3,6 +3,9 @@ const prisma = new PrismaClient()
 const { addTimeLimitDates } = require('../helpers/timeLimit')
 const { addCaseStatus } = require('../helpers/caseStatus')
 const {
+  ITEM_CATEGORIES,
+  ordinal,
+  buildDefendantItems,
   buildDate,
   formatSessionDate,
   cleanDefendantIds,
@@ -10,28 +13,12 @@ const {
   createInformationRequestFromSession,
 } = require('../helpers/informationRequest')
 
-const ITEM_CATEGORIES = [
-  'Documents and forms',
-  'Footage',
-  'Statements',
-  'Forensic evidence',
-  'Medical evidence',
-  'Records',
-  'Exhibits',
-  'Other',
-]
-
 const ITEM_CATEGORY_OPTIONS = [
   { value: '', text: 'Select a category' },
   ...ITEM_CATEGORIES.map((c) => ({ value: c, text: c })),
 ]
 
 const ITEM_CATEGORY_RADIO_ITEMS = ITEM_CATEGORIES.map((c) => ({ value: c, text: c }))
-
-const ORDINALS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
-function ordinal(n) {
-  return ORDINALS[n - 1] || String(n)
-}
 
 function getItemStatus(item) {
   if (item.cancelledDate) return 'Cancelled'
@@ -49,10 +36,6 @@ function getInformationRequestStatus(request) {
 function dateFields(date) {
   const d = new Date(date)
   return { day: d.getDate(), month: d.getMonth() + 1, year: d.getFullYear() }
-}
-
-function buildDefendantItems(defendants) {
-  return defendants.map(d => ({ value: String(d.id), text: `${d.firstName} ${d.lastName}` }))
 }
 
 async function fetchCase(caseId) {
@@ -92,7 +75,7 @@ module.exports = (router) => {
   router.get('/cases/:caseId/information-requests/new', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const _case = await fetchCase(caseId)
-    res.render('cases/information-requests/new', { _case, context: req.query.context || '' })
+    res.render('cases/information-requests/new', { _case })
   })
 
   router.post('/cases/:caseId/information-requests/new', (req, res) => {
@@ -101,7 +84,6 @@ module.exports = (router) => {
       description: req.body.newInformationRequest?.description || '',
       sentDate: new Date().toISOString(),
       items: req.session.data.newInformationRequest?.items || [],
-      context: req.body.context || '',
     }
     res.redirect(`/cases/${caseId}/information-requests/new/item`)
   })
@@ -151,10 +133,6 @@ module.exports = (router) => {
     const caseId = req.params.caseId
     if (req.body.addAnother === 'yes') {
       res.redirect(`/cases/${caseId}/information-requests/new/item`)
-    } else if (req.session.data.newInformationRequest.context === 'review') {
-      // Action plan items go straight to the review's own check-answers page
-      // rather than this flow's "Create request" step - see /review/submit.
-      res.redirect(`/cases/${caseId}/review/action-plan/check`)
     } else {
       res.redirect(`/cases/${caseId}/information-requests/new/check`)
     }
