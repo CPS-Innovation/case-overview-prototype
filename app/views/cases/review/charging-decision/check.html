@@ -18,39 +18,24 @@
       <span class="govuk-caption-l">{{ _case.reference }}</span>
       <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      {% set defendantNames %}{% for d in selectedDefendants %}
-        {{ d.firstName }}
-        {{ d.lastName }}{% if not loop.last %},{% endif %}
-      {% endfor %}{% endset %}
+      {% set chargeRows = [] %}
+      {% for charge in charges %}
+        {%
+          set chargeRows = chargeRows.concat([{
+            key: { text: (charge.defendant.firstName + " " + charge.defendant.lastName + " – " + charge.description) if showDefendantName else charge.description },
+            value: { text: charge.decision if charge.decision else "Not provided" },
+            actions: {
+              items: [{
+                href: '/cases/' + _case.id + '/review/charging-decision/' + charge.id + '?from=check',
+                text: "Change",
+                visuallyHiddenText: charge.description
+              }]
+            }
+          }])
+        %}
+      {% endfor %}
 
-      {{
-        govukSummaryList({
-          rows: [
-            {
-              key: { text: "Decision" },
-              value: { text: data.chargingDecision.decision if (data.chargingDecision and data.chargingDecision.decision) else "Not provided" },
-              actions: {
-                items: [{
-                  href: '/cases/' + _case.id + '/review/charging-decision',
-                  text: "Change",
-                  visuallyHiddenText: "charging decision"
-                }]
-              }
-            },
-            {
-              key: { text: "Defendants" },
-              value: { text: defendantNames },
-              actions: {
-                items: [{
-                  href: '/cases/' + _case.id + '/review/charging-decision/defendants',
-                  text: "Change",
-                  visuallyHiddenText: "defendants"
-                }]
-              }
-            } if selectedDefendants
-          ]
-        })
-      }}
+      {{ govukSummaryList({ rows: chargeRows }) }}
 
       <form method="post">
         {{

@@ -57,7 +57,7 @@
 
       {% if data.chargingDecision and data.chargingDecision.complete == true %}
         {% set chargingStatus = { text: "Completed" } %}
-      {% elif data.chargingDecision and data.chargingDecision.decision %}
+      {% elif chargingDecisionStarted %}
         {% set chargingStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
       {% else %}
         {% set chargingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
@@ -98,11 +98,10 @@
       %}
 
       {% if needsChargingDecision %}
-        {% set chargingAllAnswered = data.chargingDecision and data.chargingDecision.decision and (not chargingDecisionNeedsDefendantSelection or data.chargingDecision.defendantIds.length) %}
         {%
           set additionalInformationItems = additionalInformationItems.concat([{
             title: { text: "Charging decision" },
-            href: "/cases/" + _case.id + "/review/charging-decision/check" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingAllAnswered) else "/cases/" + _case.id + "/review/charging-decision",
+            href: "/cases/" + _case.id + "/review/charging-decision/check" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingDecisionAllAnswered) else "/cases/" + _case.id + "/review/charging-decision",
             status: chargingStatus
           }])
         %}

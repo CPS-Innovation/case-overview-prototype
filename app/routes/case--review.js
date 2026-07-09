@@ -2,17 +2,8 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const statuses = require('../data/case-statuses')
 const hearingStatuses = require('../data/hearing-statuses')
-const { findOrCreateReview } = require('../helpers/caseReview')
-const { createInformationRequestFromSession } = require('../helpers/informationRequest')
-
-// CPS only ever states what the charges should be - it never charges a
-// defendant directly. A "Charge" decision here moves the defendant to
-// Charges pending; they only become Charged once the police or referring
-// agency send back authorised charges.
-const decisionStatusMap = {
-  'Charge': statuses.CHARGES_PENDING,
-  'Do not charge': statuses.NO_FURTHER_ACTION,
-}
+const { findOrCreateReview, getEligibleCharges } = require('../helpers/caseReview')
+const { createInformationRequestFromSession, formatSessionDate, formatDefendantNames } = require('../helpers/informationRequest')
 
 function parseHearingTime(time) {
   const match = String(time || '').trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i)
@@ -34,10 +25,7 @@ module.exports = (router) => {
     const caseId = parseInt(req.params.caseId)
     const userId = req.session.data.user.id
 
-    const _case = await prisma.case.findUnique({
-      where: { id: caseId },
-      include: { defendants: true }
-    })
+    const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
 
     const review = await findOrCreateReview(prisma, caseId, userId)
 
@@ -54,11 +42,12 @@ module.exports = (router) => {
     const docReviewMap = {}
     documentReviews.forEach(dr => { docReviewMap[dr.documentId] = dr })
 
-    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.NOT_CHARGED && d.needsReview)
+    const decisions = req.session.data.chargingDecision?.decisions || {}
     const needsChargingDecision = eligibleDefendants.length > 0
-    const chargingDecisionNeedsDefendantSelection = eligibleDefendants.length > 1
+    const chargingDecisionStarted = Object.keys(decisions).length > 0
+    const chargingDecisionAllAnswered = needsChargingDecision && charges.every(charge => decisions[charge.id])
 
-    res.render('cases/review/index', { _case, documents, review, docReviewMap, needsChargingDecision, chargingDecisionNeedsDefendantSelection })
+    res.render('cases/review/index', { _case, documents, review, docReviewMap, needsChargingDecision, chargingDecisionStarted, chargingDecisionAllAnswered })
   })
 
   // Check page
@@ -66,10 +55,7 @@ module.exports = (router) => {
     const caseId = parseInt(req.params.caseId)
     const userId = req.session.data.user.id
 
-    const _case = await prisma.case.findUnique({
-      where: { id: caseId },
-      include: { defendants: true }
-    })
+    const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
 
     const review = await findOrCreateReview(prisma, caseId, userId)
 
@@ -86,38 +72,72 @@ module.exports = (router) => {
     const docReviewMap = {}
     documentReviews.forEach(dr => { docReviewMap[dr.documentId] = dr })
 
-    const needsChargingDecision = _case.defendants.some(d => d.status === statuses.NOT_CHARGED && d.needsReview)
+    const decisions = req.session.data.chargingDecision?.decisions || {}
+    const needsChargingDecision = eligibleDefendants.length > 0
+    const chargeRows = charges.map(charge => ({ ...charge, decision: decisions[charge.id] }))
+    const allChargesNoFurtherAction = needsChargingDecision && charges.every(charge => decisions[charge.id] === 'Do not charge')
 
-    res.render('cases/review/check', { _case, documents, review, docReviewMap, needsChargingDecision })
+    const reviewInformationRequest = req.session.data.reviewInformationRequest
+    const informationRequest = reviewInformationRequest && {
+      ...reviewInformationRequest,
+      items: reviewInformationRequest.items.map(item => ({
+        ...item,
+        formattedDueDate: formatSessionDate(item.dueDate),
+        defendantNames: formatDefendantNames(item.defendants, _case.defendants),
+      }))
+    }
+
+    res.render('cases/review/check', {
+      _case,
+      documents,
+      review,
+      docReviewMap,
+      needsChargingDecision,
+      charges: chargeRows,
+      showDefendantName: eligibleDefendants.length > 1,
+      allChargesNoFurtherAction,
+      informationRequest,
+    })
   })
 
   // Submit review
   router.post('/cases/:caseId/review/submit', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
     const userId = req.session.data.user.id
-    const decision = req.session.data.chargingDecision?.decision
-    const defendantIds = req.session.data.chargingDecision?.defendantIds
+    const decisions = req.session.data.chargingDecision?.decisions || {}
 
-    const _case = await prisma.case.findUnique({
-      where: { id: caseId },
-      include: { defendants: true },
-    })
-    const reviewedDefendantIds = defendantIds?.length
-      ? defendantIds.map(id => parseInt(id))
-      : _case.defendants.map(d => d.id)
+    const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
+    const reviewedDefendantIds = _case.defendants.map(d => d.id)
 
-    const status = decisionStatusMap[decision]
-    if (status) {
-      await prisma.defendant.updateMany({
-        where: { id: { in: reviewedDefendantIds } },
-        data: { status },
-      })
+    for (const charge of charges) {
+      if (decisions[charge.id]) {
+        await prisma.charge.update({ where: { id: charge.id }, data: { status: decisions[charge.id] } })
+      }
     }
 
-    await prisma.defendant.updateMany({
-      where: { id: { in: reviewedDefendantIds } },
-      data: { needsReview: false },
-    })
+    // CPS only ever states what the charges should be - it never charges a
+    // defendant directly. A "Charge" or "Hold" decision on any of a
+    // defendant's charges moves them to Charges pending; they only become
+    // Charged once the police or referring agency send back authorised
+    // charges. Only when every charge is "Do not charge" do they move to NFA.
+    for (const defendant of eligibleDefendants) {
+      const defendantDecisions = charges
+        .filter(charge => charge.defendantId === defendant.id)
+        .map(charge => decisions[charge.id])
+        .filter(Boolean)
+
+      let status
+      if (defendantDecisions.some(d => d === 'Charge' || d === 'Hold until further evidence')) {
+        status = statuses.CHARGES_PENDING
+      } else if (defendantDecisions.length && defendantDecisions.every(d => d === 'Do not charge')) {
+        status = statuses.NO_FURTHER_ACTION
+      }
+
+      await prisma.defendant.update({
+        where: { id: defendant.id },
+        data: { ...(status ? { status } : {}), needsReview: false },
+      })
+    }
 
     const reviewFirstHearing = req.session.data.reviewFirstHearing
     const hasFirstHearing = (await prisma.hearing.count({
@@ -177,7 +197,7 @@ module.exports = (router) => {
     if (review) {
       await prisma.caseReview.update({
         where: { id: review.id },
-        data: { status: 'submitted', decision }
+        data: { status: 'submitted' }
       })
     }
 
