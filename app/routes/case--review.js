@@ -47,7 +47,12 @@ module.exports = (router) => {
     const chargingDecisionStarted = Object.keys(decisions).length > 0
     const chargingDecisionAllAnswered = needsChargingDecision && charges.every(charge => decisions[charge.id])
 
-    res.render('cases/review/index', { _case, documents, review, docReviewMap, needsChargingDecision, chargingDecisionStarted, chargingDecisionAllAnswered })
+    const allElements = charges.flatMap(charge => charge.elements || [])
+    const elementAssessed = element => element.strength && element.strength !== 'Not assessed'
+    const strengthAssessmentStarted = allElements.some(elementAssessed)
+    const strengthAssessmentAllAssessed = needsChargingDecision && allElements.length > 0 && allElements.every(elementAssessed)
+
+    res.render('cases/review/index', { _case, documents, review, docReviewMap, needsChargingDecision, chargingDecisionStarted, chargingDecisionAllAnswered, strengthAssessmentStarted, strengthAssessmentAllAssessed })
   })
 
   // Check page

@@ -51,12 +51,13 @@ async function getEligibleCharges(prisma, caseId) {
   return { _case, eligibleDefendants, charges }
 }
 
-// Offences (charges) can be added, changed or removed after a Charging
-// decision has already been marked complete. When that happens, the
-// recorded per-charge decisions no longer reliably reflect the current
-// charges, so drop decisions for charges that no longer exist and reset
-// completeness — the task list will then show "In progress" or "Not
-// started" based on what's left, rather than staying "Completed".
+// Offences (charges) can be added, changed or removed after the Charging
+// decision or Strength assessment tasks have already been marked complete.
+// When that happens, the recorded per-charge decisions and element strengths
+// no longer reliably reflect the current charges, so drop decisions for
+// charges that no longer exist and reset completeness — the task list will
+// then show "In progress" or "Not started" based on what's left, rather
+// than staying "Completed".
 async function syncChargingDecisionAfterOffenceChange(prisma, req, caseId, defendantId) {
   const userId = req.session.data.user.id
   const review = await findOrCreateReview(prisma, caseId, userId)
@@ -70,10 +71,13 @@ async function syncChargingDecisionAfterOffenceChange(prisma, req, caseId, defen
   )
   req.session.data.chargingDecision = { ...req.session.data.chargingDecision, decisions: prunedDecisions }
 
-  if (review.chargingDecisionComplete) {
+  const resets = {}
+  if (review.chargingDecisionComplete) resets.chargingDecisionComplete = false
+  if (review.strengthAssessmentComplete) resets.strengthAssessmentComplete = false
+  if (Object.keys(resets).length) {
     await prisma.caseReview.update({
       where: { id: review.id },
-      data: { chargingDecisionComplete: false },
+      data: resets,
     })
   }
 }

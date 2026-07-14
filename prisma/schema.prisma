@@ -430,6 +430,7 @@ model CaseReview {
   summary   String?
   summaryComplete Boolean?
   chargingDecisionComplete Boolean?
+  strengthAssessmentComplete Boolean?
   decision  String?
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt

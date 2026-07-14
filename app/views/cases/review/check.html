@@ -9,94 +9,108 @@
 
 {% block content %}
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-          <span class="govuk-caption-l">{{ _case.reference }}</span>
-          <h1 class="govuk-heading-l">{{ pageName }}</h1>
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ _case.reference }}</span>
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-          <h2 class="govuk-heading-m">Material</h2>
-        </div>
-      </div>
+      <h2 class="govuk-heading-m">Material</h2>
 
       {% for document in documents %}
         {% set docReview = docReviewMap[document.id] %}
         {% set annotations = docReview.annotations if docReview else [] %}
 
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-two-thirds">
-            <h3 class="govuk-heading-s govuk-!-margin-bottom-1">{{ document.name }}</h3>
-          </div>
-        </div>
+        <h3 class="govuk-heading-s govuk-!-margin-bottom-2">{{ document.name }}</h3>
 
         {% if annotations.length %}
-          <table class="govuk-table govuk-!-margin-bottom-7">
-            <thead class="govuk-table__head">
-              <tr class="govuk-table__row">
-                <th scope="col" class="govuk-table__header">Highlighted text</th>
-                <th scope="col" class="govuk-table__header">Element</th>
-                <th scope="col" class="govuk-table__header app-table__cell--actions">
-                  <span class="govuk-visually-hidden">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="govuk-table__body">
-              {% for annotation in annotations %}
-                {% if annotation.type == 'evidence' %}
-                  {% set typeLabel = 'Evidence' %}
-                  {% set typeColour = 'blue' %}
-                {% elif annotation.type == 'disclosure' %}
-                  {% set typeLabel = 'Disclosure' %}
-                  {% set typeColour = 'purple' %}
-                {% elif annotation.type == 'note' %}
-                  {% set typeLabel = 'Note' %}
-                  {% set typeColour = 'yellow' %}
-                {% else %}
-                  {% set typeLabel = 'Information request' %}
-                  {% set typeColour = 'orange' %}
-                {% endif %}
-                <tr class="govuk-table__row">
-                  <td class="govuk-table__cell">
-                    <p class="govuk-!-margin-bottom-0">{{ annotation.selectedText | truncate(80) }}</p>
-                    <p class="govuk-!-font-size-16 govuk-!-margin-bottom-0 app-annotation-type--{{ typeColour }}">{{ typeLabel }}</p>
-                  </td>
-                  <td class="govuk-table__cell">
-                    {% if annotation.elements.length %}
-                      {% for link in annotation.elements %}
-                        <p class="govuk-!-margin-bottom-0">{{ link.element.description }}: {{ link.reasoning }}</p>
-                        <p class="govuk-!-font-size-16 govuk-!-margin-bottom-{{ '2' if not loop.last else '0' }}">{{ link.element.charge.description }}</p>
-                      {% endfor %}
-                    {% else %}
-                      {{ annotation.note }}
-                    {% endif %}
-                  </td>
-                  <td class="govuk-table__cell app-table__cell--actions">
+          <div class="govuk-!-margin-bottom-6">
+            {% for annotation in annotations %}
+              {% if annotation.type == 'evidence' %}
+                {% set typeLabel = 'Evidence' %}
+                {% set typeColour = 'blue' %}
+              {% elif annotation.type == 'disclosure' %}
+                {% set typeLabel = 'Disclosure' %}
+                {% set typeColour = 'purple' %}
+              {% elif annotation.type == 'note' %}
+                {% set typeLabel = 'Note' %}
+                {% set typeColour = 'yellow' %}
+              {% else %}
+                {% set typeLabel = 'Information request' %}
+                {% set typeColour = 'orange' %}
+              {% endif %}
+              <div
+                class="app-review-annotation-card app-review-annotation-card--{{ typeColour }}"
+              >
+                <div
+                  class="app-review-annotation-card__header app-annotation-card__tag--{{ typeColour }}"
+                >
+                  <p class="govuk-!-margin-bottom-0">{{ typeLabel }}</p>
+                  <p class="govuk-!-margin-bottom-0">
                     <a
                       href="/cases/{{ _case.id }}/review/documents/{{ document.id }}#annotation-{{ annotation.id }}"
-                      class="govuk-link"
+                      class="govuk-link govuk-link--no-visited-state"
                     >
                       Change
+                      <span class="govuk-visually-hidden">
+                        {{ typeLabel | lower }} annotation
+                      </span>
                     </a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+                  </p>
+                </div>
+                <div class="app-review-annotation-card__body">
+                  {% if annotation.selectedText == 'Whole photo' %}
+                    <img
+                      src="/public/images/evidence-photo-placeholder.jpg"
+                      alt="{{ document.name }}"
+                      class="app-review-annotation-card__photo"
+                    />
+                  {% else %}
+                    {% if annotation.timestampSeconds != null %}
+                      <video
+                        src="/public/videos/cctv-placeholder.mp4#t={{ annotation.timestampSeconds }}"
+                        class="app-review-annotation-card__video"
+                        controls
+                      ></video>
+                      <p class="app-review-annotation-card__label">Timestamp</p>
+                      <p>{{ annotation.selectedText }}</p>
+                    {% else %}
+                      <p>‘{{ annotation.selectedText | truncate(80) }}’</p>
+                    {% endif %}
+                  {% endif %}
+
+                  {% if annotation.elements.length %}
+                    {% for link in annotation.elements %}
+                      <p class="app-review-annotation-card__label">
+                        {{ link.element.description }}
+                      </p>
+                      <p class="govuk-!-margin-bottom-0">{{ link.reasoning }}</p>
+                      <p
+                        class="govuk-!-font-size-16 govuk-!-margin-bottom-{{ '0' if loop.last else '4' }}"
+                      >
+                        {{ link.element.charge.description }}
+                      </p>
+                    {% endfor %}
+                  {% else %}
+                    <p class="app-review-annotation-card__label">Note</p>
+                    <p class="govuk-!-margin-bottom-0">{{ annotation.note }}</p>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         {% else %}
           <p class="govuk-!-margin-bottom-1">Not provided.</p>
           <p class="govuk-!-margin-bottom-7">
-            <a href="/cases/{{ _case.id }}/review/documents/{{ document.id }}" class="govuk-link govuk-link--no-visited-state">
+            <a
+              href="/cases/{{ _case.id }}/review/documents/{{ document.id }}"
+              class="govuk-link govuk-link--no-visited-state"
+            >
               Add annotation
             </a>
           </p>
         {% endif %}
       {% endfor %}
 
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-          <h2 class="govuk-heading-m govuk-!-margin-top-6">Summary of review</h2>
-        </div>
-      </div>
+      <h2 class="govuk-heading-m govuk-!-margin-top-6">Summary of review</h2>
 
       {{
         govukSummaryList({
@@ -116,11 +130,7 @@
         })
       }}
 
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-          <h2 class="govuk-heading-m govuk-!-margin-top-6">Information request</h2>
-        </div>
-      </div>
+      <h2 class="govuk-heading-m govuk-!-margin-top-6">Information request</h2>
 
       {{
         govukSummaryList({
@@ -198,11 +208,36 @@
       {% endif %}
 
       {% if needsChargingDecision %}
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-two-thirds">
-            <h2 class="govuk-heading-m govuk-!-margin-top-6">Charging decision</h2>
-          </div>
-        </div>
+        <h2 class="govuk-heading-m govuk-!-margin-top-6">Offences and element strength assessment</h2>
+
+        {% for charge in charges %}
+          <h3 class="govuk-heading-s">
+            {{ (charge.defendant.firstName + " " + charge.defendant.lastName + " – " + charge.description) if showDefendantName else charge.description }}
+          </h3>
+
+          {% set elementRows = [] %}
+          {% for element in charge.elements %}
+            {%
+              set elementRows = elementRows.concat([{
+                key: { text: element.description },
+                value: {
+                  html: ((element.strength or "Not assessed") | e) + ('<br><span class="govuk-hint govuk-!-margin-bottom-0">' + (element.strengthReasoning | e) + '</span>' if element.strengthReasoning else "")
+                },
+                actions: {
+                  items: [{
+                    href: "/cases/" + _case.id + "/review/strength-assessment/" + charge.id + "?from=check",
+                    text: "Change",
+                    visuallyHiddenText: element.description
+                  }]
+                }
+              }])
+            %}
+          {% endfor %}
+
+          {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4", rows: elementRows }) }}
+        {% endfor %}
+
+        <h2 class="govuk-heading-m govuk-!-margin-top-6">Charging decision</h2>
 
         {% set chargingDecisionRows = [] %}
         {% for charge in charges %}
@@ -225,11 +260,7 @@
       {% endif %}
 
       {% if not firstHearings.length and not needsChargingDecision %}
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-two-thirds">
-            <h2 class="govuk-heading-m govuk-!-margin-top-6">First hearing</h2>
-          </div>
-        </div>
+        <h2 class="govuk-heading-m govuk-!-margin-top-6">First hearing</h2>
 
         {{
           govukSummaryList({
@@ -252,55 +283,51 @@
         }}
       {% endif %}
 
-      <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
-          {% if needsChargingDecision %}
-            {% if allChargesNoFurtherAction %}
-              <p class="govuk-body">When you submit this review, we will notify:</p>
-              <ul class="govuk-list govuk-list--bullet">
-                <li>the police, that the case has been marked as no further action</li>
-                <li>the advocate, that the review is done and the decision is no further action</li>
-              </ul>
-            {% else %}
-              <h2 class="govuk-heading-m govuk-!-margin-top-5">When you submit this review</h2>
+      {% if needsChargingDecision %}
+        {% if allChargesNoFurtherAction %}
+          <p class="govuk-body">When you submit this review, we will notify:</p>
+          <ul class="govuk-list govuk-list--bullet">
+            <li>the police, that the case has been marked as no further action</li>
+            <li>the advocate, that the review is done and the decision is no further action</li>
+          </ul>
+        {% else %}
+          <h2 class="govuk-heading-m govuk-!-margin-top-5">When you submit this review</h2>
 
-              <p>We’ll send the suggested charges to the police.</p>
+          <p>We’ll send the suggested charges to the police.</p>
 
-              <p>We’ll also send your requests for more information.</p>
-              <!-- make this dynamic-->
+          <p>We’ll also send your requests for more information.</p>
+          <!-- make this dynamic-->
 
-              <p>
-                If the police charge the defendant with your suggested charges, we’ll share all
-                documents which have evidence connected to the charges or are required for
-                disclosure.
-              </p>
+          <p>
+            If the police charge the defendant with your suggested charges, we’ll share all
+            documents which have evidence connected to the charges or are required for
+            disclosure.
+          </p>
 
-              <p>We’ll share them with:</p>
+          <p>We’ll share them with:</p>
 
-              <ul class="govuk-list govuk-list--bullet">
-                <li>the defendant and their lawyer, if they have one</li>
-                <li>the court</li>
-              </ul>
+          <ul class="govuk-list govuk-list--bullet">
+            <li>the defendant and their lawyer, if they have one</li>
+            <li>the court</li>
+          </ul>
 
-              <p>
-                If the police charges do not match your suggestions, the case will instead be marked
-                for a further review.
-              </p>
-            {% endif %}
-          {% else %}
-            <p class="govuk-body">When you submit this review, we will notify:</p>
-            <ul class="govuk-list govuk-list--bullet">
-              <li>the advocate, that the case has been reviewed and confirmed as charged</li>
-              <li>the defence lawyer, with the case bundle</li>
-              <li>the court, with the case bundle</li>
-            </ul>
-          {% endif %}
+          <p>
+            If the police charges do not match your suggestions, the case will instead be marked
+            for a further review.
+          </p>
+        {% endif %}
+      {% else %}
+        <p class="govuk-body">When you submit this review, we will notify:</p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>the advocate, that the case has been reviewed and confirmed as charged</li>
+          <li>the defence lawyer, with the case bundle</li>
+          <li>the court, with the case bundle</li>
+        </ul>
+      {% endif %}
 
-          <form method="post" action="/cases/{{ _case.id }}/review/submit">
-            {{ govukButton({ text: "Submit review" }) }}
-          </form>
-        </div>
-      </div>
+      <form method="post" action="/cases/{{ _case.id }}/review/submit">
+        {{ govukButton({ text: "Submit review" }) }}
+      </form>
     </div>
   </div>
 {% endblock %}

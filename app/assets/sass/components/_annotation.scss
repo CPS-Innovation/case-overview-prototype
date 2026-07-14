@@ -58,22 +58,46 @@
   }
 }
 
-.app-annotation-type {
-  &--blue {
-    color: #003078;
+.app-review-annotation-card {
+  background: govuk-colour("white");
+  border: 1px solid $govuk-border-colour;
+  margin-bottom: govuk-spacing(4);
+}
+
+.app-review-annotation-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: govuk-spacing(2);
+  padding: govuk-spacing(3);
+
+  @include govuk-media-query($from: desktop) {
+    padding: govuk-spacing(3) govuk-spacing(4);
   }
 
-  &--purple {
-    color: #3d0e60;
+  p {
+    color: inherit;
   }
+}
 
-  &--orange {
-    color: #6e3619;
-  }
+.app-review-annotation-card__body {
+  padding: govuk-spacing(3);
 
-  &--yellow {
-    color: govuk-colour("orange", $variant: "shade-50");
+  @include govuk-media-query($from: desktop) {
+    padding: govuk-spacing(3) govuk-spacing(4);
   }
+}
+
+.app-review-annotation-card__photo,
+.app-review-annotation-card__video {
+  display: block;
+  max-width: 100%;
+  margin-bottom: govuk-spacing(3);
+}
+
+.app-review-annotation-card__label {
+  @include govuk-font($size: 19, $weight: bold);
+  margin-bottom: 0;
 }
 
 .app-annotation-card__body {
