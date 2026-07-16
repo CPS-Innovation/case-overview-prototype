@@ -64,7 +64,9 @@
                         class="govuk-link govuk-link--no-visited-state govuk-!-margin-left-3"
                       >
                         Delete
-                        <span class="govuk-visually-hidden">{{ typeLabel | lower }} annotation</span>
+                        <span class="govuk-visually-hidden">
+                          {{ typeLabel | lower }} annotation
+                        </span>
                       </a>
                     {% endif %}
                   </p>
@@ -108,7 +110,7 @@
                         </p>
                         <p class="govuk-!-margin-bottom-0">{{ link.reasoning }}</p>
                         <p
-                          class="govuk-!-font-size-16 govuk-!-margin-bottom-{{ '0' if loop.last else '4' }}"
+                          class="govuk-!-font-size-16 govuk-!-margin-top-3 govuk-!-margin-bottom-{{ '0' if loop.last else '4' }}"
                         >
                           {{ link.element.charge.description }}
                         </p>
@@ -123,7 +125,7 @@
             {% endfor %}
           </div>
         {% else %}
-          <p class="govuk-!-margin-bottom-1">Not provided.</p>
+          <p class="govuk-!-margin-bottom-1">No annotations - will not be shared.</p>
           <p class="govuk-!-margin-bottom-7">
             <a
               href="/cases/{{ _case.id }}/review/documents/{{ document.id }}"
@@ -328,10 +330,10 @@
 
           <p>
             If the police charge the defendant with your suggested charges, we’ll share all material
-            which has evidence connected to the charges or are required for disclosure.
+            which has evidence connected to the charges or is required for disclosure.
           </p>
 
-          <p>We’ll share them with:</p>
+          <p>We’ll share the material with:</p>
 
           <ul class="govuk-list govuk-list--bullet">
             <li>the defendant and their lawyer, if they have one</li>

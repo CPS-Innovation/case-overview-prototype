@@ -42,7 +42,8 @@ function buildCandidates(document) {
     const seconds = faker.helpers.arrayElements([5, 20, 45, 70, 95, 130, 165, 210, 250], 3).sort((a, b) => a - b)
     return annotationSnippets.video.map((snippet, index) => ({
       ...snippet,
-      selectedText: formatTimestamp(seconds[index])
+      selectedText: formatTimestamp(seconds[index]),
+      timestampSeconds: seconds[index]
     }))
   }
   // Timestamps stay within the 10-second placeholder recording.
@@ -50,7 +51,8 @@ function buildCandidates(document) {
     const seconds = faker.helpers.arrayElements([1, 2, 3, 4, 5, 6, 7, 8, 9], 3).sort((a, b) => a - b)
     return annotationSnippets.audio.map((snippet, index) => ({
       ...snippet,
-      selectedText: formatTimestamp(seconds[index])
+      selectedText: formatTimestamp(seconds[index]),
+      timestampSeconds: seconds[index]
     }))
   }
   if (photoTypes.includes(document.type)) {
@@ -141,7 +143,8 @@ async function seedCaseReviewAnnotations(prisma, { users }) {
             selectedText: snippet.selectedText,
             paragraphIndex,
             occurrenceIndex,
-            note
+            note,
+            timestampSeconds: snippet.timestampSeconds ?? null
           }
         })
         annotationCount++

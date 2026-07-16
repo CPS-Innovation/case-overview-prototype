@@ -1,5 +1,6 @@
 const { faker } = require("@faker-js/faker");
 const elementsByChargeCode = require("../../app/data/elements.js");
+const statuses = require("../../app/data/case-statuses.js");
 
 // Seeds Element rows for every Charge in the database, using the legal
 // elements defined per charge code in app/data/elements.js. Runs after
@@ -8,7 +9,7 @@ const elementsByChargeCode = require("../../app/data/elements.js");
 // individually.
 async function seedElements(prisma) {
   const charges = await prisma.charge.findMany({
-    select: { id: true, chargeCode: true }
+    select: { id: true, chargeCode: true, defendant: { select: { status: true } } }
   });
 
   const rows = [];
@@ -17,11 +18,13 @@ async function seedElements(prisma) {
     if (!descriptions) return;
 
     descriptions.forEach((description, index) => {
-      const strength = faker.helpers.weightedArrayElement([
-        { value: "Strong", weight: 3 },
-        { value: "Weak", weight: 2 },
-        { value: "Not assessed", weight: 3 }
-      ]);
+      const strength = charge.defendant.status === statuses.NOT_CHARGED
+        ? "Not assessed"
+        : faker.helpers.weightedArrayElement([
+            { value: "Strong", weight: 3 },
+            { value: "Weak", weight: 2 },
+            { value: "Not assessed", weight: 3 }
+          ]);
 
       rows.push({
         chargeId: charge.id,

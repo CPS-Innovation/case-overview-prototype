@@ -27,8 +27,8 @@
       {% include "_includes/element-annotation-cards.njk" %}
 
       <form method="post">
-        {% if from == 'check' %}
-          <input type="hidden" name="from" value="check" />
+        {% if from %}
+          <input type="hidden" name="from" value="{{ from }}" />
         {% endif %}
 
         {{

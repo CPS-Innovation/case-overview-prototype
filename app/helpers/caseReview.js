@@ -74,8 +74,10 @@ async function getElementAnnotations(prisma, elementId) {
 // request answer in the session, but seeded in-progress reviews arrive with
 // both already made, stored on the review row (decision). Copy them into the
 // session the first time the review is opened so the task list and check
-// pages reflect the seeded state.
-function hydrateSeededReviewSession(req, review, charges) {
+// pages reflect the seeded state. The kit copies session data into
+// res.locals.data before the route runs, so mirror the hydrated keys there
+// too or the first render won't see them.
+function hydrateSeededReviewSession(req, res, review, charges) {
   if (review.status !== 'in_progress' || !review.decision) return
 
   const decisions = req.session.data.chargingDecision?.decisions || {}
@@ -87,10 +89,12 @@ function hydrateSeededReviewSession(req, review, charges) {
         ...Object.fromEntries(charges.map(charge => [charge.id, review.decision]))
       }
     }
+    res.locals.data.chargingDecision = req.session.data.chargingDecision
   }
 
   if (!req.session.data.reviewInformationRequest) {
     req.session.data.reviewInformationRequest = { wantsInformationRequest: 'no', complete: true, items: [] }
+    res.locals.data.reviewInformationRequest = req.session.data.reviewInformationRequest
   }
 }
 

@@ -21,8 +21,8 @@ const ELEMENT_REASONINGS = [
 ];
 
 // Simon has a review that is all but ready to submit: every document
-// reviewed and annotated, summary written, all elements assessed as strong
-// and a decision to charge. The charging decision and information request
+// reviewed (all but one annotated), summary written, all elements assessed
+// as strong and a decision to charge. The charging decision and information request
 // answer live in the session during a live review, so they are stored on the
 // review row and hydrated into the session when the review is opened (see
 // hydrateSeededReviewSession in app/helpers/caseReview.js). Runs after
@@ -151,10 +151,13 @@ async function seedSimonInProgressReview(prisma, dependencies, config) {
 
   const documents = await prisma.document.findMany({ where: { caseId: _case.id } });
 
-  for (const document of documents) {
+  for (const [index, document] of documents.entries()) {
     const docReview = await prisma.caseReviewDocument.create({
       data: { caseReviewId: review.id, documentId: document.id, status: 'reviewed' }
     });
+
+    // Leave one document reviewed but unannotated
+    if (index === documents.length - 1) continue;
 
     // No information-request annotations - the review answers no to the
     // information request question.
@@ -171,7 +174,8 @@ async function seedSimonInProgressReview(prisma, dependencies, config) {
           selectedText: snippet.selectedText,
           paragraphIndex,
           occurrenceIndex,
-          note: element ? `${element.description}: ${snippet.note}` : snippet.note
+          note: element ? `${element.description}: ${snippet.note}` : snippet.note,
+          timestampSeconds: snippet.timestampSeconds ?? null
         }
       });
 

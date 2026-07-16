@@ -29,7 +29,7 @@ module.exports = (router) => {
     const userId = req.session.data.user.id
     const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
     const review = await findOrCreateReview(prisma, caseId, userId)
-    hydrateSeededReviewSession(req, review, charges)
+    hydrateSeededReviewSession(req, res, review, charges)
 
     const decisions = req.session.data.chargingDecision?.decisions || {}
     const chargeRows = charges.map(charge => ({

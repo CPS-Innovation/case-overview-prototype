@@ -25,7 +25,9 @@ module.exports = router => {
         },
         defendants: {
           include: {
-            charges: true,
+            charges: {
+              include: { elements: { orderBy: { order: 'asc' } } }
+            },
             defenceLawyer: true
           }
         },
@@ -41,7 +43,27 @@ module.exports = router => {
     addTimeLimitDates(_case)
     addCaseStatus(_case)
 
-    res.render("cases/overview/index", { _case })
+    const elementIds = _case.defendants.flatMap(defendant =>
+      defendant.charges.flatMap(charge => charge.elements.map(element => element.id))
+    )
+    const evidenceLinks = await prisma.caseReviewAnnotationElement.findMany({
+      where: { elementId: { in: elementIds }, annotation: { type: 'evidence' } },
+      select: { elementId: true }
+    })
+    const elementIdsWithEvidence = new Set(evidenceLinks.map(link => link.elementId))
+
+    const charges = _case.defendants.flatMap(defendant =>
+      defendant.charges.map(charge => ({
+        ...charge,
+        defendant,
+        elements: charge.elements.map(element => ({
+          ...element,
+          hasEvidence: elementIdsWithEvidence.has(element.id)
+        }))
+      }))
+    )
+
+    res.render("cases/overview/index", { _case, charges })
   })
 
   router.get("/cases/:caseId/complexity-calculation", async (req, res) => {

@@ -28,7 +28,7 @@ module.exports = (router) => {
     const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
 
     const review = await findOrCreateReview(prisma, caseId, userId)
-    hydrateSeededReviewSession(req, review, charges)
+    hydrateSeededReviewSession(req, res, review, charges)
 
     const documents = await prisma.document.findMany({
       where: { caseId },
@@ -64,7 +64,7 @@ module.exports = (router) => {
     const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
 
     const review = await findOrCreateReview(prisma, caseId, userId)
-    hydrateSeededReviewSession(req, review, charges)
+    hydrateSeededReviewSession(req, res, review, charges)
 
     const documents = await prisma.document.findMany({
       where: { caseId },

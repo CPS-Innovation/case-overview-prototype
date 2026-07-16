@@ -67,11 +67,43 @@
                   }
                 ]
               }
-            }
+            } if false
           ]
         })
       }}
 
+      <h2 class="govuk-heading-m">Offence and strength assessment</h2>
+
+      {% if charges.length %}
+        {% for charge in charges %}
+          <h3 class="govuk-heading-s">{{ charge.description }}</h3>
+
+          {% set elementRows = [] %}
+          {% for element in charge.elements %}
+            {%
+              set elementRows = elementRows.concat([{
+                key: { text: element.description },
+                value: {
+                  html: ((element.strength or "Not assessed") | e) + ('<br><span class="govuk-hint govuk-!-margin-bottom-0">' + (element.strengthReasoning | e) + '</span>' if element.strengthReasoning else "") + ('<br><a class="govuk-link" href="#">View evidence</a>' if element.hasEvidence else "")
+                },
+                actions: {
+                  items: [{
+                    href: "/cases/" + _case.id + "/review/strength-assessment/" + element.id + "?from=overview",
+                    text: "Change",
+                    visuallyHiddenText: element.description
+                  }]
+                }
+              }])
+            %}
+          {% endfor %}
+
+          {{ govukSummaryList({ classes: "govuk-!-margin-bottom-4", rows: elementRows }) }}
+        {% endfor %}
+      {% else %}
+        <p class="govuk-body">No offences.</p>
+      {% endif %}
+
+      {# Temporarily hidden while this is a single defendant case
       <h2 class="govuk-heading-m">Defendants</h2>
 
       {% if _case.defendants.length %}
@@ -97,9 +129,10 @@
       {% else %}
         <p class="govuk-body">No defendants.</p>
       {% endif %}
+      #}
 
       {% if _case.hearings.length %}
-        <h2 class="govuk-heading-m">Hearings</h2>
+        <h2 class="govuk-heading-m govuk-!-margin-top-7">Hearings</h2>
         <div class="app-list">
           {% for hearing in _case.hearings %}
             <div class="app-list__item">
@@ -121,7 +154,7 @@
         </div>
       {% endif %}
 
-      <h2 class="govuk-heading-m">Prosecutor</h2>
+      <h2 class="govuk-heading-m govuk-!-margin-top-7">Prosecutor</h2>
 
       <p><a href="/cases/{{ _case.id }}/add-prosecutor">Add prosecutor</a></p>
 
@@ -148,7 +181,7 @@
         {# <p>There is no assigned prosecutor.</p> #}
       {% endif %}
 
-      <h2 class="govuk-heading-m">Paralegal officer</h2>
+      <h2 class="govuk-heading-m govuk-!-margin-top-7">Paralegal officer</h2>
 
       <p><a href="/cases/{{ _case.id }}/add-paralegal-officer">Add paralegal officer</a></p>
 

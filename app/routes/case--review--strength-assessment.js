@@ -132,6 +132,10 @@ module.exports = (router) => {
       return res.redirect(`/cases/${caseId}/review/strength-assessment/check`)
     }
 
+    if (req.body.from === 'overview') {
+      return res.redirect(`/cases/${caseId}`)
+    }
+
     const nextElement = elements[elementIndex + 1]
     if (nextElement) {
       res.redirect(`/cases/${caseId}/review/strength-assessment/${nextElement.id}`)
