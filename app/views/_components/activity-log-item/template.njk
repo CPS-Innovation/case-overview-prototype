@@ -436,7 +436,7 @@
             {
               key: { text: 'Do you want to transfer the case?' },
               value: { text: params.event.meta.transferCase }
-            } if params.event.meta.decision == "Accept" and params.event.meta.transferCase,
+            } if params.event.meta.transferCase,
             {
               key: { text: 'Do you want to change the area?' },
               value: { text: params.event.meta.changeArea }
@@ -452,11 +452,11 @@
             {
               key: { text: "Who do you want to assign the 'early advice manager triage' task to?" },
               value: { text: params.event.meta.taskOwner.name }
-            } if params.event.meta.decision == "Accept" and params.event.meta.transferCase == "Yes" and params.event.meta.reviewTaskType == "Early advice" and params.event.meta.caseType == "RASSO" and params.event.meta.taskOwner,
+            } if params.event.meta.reviewTaskType == "Early advice" and params.event.meta.caseType == "RASSO" and params.event.meta.taskOwner,
             {
               key: { text: 'Prosecutor to assign the case to' },
               value: { text: params.event.meta.prosecutor.firstName + ' ' + params.event.meta.prosecutor.lastName }
-            } if params.event.meta.decision == "Accept" and params.event.meta.reviewTaskType == "Early advice" and params.event.meta.caseType != "RASSO" and params.event.meta.prosecutor,
+            } if params.event.meta.reviewTaskType == "Early advice" and params.event.meta.caseType != "RASSO" and params.event.meta.prosecutor,
             {
               key: { text: 'Date the police should respond by' },
               value: { text: params.event.meta.policeResponseDate | govukDate }

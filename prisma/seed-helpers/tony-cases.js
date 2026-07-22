@@ -686,6 +686,15 @@ async function seedTonyCases(prisma, dependencies, config) {
     count++;
   }
 
+  const natashaRogers = await prisma.user.findFirst({ where: { firstName: 'Natasha', lastName: 'Rogers' } });
+  if (natashaRogers) {
+    // Cases awaiting early advice manager triage
+    await createReviewCase(prisma, natashaRogers, 'Early advice manager triage', fullConfig);
+    count++;
+    await createReviewCase(prisma, natashaRogers, 'Early advice manager triage', fullConfig, false);
+    count++;
+  }
+
   return count;
 }
 

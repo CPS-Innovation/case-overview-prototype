@@ -26,11 +26,11 @@ const flow = {
     { field: 'rejectionReasons', when: { decision: 'Reject' } },
     { field: 'reviewTaskType' },
     { field: 'caseType' },
-    { field: 'transferCase', when: { decision: 'Accept' } },
-    { field: 'changeArea', when: { decision: 'Accept', transferCase: 'Yes' } },
-    { field: 'unitId', when: { decision: 'Accept', transferCase: 'Yes' } },
-    { field: 'taskOwner', when: { decision: 'Accept', reviewTaskType: 'Early advice', caseType: 'RASSO' } },
-    { field: 'prosecutorId', when: { decision: 'Accept', reviewTaskType: 'Early advice', caseType: { not: 'RASSO' } } },
+    { field: 'transferCase' },
+    { field: 'changeArea', when: { transferCase: 'Yes' } },
+    { field: 'unitId', when: { transferCase: 'Yes' } },
+    { field: 'taskOwner', when: { reviewTaskType: 'Early advice', caseType: 'RASSO' } },
+    { field: 'prosecutorId', when: { reviewTaskType: 'Early advice', caseType: { not: 'RASSO' } } },
     { field: 'policeResponseDate', when: { decision: 'Reject' } },
     { field: 'createReminderTask', when: { decision: 'Reject' } },
     { field: 'reminderDueDate', when: { decision: 'Reject', createReminderTask: 'Yes' } },
@@ -461,65 +461,63 @@ module.exports = router => {
       } : null
     }
 
-    // Add accept-specific data if decision was Accept
-    if (data.decision === 'Accept') {
-      if (data.reviewTaskType) {
-        activityLogMeta.reviewTaskType = data.reviewTaskType
-      }
-      if (data.transferCase) {
-        activityLogMeta.transferCase = data.transferCase
-      }
-      if (data.changeArea) {
-        activityLogMeta.changeArea = data.changeArea
-      }
-      if (data.area) {
-        activityLogMeta.area = data.area
-      }
-      if (data.unitId) {
-        // Resolve unit name
-        const unit = await prisma.unit.findUnique({
-          where: { id: parseInt(data.unitId) }
+    // Shared fields, collected regardless of Accept/Reject
+    if (data.reviewTaskType) {
+      activityLogMeta.reviewTaskType = data.reviewTaskType
+    }
+    if (data.caseType) {
+      activityLogMeta.caseType = data.caseType
+    }
+    if (data.transferCase) {
+      activityLogMeta.transferCase = data.transferCase
+    }
+    if (data.changeArea) {
+      activityLogMeta.changeArea = data.changeArea
+    }
+    if (data.area) {
+      activityLogMeta.area = data.area
+    }
+    if (data.unitId) {
+      // Resolve unit name
+      const unit = await prisma.unit.findUnique({
+        where: { id: parseInt(data.unitId) }
+      })
+      activityLogMeta.unit = unit ? { id: unit.id, name: unit.name } : null
+    }
+    if (data.taskOwner) {
+      // Resolve task owner name (user or team)
+      if (data.taskOwner.startsWith('user-')) {
+        const userId = parseInt(data.taskOwner.replace('user-', ''))
+        const user = await prisma.user.findUnique({
+          where: { id: userId }
         })
-        activityLogMeta.unit = unit ? { id: unit.id, name: unit.name } : null
-      }
-      if (data.caseType) {
-        activityLogMeta.caseType = data.caseType
-      }
-      if (data.taskOwner) {
-        // Resolve task owner name (user or team)
-        if (data.taskOwner.startsWith('user-')) {
-          const userId = parseInt(data.taskOwner.replace('user-', ''))
-          const user = await prisma.user.findUnique({
-            where: { id: userId }
-          })
-          activityLogMeta.taskOwner = user ? {
-            type: 'user',
-            id: user.id,
-            name: `${user.firstName} ${user.lastName}`
-          } : null
-        } else if (data.taskOwner.startsWith('team-')) {
-          const teamId = parseInt(data.taskOwner.replace('team-', ''))
-          const team = await prisma.team.findUnique({
-            where: { id: teamId }
-          })
-          activityLogMeta.taskOwner = team ? {
-            type: 'team',
-            id: team.id,
-            name: team.name
-          } : null
-        }
-      }
-      if (data.prosecutorId) {
-        // Resolve prosecutor name
-        const prosecutor = await prisma.user.findUnique({
-          where: { id: parseInt(data.prosecutorId) }
+        activityLogMeta.taskOwner = user ? {
+          type: 'user',
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`
+        } : null
+      } else if (data.taskOwner.startsWith('team-')) {
+        const teamId = parseInt(data.taskOwner.replace('team-', ''))
+        const team = await prisma.team.findUnique({
+          where: { id: teamId }
         })
-        activityLogMeta.prosecutor = prosecutor ? {
-          id: prosecutor.id,
-          firstName: prosecutor.firstName,
-          lastName: prosecutor.lastName
+        activityLogMeta.taskOwner = team ? {
+          type: 'team',
+          id: team.id,
+          name: team.name
         } : null
       }
+    }
+    if (data.prosecutorId) {
+      // Resolve prosecutor name
+      const prosecutor = await prisma.user.findUnique({
+        where: { id: parseInt(data.prosecutorId) }
+      })
+      activityLogMeta.prosecutor = prosecutor ? {
+        id: prosecutor.id,
+        firstName: prosecutor.firstName,
+        lastName: prosecutor.lastName
+      } : null
     }
 
     // Add rejection-specific data if decision was Reject
@@ -545,11 +543,6 @@ module.exports = router => {
           month: data.reminderDueDate.month,
           year: data.reminderDueDate.year
         }).toISO()
-      }
-
-      // Add case type for reject flow
-      if (data.caseType) {
-        activityLogMeta.caseType = data.caseType
       }
     }
 
