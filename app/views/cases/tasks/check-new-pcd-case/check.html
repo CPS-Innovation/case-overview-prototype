@@ -133,7 +133,7 @@
                 visuallyHiddenText: "if you want to transfer the case"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase,
+          } if data.transferCase,
           {
             key: { text: "Do you want to change the area?" },
             value: { text: data.changeArea },
@@ -144,7 +144,7 @@
                 visuallyHiddenText: "if you want to change the area"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.changeArea,
+          } if data.transferCase == "Yes" and data.changeArea,
           {
             key: { text: "Area" },
             value: { text: data.area },
@@ -155,7 +155,7 @@
                 visuallyHiddenText: "area"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase == "Yes" and data.changeArea == "Yes" and data.area,
+          } if data.transferCase == "Yes" and data.changeArea == "Yes" and data.area,
           {
             key: { text: "Unit" },
             value: { text: unitName },
@@ -166,7 +166,7 @@
                 visuallyHiddenText: "unit"
               }]
             }
-          } if data.decision == "Accept" and data.transferCase == "Yes",
+          } if data.transferCase == "Yes",
           {
             key: { text: "Who do you want to assign the 'early advice manager triage' task to?" },
             value: { text: taskOwnerName },
@@ -177,7 +177,7 @@
                 visuallyHiddenText: "who you want to assign the ’early advice manager triage’ task to"
               }]
             }
-          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.taskOwner,
+          } if data.reviewTaskType == "Early advice" and data.caseType == "RASSO" and data.taskOwner,
           {
             key: { text: "Prosecutor to assign the case to" },
             value: { text: prosecutorValue },
@@ -188,7 +188,7 @@
                 visuallyHiddenText: "prosecutor to assign the case to"
               }]
             }
-          } if data.decision == "Accept" and data.reviewTaskType == "Early advice" and data.caseType != "RASSO" and data.prosecutorId,
+          } if data.reviewTaskType == "Early advice" and data.caseType != "RASSO" and data.prosecutorId,
           {
             key: { text: "Date the police should respond by" },
             value: { text: data.policeResponseDate | isoDateFromDateInput | govukDateTime },

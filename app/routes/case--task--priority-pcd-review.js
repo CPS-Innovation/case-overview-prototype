@@ -25,9 +25,9 @@ const flow = {
     { field: 'nfsReasons', when: { decision: 'NFS non-compliant' } },
     { field: 'priorityReason', when: { decision: 'Priority / Red rejection' } },
     { field: 'cpsd' },
-    { field: 'transferCase', when: { decision: 'NFS compliant', cpsd: 'No' } },
-    { field: 'changeArea', when: { decision: 'NFS compliant', cpsd: 'No', transferCase: 'Yes' } },
-    { field: 'unit', when: { decision: 'NFS compliant', cpsd: 'No', transferCase: 'Yes' } },
+    { field: 'transferCase', when: { cpsd: 'No' } },
+    { field: 'changeArea', when: { cpsd: 'No', transferCase: 'Yes' } },
+    { field: 'unit', when: { cpsd: 'No', transferCase: 'Yes' } },
     { field: 'policeResponseDate', when: { decision: { either: ['NFS non-compliant', 'Priority / Red rejection'] } } },
   ]
 }
