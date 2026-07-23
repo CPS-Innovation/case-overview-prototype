@@ -10,28 +10,40 @@
 
       {% if isReviewMode %}
         <div class="app-video-annotation-actions govuk-button-group govuk-!-margin-bottom-0">
+          {% if offences.length %}
+            {{
+              govukButton({
+                text: "Mark as evidence",
+                classes: "govuk-button--secondary js-video-annotate-btn",
+                type: "button",
+                attributes: { "data-type": "evidence" }
+              })
+            }}
+          {% endif %}
+          {% if offences.length %}
+            {{
+              govukButton({
+                text: "Mark as disclosure",
+                classes: "govuk-button--secondary js-video-annotate-btn",
+                type: "button",
+                attributes: { "data-type": "disclosure" }
+              })
+            }}
+          {% endif %}
           {{
             govukButton({
-              text: "Mark as evidence",
+              text: "Add information request note",
               classes: "govuk-button--secondary js-video-annotate-btn",
               type: "button",
-              attributes: { "data-type": "evidence" }
+              attributes: { "data-type": "information-request" }
             })
           }}
           {{
             govukButton({
-              text: "Mark as disclosure",
+              text: "Add note",
               classes: "govuk-button--secondary js-video-annotate-btn",
               type: "button",
-              attributes: { "data-type": "disclosure" }
-            })
-          }}
-          {{
-            govukButton({
-              text: "Add police request",
-              classes: "govuk-button--secondary js-video-annotate-btn",
-              type: "button",
-              attributes: { "data-type": "police-request" }
+              attributes: { "data-type": "note" }
             })
           }}
         </div>

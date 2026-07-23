@@ -15,4 +15,5 @@ usage-data-config.json
 .idea
 
 /prisma/data/
+*.db
 drafts

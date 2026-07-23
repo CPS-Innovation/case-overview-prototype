@@ -20,11 +20,19 @@
   }
 }
 
-.app-annotation--police-request {
+.app-annotation--information-request {
   background-color: #fde8d8;
 
   &.app-annotation--active {
     background-color: #f6b495;
+  }
+}
+
+.app-annotation--note {
+  background-color: govuk-colour("yellow", $variant: "tint-50");
+
+  &.app-annotation--active {
+    background-color: govuk-colour("yellow");
   }
 }
 

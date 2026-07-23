@@ -1037,7 +1037,7 @@
       </p>
     {% endif %}
 
-    {% if params.event.title == 'Police request created' %}
+    {% if params.event.title == 'Information request created' %}
       <div class="app-activity-log__box">
         {% if params.event.meta.description %}
           {{ govukSummaryList({
@@ -1058,11 +1058,11 @@
         {% endfor %}
       </div>
       <p class="app-log-card__note--link">
-        <a class="govuk-link" href="/cases/{{ params.event.case.id }}/police-requests/{{ params.event.recordId }}">View request</a>
+        <a class="govuk-link" href="/cases/{{ params.event.case.id }}/information-requests/{{ params.event.recordId }}">View request</a>
       </p>
     {% endif %}
 
-    {% if params.event.title == 'Offence added' or params.event.title == 'Offence changed' %}
+    {% if params.event.title == 'Offence added' or params.event.title == 'Offence changed' or params.event.title == 'Offence removed' %}
       <div class="app-activity-log__box">
         {{ govukSummaryList({
           rows: [

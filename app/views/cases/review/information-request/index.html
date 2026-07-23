@@ -1,0 +1,38 @@
+{% extends "_layouts/main.html" %}
+{% set navId = 'cases' %}
+
+{% block beforeContent %}
+  {{
+    govukBackLink({
+      text: 'Back',
+      href: "/cases/" + _case.id + "/review"
+    })
+  }}
+{% endblock %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <span class="govuk-caption-l">{{ _case.reference }}</span>
+      <form method="post">
+        {{ govukRadios({
+          name: "wantsInformationRequest",
+          fieldset: {
+            legend: {
+              text: "Do you want to request information?",
+              isPageHeading: true,
+              classes: "govuk-fieldset__legend--l"
+            }
+          },
+          value: data['reviewInformationRequest']['wantsInformationRequest'],
+          items: [
+            { value: "yes", text: "Yes" },
+            { value: "no", text: "No" }
+          ]
+        }) }}
+
+        {{ govukButton({ text: "Continue" }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

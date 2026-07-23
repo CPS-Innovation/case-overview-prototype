@@ -1,13 +1,13 @@
 {% extends "_layouts/main.html" %}
 
 {% set navId = 'cases' %}
-{% set pageName = "Make charging decision" %}
+{% set pageName = "Charge " + chargeNumber + " of " + totalCharges %}
 
 {% block beforeContent %}
   {{
     govukBackLink({
       text: 'Back',
-      href: '/cases/' + _case.id
+      href: '/cases/' + _case.id + '/review' if isFirstCharge else 'javascript:history.back()'
     })
   }}
 {% endblock %}
@@ -16,15 +16,20 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds-from-desktop">
       <span class="govuk-caption-l">{{ _case.reference }}</span>
-      <h1 class="govuk-heading-l">Decision</h1>
+      <h1 class="govuk-heading-l">{{ pageName }}</h1>
 
-      {% if charge %}
-        <h2 class="govuk-heading-m">{{ charge.description }}</h2>
-
-        {{ govukSummaryList({ rows: pointsToProveRows }) }}
+      {% if showDefendantName %}
+        <p class="govuk-body">{{ charge.defendant.firstName }} {{ charge.defendant.lastName }}</p>
       {% endif %}
 
+      <h2 class="govuk-heading-m">{{ charge.description }}</h2>
+      {{ govukSummaryList({ rows: elementRows }) }}
+
       <form method="post">
+        {% if from == 'check' %}
+          <input type="hidden" name="from" value="check" />
+        {% endif %}
+
         {{
           govukRadios({
             name: "decision",
@@ -38,15 +43,15 @@
             },
             items: [
               {
-                value: "charge",
+                value: "Charge",
                 text: "Charge"
               },
               {
-                value: "charge",
+                value: "Hold until further evidence",
                 text: "Hold until further evidence"
               },
               {
-                value: "do-not-charge",
+                value: "Do not charge",
                 text: "Do not charge"
               }
             ]

@@ -1,110 +1,122 @@
+const _ = require('lodash')
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
-const statuses = require('../data/case-statuses')
+const { getEligibleCharges, findOrCreateReview, hydrateSeededReviewSession } = require('../helpers/caseReview')
 
 module.exports = (router) => {
+  // Entry point — send the reviewer to the first charge that still needs a decision
   router.get('/cases/:caseId/review/charging-decision', async (req, res) => {
     const caseId = parseInt(req.params.caseId)
-    const _case = await prisma.case.findUnique({
-      where: { id: caseId },
-      include: {
-        defendants: {
-          include: { charges: { include: { pointsToProve: { orderBy: { order: 'asc' } } } } }
-        }
-      },
-    })
 
     if (req.query.referrer) {
       req.session.data.chargingDecision = { ...req.session.data.chargingDecision, referrer: req.query.referrer }
     }
 
-    // Single defendant, single charge for now
-    const charge = _case.defendants[0]?.charges[0]
-    const pointsToProveRows = (charge?.pointsToProve || []).map(point => ({
-      key: { text: point.description },
-      value: { text: point.strength || 'Unknown' },
-      actions: {
-        items: [
-          {
-            href: `/cases/${caseId}/points-to-prove/${point.id}/edit?from=make-charging-decision`,
-            text: 'Change',
-            visuallyHiddenText: point.description
-          }
-        ]
+    const { charges } = await getEligibleCharges(prisma, caseId)
+    if (!charges.length) {
+      return res.redirect(`/cases/${caseId}/review`)
+    }
+
+    const decisions = req.session.data.chargingDecision?.decisions || {}
+    const nextCharge = charges.find(charge => !decisions[charge.id]) || charges[0]
+    res.redirect(`/cases/${caseId}/review/charging-decision/${nextCharge.id}`)
+  })
+
+  // Charging decision — check answers
+  // Registered before the /:chargeId routes below so "check" isn't matched as a chargeId.
+  router.get('/cases/:caseId/review/charging-decision/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const userId = req.session.data.user.id
+    const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
+    const review = await findOrCreateReview(prisma, caseId, userId)
+    hydrateSeededReviewSession(req, res, review, charges)
+
+    const decisions = req.session.data.chargingDecision?.decisions || {}
+    const chargeRows = charges.map(charge => ({
+      ...charge,
+      decision: decisions[charge.id],
+    }))
+
+    res.render('cases/review/charging-decision/check', {
+      _case,
+      review,
+      charges: chargeRows,
+      showDefendantName: eligibleDefendants.length > 1,
+    })
+  })
+
+  router.post('/cases/:caseId/review/charging-decision/check', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const userId = req.session.data.user.id
+    const review = await findOrCreateReview(prisma, caseId, userId)
+
+    await prisma.caseReview.update({
+      where: { id: review.id },
+      data: { chargingDecisionComplete: req.body.complete === 'yes' },
+    })
+
+    res.redirect(`/cases/${caseId}/review`)
+  })
+
+  // Charge decision — one charge per page
+  router.get('/cases/:caseId/review/charging-decision/:chargeId', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const chargeId = parseInt(req.params.chargeId)
+    const { _case, eligibleDefendants, charges } = await getEligibleCharges(prisma, caseId)
+
+    const chargeIndex = charges.findIndex(charge => charge.id === chargeId)
+    if (chargeIndex === -1) {
+      return res.redirect(`/cases/${caseId}/review/charging-decision`)
+    }
+
+    const charge = charges[chargeIndex]
+    const elementRows = (charge.elements || []).map(element => ({
+      key: { text: element.description },
+      value: {
+        html: _.escape(element.strength || 'Not assessed') +
+          (element.strengthReasoning
+            ? `<br><span class="govuk-hint govuk-!-margin-bottom-0">${_.escape(element.strengthReasoning)}</span>`
+            : '')
       }
     }))
 
     res.render('cases/review/charging-decision/index', {
       _case,
       charge,
-      pointsToProveRows,
-      selectedDecision: req.session.data.chargingDecision?.decision,
+      elementRows,
+      chargeNumber: chargeIndex + 1,
+      totalCharges: charges.length,
+      showDefendantName: eligibleDefendants.length > 1,
+      selectedDecision: req.session.data.chargingDecision?.decisions?.[chargeId],
+      isFirstCharge: chargeIndex === 0,
+      from: req.query.from,
     })
   })
 
-  router.post('/cases/:caseId/review/charging-decision', async (req, res) => {
-    const caseId = req.params.caseId
+  router.post('/cases/:caseId/review/charging-decision/:chargeId', async (req, res) => {
+    const caseId = parseInt(req.params.caseId)
+    const chargeId = parseInt(req.params.chargeId)
+
     req.session.data.chargingDecision = {
-      referrer: req.session.data.chargingDecision?.referrer,
-      decision: req.body.decision,
+      ...req.session.data.chargingDecision,
+      decisions: {
+        ...req.session.data.chargingDecision?.decisions,
+        [chargeId]: req.body.decision,
+      },
     }
 
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(caseId) },
-      include: { defendants: true },
-    })
-    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.NOT_CHARGED && d.needsReview)
+    if (req.body.from === 'check') {
+      return res.redirect(`/cases/${caseId}/review/charging-decision/check`)
+    }
 
-    if (eligibleDefendants.length > 1) {
-      res.redirect(`/cases/${caseId}/review/charging-decision/defendants`)
+    const { charges } = await getEligibleCharges(prisma, caseId)
+    const chargeIndex = charges.findIndex(charge => charge.id === chargeId)
+    const nextCharge = charges[chargeIndex + 1]
+
+    if (nextCharge) {
+      res.redirect(`/cases/${caseId}/review/charging-decision/${nextCharge.id}`)
     } else {
       res.redirect(`/cases/${caseId}/review/charging-decision/check`)
     }
-  })
-
-  router.get('/cases/:caseId/review/charging-decision/defendants', async (req, res) => {
-    const _case = await prisma.case.findUnique({
-      where: { id: parseInt(req.params.caseId) },
-      include: { defendants: true },
-    })
-
-    const eligibleDefendants = _case.defendants.filter(d => d.status === statuses.NOT_CHARGED && d.needsReview)
-    const selectedDefendantIds = req.session.data.chargingDecision?.defendantIds || eligibleDefendants.map(d => String(d.id))
-    const defendantItems = eligibleDefendants.map(d => ({ value: String(d.id), text: `${d.firstName} ${d.lastName}` }))
-    res.render('cases/review/charging-decision/defendants', { _case, defendantItems, selectedDefendantIds })
-  })
-
-  router.post('/cases/:caseId/review/charging-decision/defendants', (req, res) => {
-    const caseId = req.params.caseId
-    req.session.data.chargingDecision = {
-      ...req.session.data.chargingDecision,
-      defendantIds: [].concat(req.body.chargingDecision?.defendants || []).filter(id => id !== '_unchecked'),
-    }
-    res.redirect(`/cases/${caseId}/review/charging-decision/check`)
-  })
-
-  // Charging decision — check answers
-  router.get('/cases/:caseId/review/charging-decision/check', async (req, res) => {
-    const caseId = parseInt(req.params.caseId)
-    const _case = await prisma.case.findUnique({
-      where: { id: caseId },
-      include: { defendants: true },
-    })
-
-    const { defendantIds } = req.session.data.chargingDecision || {}
-    const selectedDefendants = defendantIds
-      ? _case.defendants.filter(d => defendantIds.includes(String(d.id)))
-      : null
-
-    res.render('cases/review/charging-decision/check', { _case, selectedDefendants })
-  })
-
-  router.post('/cases/:caseId/review/charging-decision/check', (req, res) => {
-    const caseId = req.params.caseId
-    req.session.data.chargingDecision = {
-      ...req.session.data.chargingDecision,
-      complete: req.body.complete === 'yes',
-    }
-    res.redirect(`/cases/${caseId}/review`)
   })
 }

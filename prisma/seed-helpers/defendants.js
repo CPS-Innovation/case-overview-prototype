@@ -5,7 +5,6 @@ const religions = require('../../app/data/religions.js');
 const occupations = require('../../app/data/occupations.js');
 const remandStatuses = require('../../app/data/remand-statuses.js');
 const charges = require('../../app/data/charges.js');
-const chargeStatuses = require('../../app/data/charge-statuses.js');
 const pleas = require('../../app/data/pleas.js');
 
 const {
@@ -140,7 +139,7 @@ async function seedDefendants(prisma, defenceLawyers) {
       allChargesData.push({
         chargeCode: charge.code,
         description: charge.description,
-        status: faker.helpers.arrayElement(chargeStatuses),
+        status: 'Charged',
         offenceDate: offenceDate,
         plea: faker.helpers.arrayElement(pleas),
         custodyTimeLimit: ctl,

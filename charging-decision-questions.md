@@ -8,14 +8,14 @@ Before we start building this, here are some questions and gaps to talk through.
 
 ## Data model gaps
 
-2. "Action plans" (= police requests) and disclosure material tagged to a specific charge - right now nothing in the prototype links evidence, disclosure, or police requests to a specific charge. They're only linked to the case as a whole. Is tagging material to a charge a prerequisite for this feature, or can charging decisions ship first and tagging come later?
+2. "Action plans" (= information requests) and disclosure material tagged to a specific charge - right now nothing in the prototype links evidence, disclosure, or information requests to a specific charge. They're only linked to the case as a whole. Is tagging material to a charge a prerequisite for this feature, or can charging decisions ship first and tagging come later?
 3. Charges already have a status field with values "Under review", "Charged", "Proceeded", "Discontinued", "Amended". Should making a charging decision update this? For example, does "Reject charge" move a charge to "Discontinued"?
 4. Defendant/case status: today there are only two outcomes wired up ("Charge" moves the defendant to "Charges pending", "Do not charge" moves them to "No further action"). What should "Issue caution", "Defer decision", "Reject charge", and "Take charge into consideration" actually do to defendant/charge status? Is this something you have half-formed ideas about, or a blank page?
 
 ## Conditions for showing options
 
 5. "Issue caution" - what determines whether it's appropriate for the charge? Is that based on charge type/offence, something else, or not yet defined?
-6. "Defer decision" - shown only if a police request (action plan) exists for the charge, or always available on the assumption enquiries happen through another route? These lead to different UI.
+6. "Defer decision" - shown only if a information request (action plan) exists for the charge, or always available on the assumption enquiries happen through another route? These lead to different UI.
 
 ## Deriving the overall decision
 

@@ -66,10 +66,10 @@ router.use('/cases/:caseId*', async (req, res, next) => {
     res.locals.caseHearings = hearings
     res.locals.activeHearings = hearings.filter(h => h.status !== 'Hearing complete')
 
-    const pendingPoliceRequestItemCount = await prisma.policeRequestItem.count({
-      where: { policeRequest: { caseId }, receivedDate: null, cancelledDate: null }
+    const pendingInformationRequestItemCount = await prisma.informationRequestItem.count({
+      where: { informationRequest: { caseId }, receivedDate: null, cancelledDate: null }
     })
-    res.locals.hasPendingPoliceRequest = pendingPoliceRequestItemCount > 0
+    res.locals.hasPendingInformationRequest = pendingInformationRequestItemCount > 0
   }
   next()
 })
@@ -88,8 +88,14 @@ require('./routes/case--add-paralegal-officer')(router)
 require('./routes/case--prosecutors')(router)
 require('./routes/case--paralegal-officers')(router)
 require('./routes/case--overview')(router)
+require('./routes/case--narrative')(router)
 require('./routes/case--review--charging-decision')(router)
-require('./routes/case--points-to-prove')(router)
+require('./routes/case--review--strength-assessment')(router)
+require('./routes/case--review--document')(router)
+require('./routes/case--review--summary')(router)
+require('./routes/case--review--information-request')(router)
+require('./routes/case--review--first-hearing')(router)
+require('./routes/case--elements')(router)
 require('./routes/case--simulate-authorised-charges')(router)
 require('./routes/case--no-further-action')(router)
 require('./routes/case--hearing-actions')(router)
@@ -98,7 +104,7 @@ require('./routes/case--notes--add-note')(router)
 require('./routes/case--notes')(router)
 require('./routes/case--ctl-log--add-entry')(router)
 require('./routes/case--ctl-log')(router)
-require('./routes/case--police-requests')(router)
+require('./routes/case--information-requests')(router)
 require('./routes/case--activity')(router)
 require('./routes/case--tasks')(router)
 require('./routes/case--directions')(router)

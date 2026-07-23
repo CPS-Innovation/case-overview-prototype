@@ -161,7 +161,7 @@ addFilter('hearingStatusTagClass', (status) => {
   }
 })
 
-addFilter('policeRequestStatusTagClass', (status) => {
+addFilter('informationRequestStatusTagClass', (status) => {
   switch (status) {
     case 'Received':
       return 'govuk-tag--green'

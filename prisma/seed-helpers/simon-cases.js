@@ -24,6 +24,9 @@ const SIMON_UNITS_ARRAY = Object.values(SIMON_UNITS);
 
 const statuses = require('../../app/data/case-statuses');
 
+// All of Simon's own cases use the same offence: ABH (A02)
+const SIMON_CHARGE = require('../../app/data/charges').find(charge => charge.code === 'A02');
+
 const SIMON_STATUSES = [
   statuses.NOT_CHARGED,
   statuses.CHARGES_PENDING,
@@ -49,7 +52,7 @@ const SIMON_CTL_TASKS = [
   { name: 'CTL expiry imminent', hasCTL: true }
 ];
 
-async function createWitness(prisma, caseId, config) {
+async function createWitness(prisma, caseId, config, forcedTypes = {}) {
   const { firstNames, lastNames, ukCities } = config;
 
   const allTypes = [
@@ -78,7 +81,8 @@ async function createWitness(prisma, caseId, config) {
     isProfessional: selectedTypes.includes("isProfessional"),
     isPrisoner: selectedTypes.includes("isPrisoner"),
     isVulnerable: selectedTypes.includes("isVulnerable"),
-    isIntimidated: selectedTypes.includes("isIntimidated")
+    isIntimidated: selectedTypes.includes("isIntimidated"),
+    ...forcedTypes
   };
 
   const isDcf = faker.datatype.boolean();
@@ -163,6 +167,16 @@ async function createSpecialMeasures(prisma, witnessId) {
   }
 }
 
+async function createVictimWitness(prisma, caseId, config) {
+  const { witness, isDcf } = await createWitness(prisma, caseId, config, { isVictim: true });
+
+  if (isDcf) {
+    await createSpecialMeasures(prisma, witness.id);
+  }
+
+  return witness;
+}
+
 async function createSTLCase(prisma, user, taskConfig, config) {
   const { defenceLawyers, charges, firstNames, lastNames, pleas, victims, types, complexities, policeUnits, ukCities, availableOperationNames, documentNames, documentTypes } = config;
   const { name, stlGenerator } = taskConfig;
@@ -180,8 +194,8 @@ async function createSTLCase(prisma, user, taskConfig, config) {
       defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
       charges: {
         create: {
-          chargeCode: faker.helpers.arrayElement(charges).code,
-          description: faker.helpers.arrayElement(charges).description,
+          chargeCode: SIMON_CHARGE.code,
+          description: SIMON_CHARGE.description,
           status: 'Pre-charge',
           offenceDate: faker.date.past(),
           plea: null,
@@ -259,6 +273,8 @@ async function createSTLCase(prisma, user, taskConfig, config) {
   // Create directions
   await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
+  await createVictimWitness(prisma, _case.id, config);
+
   return _case;
 }
 
@@ -280,8 +296,8 @@ async function createCTLCase(prisma, user, taskConfig, config) {
       defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
       charges: {
         create: {
-          chargeCode: faker.helpers.arrayElement(charges).code,
-          description: faker.helpers.arrayElement(charges).description,
+          chargeCode: SIMON_CHARGE.code,
+          description: SIMON_CHARGE.description,
           status: 'Charged',
           offenceDate: faker.date.past(),
           plea: faker.helpers.arrayElement(pleas),
@@ -313,8 +329,8 @@ async function createCTLCase(prisma, user, taskConfig, config) {
         defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
         charges: {
           create: {
-            chargeCode: faker.helpers.arrayElement(charges).code,
-            description: faker.helpers.arrayElement(charges).description,
+            chargeCode: SIMON_CHARGE.code,
+            description: SIMON_CHARGE.description,
             status: 'Charged',
             offenceDate: faker.date.past(),
             plea: faker.helpers.arrayElement(pleas),
@@ -402,6 +418,8 @@ async function createCTLCase(prisma, user, taskConfig, config) {
 
   await createCtlLogEntries(prisma, _case.id, [user]);
 
+  await createVictimWitness(prisma, _case.id, config);
+
   return _case;
 }
 
@@ -419,8 +437,8 @@ async function createManyStatementsCase(prisma, user, config) {
       defenceLawyer: { connect: { id: faker.helpers.arrayElement(defenceLawyers).id } },
       charges: {
         create: {
-          chargeCode: faker.helpers.arrayElement(charges).code,
-          description: faker.helpers.arrayElement(charges).description,
+          chargeCode: SIMON_CHARGE.code,
+          description: SIMON_CHARGE.description,
           status: "Charged",
           offenceDate: faker.date.past(),
           plea: faker.helpers.arrayElement(pleas),
@@ -548,9 +566,9 @@ async function createManyStatementsCase(prisma, user, config) {
     });
   }
 
-  // Create 4 more witnesses with 0-2 statements each
+  // Create 4 more witnesses with 0-2 statements each, the first always a victim
   for (let w = 0; w < 4; w++) {
-    const { witness, isDcf } = await createWitness(prisma, _case.id, config);
+    const { witness, isDcf } = await createWitness(prisma, _case.id, config, w === 0 ? { isVictim: true } : {});
 
     await prisma.witness.update({
       where: { id: witness.id },
@@ -679,6 +697,8 @@ async function createColleagueCase(prisma, prosecutor, paralegalOfficer, config)
     }
   });
 
+  await createVictimWitness(prisma, _case.id, config);
+
   return _case;
 }
 
@@ -700,8 +720,8 @@ async function createReviewCase(prisma, user, taskName, config, hasCharge = true
       ...(hasCharge ? {
         charges: {
           create: {
-            chargeCode: faker.helpers.arrayElement(charges).code,
-            description: faker.helpers.arrayElement(charges).description,
+            chargeCode: SIMON_CHARGE.code,
+            description: SIMON_CHARGE.description,
             status: 'Pre-charge',
             offenceDate: faker.date.past(),
             plea: null,
@@ -773,6 +793,8 @@ async function createReviewCase(prisma, user, taskName, config, hasCharge = true
 
   await createDirectionsForCase(prisma, _case.id, defendant.id, faker.number.int({ min: 1, max: 3 }));
 
+  await createVictimWitness(prisma, _case.id, config);
+
   return _case;
 }
 
@@ -824,8 +846,10 @@ async function seedSimonCases(prisma, dependencies, config) {
     await createColleagueCase(prisma, colleagues.prosecutors[i], colleagues.paralegalOfficers[i], fullConfig);
   }
 
-  await createDivergedCase(prisma, simonWhatley, faker.helpers.arrayElement(SIMON_UNITS_ARRAY), SIMON_STATUSES, fullConfig);
-  await createDivergedCase(prisma, simonWhatley, faker.helpers.arrayElement(SIMON_UNITS_ARRAY), [statuses.NOT_CHARGED, statuses.CHARGES_PENDING, statuses.CHARGED], fullConfig);
+  const divergedCase1 = await createDivergedCase(prisma, simonWhatley, faker.helpers.arrayElement(SIMON_UNITS_ARRAY), SIMON_STATUSES, { ...fullConfig, charges: [SIMON_CHARGE] });
+  await createVictimWitness(prisma, divergedCase1.id, fullConfig);
+  const divergedCase2 = await createDivergedCase(prisma, simonWhatley, faker.helpers.arrayElement(SIMON_UNITS_ARRAY), [statuses.NOT_CHARGED, statuses.CHARGES_PENDING, statuses.CHARGED], { ...fullConfig, charges: [SIMON_CHARGE] });
+  await createVictimWitness(prisma, divergedCase2.id, fullConfig);
 
   // Cases awaiting a charging decision (not charged, needs review)
   await createReviewCase(prisma, simonWhatley, 'Make charging decision', fullConfig);
@@ -835,5 +859,7 @@ async function seedSimonCases(prisma, dependencies, config) {
 }
 
 module.exports = {
-  seedSimonCases
+  seedSimonCases,
+  createVictimWitness,
+  SIMON_UNITS
 };

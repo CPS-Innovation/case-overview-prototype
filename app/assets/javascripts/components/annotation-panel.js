@@ -12,23 +12,27 @@ App.AnnotationPanel = function(params) {
   this.selectedTextInput             = $('#annotation-selected-text')
   this.typeHiddenInput               = $('#annotation-type-hidden')
   this.noteHiddenInput               = $('#annotation-note-hidden')
+  this.annotationParagraphIndexInput  = $('#annotation-paragraph-index')
+  this.annotationOccurrenceIndexInput = $('#annotation-occurrence-index')
   this.saveBtn                       = $('.js-save-annotation')
   this.cancelBtn                     = $('.js-cancel-annotation')
   this.redactionForm                  = $('#redaction-form')
   this.redactionSelectedTextInput     = $('#redaction-selected-text')
   this.redactionParagraphIndexInput   = $('#redaction-paragraph-index')
   this.redactionOccurrenceIndexInput  = $('#redaction-occurrence-index')
-  this.redactionRemoveForm           = $('#redaction-remove-form')
+  this.redactionDeleteForm           = $('#redaction-delete-form')
   this.toggleRedactionsBtn           = $('.js-toggle-redactions')
   this.selectionActions              = $('.js-selection-actions')
   this.redactionActions              = $('.js-redaction-actions')
-  this.removeRedactionBtn            = $('.js-remove-redaction-btn')
+  this.deleteRedactionBtn            = $('.js-delete-redaction-btn')
   this.inadmissibleBtn               = $('.js-inadmissible-btn')
   this.inadmissibleActions           = $('.js-inadmissible-actions')
-  this.removeInadmissibleBtn         = $('.js-remove-inadmissible-btn')
+  this.deleteInadmissibleBtn         = $('.js-delete-inadmissible-btn')
   this.inadmissibleForm              = $('#inadmissible-form')
   this.inadmissibleSelectedTextInput = $('#inadmissible-selected-text')
-  this.inadmissibleRemoveForm        = $('#inadmissible-remove-form')
+  this.inadmissibleParagraphIndexInput  = $('#inadmissible-paragraph-index')
+  this.inadmissibleOccurrenceIndexInput = $('#inadmissible-occurrence-index')
+  this.inadmissibleDeleteForm        = $('#inadmissible-delete-form')
 
   this.caseId     = this.container.data('case-id')
   this.documentId = this.container.data('document-id')
@@ -37,9 +41,15 @@ App.AnnotationPanel = function(params) {
   this.selectionMark               = null
   this.redactionsHidden            = false
   this.pendingAnnotationType       = null
-  this.pendingRemoveRedactionId    = null
-  this.pendingRemoveInadmissibleId = null
+  this.pendingDeleteRedactionId    = null
+  this.pendingDeleteInadmissibleId = null
   this.formSelectionDocumentY      = null
+
+  // Cards can grow after opening (e.g. GOV.UK conditional checkbox reveals
+  // adding a reasoning textarea), which happens outside our own event
+  // handlers. Watching height directly means every card, current and future,
+  // stays correctly spaced without us having to know what caused the resize.
+  this.resizeObserver = new ResizeObserver($.proxy(this, 'repositionCards'))
 
   this.setupEvents()
   this.positionAllCards()
@@ -52,12 +62,15 @@ App.AnnotationPanel.prototype.setupEvents = function() {
   this.annotateBtns.on('click', $.proxy(this, 'onAnnotateBtnClick'))
   this.redactBtn.on('click', $.proxy(this, 'onRedactClick'))
   this.inadmissibleBtn.on('click', $.proxy(this, 'onInadmissibleClick'))
-  this.removeRedactionBtn.on('click', $.proxy(this, 'onRemoveRedactionClick'))
-  this.removeInadmissibleBtn.on('click', $.proxy(this, 'onRemoveInadmissibleClick'))
+  this.deleteRedactionBtn.on('click', $.proxy(this, 'onDeleteRedactionClick'))
+  this.deleteInadmissibleBtn.on('click', $.proxy(this, 'onDeleteInadmissibleClick'))
   this.toggleRedactionsBtn.on('click', $.proxy(this, 'onToggleRedactionsClick'))
   this.saveBtn.on('click', $.proxy(this, 'onSaveClick'))
   this.cancelBtn.on('click', $.proxy(this, 'onCancelClick'))
   this.sidebarInner.on('click', '.js-annotation-card', $.proxy(this, 'onCardClick'))
+  this.sidebarInner.on('click', '.js-change-annotation', $.proxy(this, 'onChangeAnnotationClick'))
+  this.sidebarInner.on('click', '.js-cancel-change-annotation', $.proxy(this, 'onCancelChangeAnnotationClick'))
+  this.sidebarInner.on('click', '.js-save-change-annotation', $.proxy(this, 'onSaveChangeAnnotationClick'))
   $(document).on('mousedown', $.proxy(this, 'onDocumentMousedown'))
   $(document).on('keydown', $.proxy(this, 'onDocumentKeydown'))
   $(window).on('resize', $.proxy(this, 'positionAllCards'))
@@ -67,8 +80,8 @@ App.AnnotationPanel.prototype.setupEvents = function() {
 
 App.AnnotationPanel.prototype.hidePopup = function() {
   this.popup.prop('hidden', true).attr('aria-hidden', 'true')
-  this.pendingRemoveRedactionId = null
-  this.pendingRemoveInadmissibleId = null
+  this.pendingDeleteRedactionId = null
+  this.pendingDeleteInadmissibleId = null
   window.getSelection().removeAllRanges()
 }
 
@@ -95,7 +108,7 @@ App.AnnotationPanel.prototype.showSelectionPopup = function(rect) {
 }
 
 App.AnnotationPanel.prototype.showRedactionPopup = function(rect, redactionId) {
-  this.pendingRemoveRedactionId = redactionId
+  this.pendingDeleteRedactionId = redactionId
   this.selectionActions.prop('hidden', true)
   this.redactionActions.prop('hidden', false)
   this.inadmissibleActions.prop('hidden', true)
@@ -103,7 +116,7 @@ App.AnnotationPanel.prototype.showRedactionPopup = function(rect, redactionId) {
 }
 
 App.AnnotationPanel.prototype.showInadmissiblePopup = function(rect, inadmissibleId) {
-  this.pendingRemoveInadmissibleId = inadmissibleId
+  this.pendingDeleteInadmissibleId = inadmissibleId
   this.selectionActions.prop('hidden', true)
   this.redactionActions.prop('hidden', true)
   this.inadmissibleActions.prop('hidden', false)
@@ -125,11 +138,11 @@ App.AnnotationPanel.prototype.clearSelectionHighlight = function() {
 App.AnnotationPanel.prototype.hideNewCard = function() {
   this.newAnnotationCards.prop('hidden', true)
   this.newAnnotationCards.find('.js-annotation-note-input').val('')
-  this.newAnnotationCards.find('.js-annotation-ptp-reasoning').val('')
-  this.newAnnotationCards.find('input[name="pointsToProveCheckbox"]:checked')
+  this.newAnnotationCards.find('.js-annotation-element-reasoning').val('')
+  this.newAnnotationCards.find('input[name="elementsCheckbox"]:checked')
     .prop('checked', false)
     .trigger('change')
-  this.annotationForm.find('.js-annotation-ptp-hidden').remove()
+  this.annotationForm.find('.js-annotation-element-hidden').remove()
   this.activeAnnotationCard = null
   this.clearSelectionHighlight()
   this.selectedTextInput.val('')
@@ -147,6 +160,7 @@ App.AnnotationPanel.prototype.positionAllCards = function() {
   var sidebarRect = this.sidebarInner[0].getBoundingClientRect()
   var MIN_GAP = 8
   var items = []
+  var self = this
 
   $('.js-annotation-card[data-annotation-id]').each(function() {
     var card = this
@@ -158,6 +172,7 @@ App.AnnotationPanel.prototype.positionAllCards = function() {
       markCentreY = markRect.top + markRect.height / 2 - sidebarRect.top
     }
     items.push({ card: card, height: card.offsetHeight, markCentreY: markCentreY, idealTop: markCentreY - card.offsetHeight / 2 })
+    self.resizeObserver.observe(card)
   })
 
   var formCard = this.activeAnnotationCard ? this.activeAnnotationCard[0] : null
@@ -165,6 +180,7 @@ App.AnnotationPanel.prototype.positionAllCards = function() {
     var formViewportY = this.formSelectionDocumentY - window.scrollY
     var formMarkCentreY = formViewportY - sidebarRect.top
     items.push({ card: formCard, height: formCard.offsetHeight, markCentreY: formMarkCentreY, idealTop: formMarkCentreY - formCard.offsetHeight / 2 })
+    this.resizeObserver.observe(formCard)
   }
 
   if (!items.length) return
@@ -237,7 +253,12 @@ App.AnnotationPanel.prototype.onAnnotateBtnClick = function(e) {
   if (!this.currentRange) return
 
   this.pendingAnnotationType = $(e.currentTarget).data('type')
-  this.selectedTextInput.val(this.currentRange.toString().trim())
+  var selectedText = this.currentRange.toString().trim()
+  this.selectedTextInput.val(selectedText)
+
+  var position = this.getParagraphOccurrence(this.currentRange, selectedText)
+  this.annotationParagraphIndexInput.val(position.paragraphIndex)
+  this.annotationOccurrenceIndexInput.val(position.occurrenceIndex)
 
   var rect = this.currentRange.getBoundingClientRect()
   this.formSelectionDocumentY = rect.top + rect.height / 2 + window.scrollY
@@ -258,19 +279,19 @@ App.AnnotationPanel.prototype.onAnnotateBtnClick = function(e) {
   this.activeAnnotationCard.prop('hidden', false)
   this.sidebarEmpty.prop('hidden', true)
   this.positionAllCards()
-  if (this.pendingAnnotationType === 'evidence') {
-    this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').first().focus()
+  var checkboxes = this.activeAnnotationCard.find('input[name="elementsCheckbox"]')
+  if (checkboxes.length) {
+    checkboxes.first().focus()
   } else {
     this.activeAnnotationCard.find('.js-annotation-note-input').focus()
   }
 }
 
-App.AnnotationPanel.prototype.onRedactClick = function() {
-  if (!this.currentRange) return
-  var selectedText = this.currentRange.toString().trim()
-  if (!selectedText) return
-
-  var range = this.currentRange
+// Finds which paragraph a range's selection starts in and which occurrence
+// of the selected text within that paragraph it is, so the server can target
+// the exact instance the user selected rather than every matching string in
+// the document.
+App.AnnotationPanel.prototype.getParagraphOccurrence = function(range, selectedText) {
   var allParas = this.container.find('.app-document__paragraph').toArray()
   var startNode = range.startContainer
   var startEl = startNode.nodeType === 3 ? startNode.parentNode : startNode
@@ -293,9 +314,19 @@ App.AnnotationPanel.prototype.onRedactClick = function() {
     }
   }
 
+  return { paragraphIndex: paragraphIndex, occurrenceIndex: occurrenceIndex }
+}
+
+App.AnnotationPanel.prototype.onRedactClick = function() {
+  if (!this.currentRange) return
+  var selectedText = this.currentRange.toString().trim()
+  if (!selectedText) return
+
+  var position = this.getParagraphOccurrence(this.currentRange, selectedText)
+
   this.redactionSelectedTextInput.val(selectedText)
-  this.redactionParagraphIndexInput.val(paragraphIndex)
-  this.redactionOccurrenceIndexInput.val(occurrenceIndex)
+  this.redactionParagraphIndexInput.val(position.paragraphIndex)
+  this.redactionOccurrenceIndexInput.val(position.occurrenceIndex)
   window.getSelection().removeAllRanges()
   this.hidePopup()
   this.redactionForm[0].submit()
@@ -328,26 +359,31 @@ App.AnnotationPanel.prototype.onDocumentClick = function(e) {
   this.showRedactionPopup(redaction[0].getBoundingClientRect(), redactionId)
 }
 
-App.AnnotationPanel.prototype.onRemoveRedactionClick = function() {
-  if (!this.pendingRemoveRedactionId) return
-  this.redactionRemoveForm.attr('action', '/cases/' + this.caseId + '/review/documents/' + this.documentId + '/redactions/' + this.pendingRemoveRedactionId + '/remove')
-  this.redactionRemoveForm[0].submit()
+App.AnnotationPanel.prototype.onDeleteRedactionClick = function() {
+  if (!this.pendingDeleteRedactionId) return
+  this.redactionDeleteForm.attr('action', '/cases/' + this.caseId + '/review/documents/' + this.documentId + '/redactions/' + this.pendingDeleteRedactionId + '/delete')
+  this.redactionDeleteForm[0].submit()
 }
 
 App.AnnotationPanel.prototype.onInadmissibleClick = function() {
   if (!this.currentRange) return
   var selectedText = this.currentRange.toString().trim()
   if (!selectedText) return
+
+  var position = this.getParagraphOccurrence(this.currentRange, selectedText)
+
   this.inadmissibleSelectedTextInput.val(selectedText)
+  this.inadmissibleParagraphIndexInput.val(position.paragraphIndex)
+  this.inadmissibleOccurrenceIndexInput.val(position.occurrenceIndex)
   window.getSelection().removeAllRanges()
   this.hidePopup()
   this.inadmissibleForm[0].submit()
 }
 
-App.AnnotationPanel.prototype.onRemoveInadmissibleClick = function() {
-  if (!this.pendingRemoveInadmissibleId) return
-  this.inadmissibleRemoveForm.attr('action', '/cases/' + this.caseId + '/review/documents/' + this.documentId + '/inadmissibles/' + this.pendingRemoveInadmissibleId + '/remove')
-  this.inadmissibleRemoveForm[0].submit()
+App.AnnotationPanel.prototype.onDeleteInadmissibleClick = function() {
+  if (!this.pendingDeleteInadmissibleId) return
+  this.inadmissibleDeleteForm.attr('action', '/cases/' + this.caseId + '/review/documents/' + this.documentId + '/inadmissibles/' + this.pendingDeleteInadmissibleId + '/delete')
+  this.inadmissibleDeleteForm[0].submit()
 }
 
 App.AnnotationPanel.prototype.onToggleRedactionsClick = function() {
@@ -357,7 +393,7 @@ App.AnnotationPanel.prototype.onToggleRedactionsClick = function() {
 }
 
 App.AnnotationPanel.prototype.onSaveClick = function() {
-  if (this.pendingAnnotationType === 'evidence') {
+  if (this.activeAnnotationCard.find('input[name="elementsCheckbox"]').length) {
     this.onSaveEvidenceClick()
     return
   }
@@ -369,14 +405,15 @@ App.AnnotationPanel.prototype.onSaveClick = function() {
   this.annotationForm[0].submit()
 }
 
-// Evidence annotations link one or more points to prove, each with its own
-// reasoning (revealed under its checkbox), rather than a single shared note.
+// Evidence and disclosure annotations link one or more elements, each with
+// its own reasoning (revealed under its checkbox), rather than a single
+// shared note.
 App.AnnotationPanel.prototype.onSaveEvidenceClick = function() {
   var self = this
-  var checked = this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]:checked')
+  var checked = this.activeAnnotationCard.find('input[name="elementsCheckbox"]:checked')
 
   if (!checked.length) {
-    this.activeAnnotationCard.find('input[name="pointsToProveCheckbox"]').first().focus()
+    this.activeAnnotationCard.find('input[name="elementsCheckbox"]').first().focus()
     return
   }
 
@@ -384,29 +421,29 @@ App.AnnotationPanel.prototype.onSaveEvidenceClick = function() {
   var firstInvalid = null
 
   checked.each(function() {
-    var pointId = $(this).val()
-    var textarea = self.activeAnnotationCard.find('.js-annotation-ptp-reasoning[data-point-to-prove-id="' + pointId + '"]')
+    var elementId = $(this).val()
+    var textarea = self.activeAnnotationCard.find('.js-annotation-element-reasoning[data-element-id="' + elementId + '"]')
     var reasoning = textarea.val().trim()
     if (!reasoning) {
       if (!firstInvalid) firstInvalid = textarea
       return
     }
-    fields.push({ pointId: pointId, reasoning: reasoning })
+    fields.push({ elementId: elementId, reasoning: reasoning })
   })
 
   if (firstInvalid) { firstInvalid.focus(); return }
 
-  this.annotationForm.find('.js-annotation-ptp-hidden').remove()
+  this.annotationForm.find('.js-annotation-element-hidden').remove()
   fields.forEach(function(field) {
     $('<input>', {
       type: 'hidden',
-      class: 'js-annotation-ptp-hidden',
-      name: 'pointsToProve[' + field.pointId + ']',
+      class: 'js-annotation-element-hidden',
+      name: 'elements[' + field.elementId + ']',
       value: field.reasoning
     }).appendTo(self.annotationForm)
   })
 
-  this.typeHiddenInput.val('evidence')
+  this.typeHiddenInput.val(this.pendingAnnotationType)
   this.noteHiddenInput.val('')
   this.annotationForm[0].submit()
 }
@@ -420,12 +457,115 @@ App.AnnotationPanel.prototype.onCancelClick = function(e) {
 }
 
 App.AnnotationPanel.prototype.onCardClick = function(e) {
-  if ($(e.target).closest('a').length) return
+  if ($(e.target).closest('a, .js-annotation-edit-form').length) return
   var card = $(e.currentTarget)
-  $('.js-annotation-card').removeClass('is-selected app-annotation-card--active')
+  this.deselectAllCards()
   card.addClass('is-selected')
   this.activateMark(card.data('annotation-id'))
   this.repositionCards()
+}
+
+// Closes any card left mid-edit so a deselected card never keeps its edit
+// form open with no way to see it's still unsaved.
+App.AnnotationPanel.prototype.deselectAllCards = function() {
+  var self = this
+  $('.js-annotation-card').removeClass('is-selected app-annotation-card--active').each(function() {
+    self.hideAnnotationEditForm($(this))
+  })
+}
+
+// Resets an in-progress edit (note text, checked elements and their reasoning)
+// back to the values it was opened with, then hides it.
+App.AnnotationPanel.prototype.hideAnnotationEditForm = function(card) {
+  var form = card.find('.js-annotation-edit-form')
+  if (!form.length || form.prop('hidden')) return
+
+  form.find('textarea').each(function() { this.value = this.defaultValue })
+  form.find('input[name="elementsCheckbox"]').each(function() { this.checked = this.defaultChecked })
+  form.find('.js-annotation-element-hidden').remove()
+
+  form.prop('hidden', true)
+  card.find('.js-annotation-view').prop('hidden', false)
+}
+
+App.AnnotationPanel.prototype.onChangeAnnotationClick = function(e) {
+  e.preventDefault()
+  var link = $(e.currentTarget)
+  var card = link.closest('.js-annotation-card')
+  var editForm = card.find('.js-annotation-edit-form')
+  var checkboxForm = editForm.find('.js-annotation-edit-checkboxes')
+  var disclosureCheckboxForm = editForm.find('.js-annotation-edit-checkboxes-disclosure')
+  var noteForm = editForm.find('.js-annotation-edit-note')
+  var tagCheckboxes = editForm.find('.js-annotation-edit-tag-checkboxes')
+  var tagDisclosureCheckboxes = editForm.find('.js-annotation-edit-tag-checkboxes-disclosure')
+  var tagNote = editForm.find('.js-annotation-edit-tag-note')
+  var target = link.data('edit-target')
+  var showDisclosureCheckboxes = target === 'checkboxes-disclosure'
+  var showCheckboxes = showDisclosureCheckboxes ? false : (target ? target === 'checkboxes' : checkboxForm.length > 0)
+
+  card.find('.js-annotation-view').prop('hidden', true)
+  editForm.prop('hidden', false)
+  checkboxForm.prop('hidden', !showCheckboxes)
+  disclosureCheckboxForm.prop('hidden', !showDisclosureCheckboxes)
+  noteForm.prop('hidden', showCheckboxes || showDisclosureCheckboxes)
+  tagCheckboxes.prop('hidden', !showCheckboxes)
+  tagDisclosureCheckboxes.prop('hidden', !showDisclosureCheckboxes)
+  tagNote.prop('hidden', showCheckboxes || showDisclosureCheckboxes)
+
+  var activeForm = showDisclosureCheckboxes ? disclosureCheckboxForm : (showCheckboxes ? checkboxForm : noteForm)
+  if (activeForm.find('input[name="elementsCheckbox"]').length) {
+    activeForm.find('input[name="elementsCheckbox"]').first().focus()
+  } else {
+    activeForm.find('textarea').first().focus()
+  }
+  this.repositionCards()
+}
+
+App.AnnotationPanel.prototype.onCancelChangeAnnotationClick = function(e) {
+  e.preventDefault()
+  this.hideAnnotationEditForm($(e.currentTarget).closest('.js-annotation-card'))
+  this.repositionCards()
+}
+
+// Evidence edits only submit reasoning for elements that are actually checked —
+// mirrors onSaveEvidenceClick so an unchecked element's leftover reasoning text
+// never gets linked by accident.
+App.AnnotationPanel.prototype.onSaveChangeAnnotationClick = function(e) {
+  var form = $(e.currentTarget).closest('form')
+  var checked = form.find('input[name="elementsCheckbox"]:checked')
+
+  if (!checked.length) {
+    form.find('input[name="elementsCheckbox"]').first().focus()
+    return
+  }
+
+  var fields = []
+  var firstInvalid = null
+
+  checked.each(function() {
+    var elementId = $(this).val()
+    var textarea = form.find('.js-annotation-element-reasoning[data-element-id="' + elementId + '"]')
+    var reasoning = textarea.val().trim()
+    if (!reasoning) {
+      if (!firstInvalid) firstInvalid = textarea
+      return
+    }
+    fields.push({ elementId: elementId, reasoning: reasoning })
+  })
+
+  if (firstInvalid) { firstInvalid.focus(); return }
+
+  form.find('.js-annotation-element-hidden').remove()
+  fields.forEach(function(field) {
+    $('<input>', {
+      type: 'hidden',
+      class: 'js-annotation-element-hidden',
+      name: 'elements[' + field.elementId + ']',
+      value: field.reasoning
+    }).appendTo(form)
+  })
+
+  form[0].submit()
 }
 
 App.AnnotationPanel.prototype.onDocumentMousedown = function(e) {
@@ -433,7 +573,7 @@ App.AnnotationPanel.prototype.onDocumentMousedown = function(e) {
     this.hidePopup()
   }
   if (!$(e.target).closest('.js-annotation-card').length) {
-    $('.js-annotation-card').removeClass('is-selected app-annotation-card--active')
+    this.deselectAllCards()
     this.activateMark(null)
     this.repositionCards()
   }

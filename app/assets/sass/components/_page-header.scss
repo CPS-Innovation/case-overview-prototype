@@ -5,6 +5,9 @@
   margin-bottom: govuk-spacing(4);
 
   &__title {
+    max-width: 75%;
+    min-width: 0;
+
     [class^=govuk-heading-] {
       margin-bottom: 0;
     }

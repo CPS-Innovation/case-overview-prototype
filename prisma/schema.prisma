@@ -157,7 +157,7 @@ model Case {
   prosecutors       CaseProsecutor[]
   paralegalOfficers CaseParalegalOfficer[]
   recentCases       RecentCase[]
-  policeRequests    PoliceRequest[]
+  informationRequests    InformationRequest[]
   reviews           CaseReview[]
 }
 
@@ -279,7 +279,7 @@ model Defendant {
   charges            Charge[]
   directions         Direction[]
   hearings           Hearing[]            @relation("HearingDefendants")
-  policeRequestItems PoliceRequestItem[]
+  informationRequestItems InformationRequestItem[]
 }
 
 model DefenceLawyer {
@@ -302,17 +302,18 @@ model Charge {
   isCount             Boolean   @default(false)
   defendantId         Int
   defendant           Defendant @relation(fields: [defendantId], references: [id])
-  pointsToProve       PointToProve[]
+  elements            Element[]
 }
 
-model PointToProve {
-  id          Int      @id @default(autoincrement())
-  description String
-  strength    String?  // 'Weak' | 'Unknown' | 'Strong'
-  order       Int      @default(0)
-  chargeId    Int
-  charge      Charge   @relation(fields: [chargeId], references: [id])
-  annotations CaseReviewAnnotationPointToProve[]
+model Element {
+  id                Int      @id @default(autoincrement())
+  description       String
+  strength          String?  // 'Weak' | 'Moderate' | 'Not assessed' | 'Strong'
+  strengthReasoning String?
+  order             Int      @default(0)
+  chargeId          Int
+  charge            Charge   @relation(fields: [chargeId], references: [id])
+  annotations       CaseReviewAnnotationElement[]
 }
 
 enum RemandStatus {
@@ -428,6 +429,8 @@ model CaseReview {
   status    String               @default("in_progress")
   summary   String?
   summaryComplete Boolean?
+  chargingDecisionComplete Boolean?
+  strengthAssessmentComplete Boolean?
   decision  String?
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
@@ -453,22 +456,24 @@ model CaseReviewAnnotation {
   caseReviewDocumentId Int
   type                 String
   selectedText         String
+  paragraphIndex       Int                @default(0)
+  occurrenceIndex      Int                @default(0)
   note                 String
   timestampSeconds     Float?
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   caseReviewDocument   CaseReviewDocument @relation(fields: [caseReviewDocumentId], references: [id])
-  pointsToProve        CaseReviewAnnotationPointToProve[]
+  elements             CaseReviewAnnotationElement[]
 }
 
-model CaseReviewAnnotationPointToProve {
-  id             Int                  @id @default(autoincrement())
-  annotationId   Int
-  annotation     CaseReviewAnnotation @relation(fields: [annotationId], references: [id], onDelete: Cascade)
-  pointToProveId Int
-  pointToProve   PointToProve         @relation(fields: [pointToProveId], references: [id])
-  reasoning      String
-  createdAt      DateTime             @default(now())
+model CaseReviewAnnotationElement {
+  id           Int                  @id @default(autoincrement())
+  annotationId Int
+  annotation   CaseReviewAnnotation @relation(fields: [annotationId], references: [id], onDelete: Cascade)
+  elementId    Int
+  element      Element              @relation(fields: [elementId], references: [id])
+  reasoning    String
+  createdAt    DateTime             @default(now())
 }
 
 model CaseReviewRedaction {
@@ -485,6 +490,8 @@ model CaseReviewInadmissible {
   id                   Int                @id @default(autoincrement())
   caseReviewDocumentId Int
   selectedText         String
+  paragraphIndex       Int                @default(0)
+  occurrenceIndex      Int                @default(0)
   createdAt            DateTime           @default(now())
   caseReviewDocument   CaseReviewDocument @relation(fields: [caseReviewDocumentId], references: [id])
 }
@@ -546,21 +553,21 @@ model RecentCase {
   @@map("recent_cases")
 }
 
-model PoliceRequest {
+model InformationRequest {
   id          Int                 @id @default(autoincrement())
   caseId      Int
   case        Case                @relation(fields: [caseId], references: [id])
   sentDate    DateTime
   description String?
-  items       PoliceRequestItem[]
+  items       InformationRequestItem[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
 }
 
-model PoliceRequestItem {
+model InformationRequestItem {
   id              Int           @id @default(autoincrement())
-  policeRequestId Int
-  policeRequest   PoliceRequest @relation(fields: [policeRequestId], references: [id])
+  informationRequestId Int
+  informationRequest   InformationRequest @relation(fields: [informationRequestId], references: [id])
   description     String
   category        String?
   dueDate         DateTime

@@ -55,12 +55,28 @@
         {% set summaryStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
-      {% if data.chargingDecision and data.chargingDecision.complete == true %}
+      {% if review.strengthAssessmentComplete == true %}
+        {% set strengthAssessmentStatus = { text: "Completed" } %}
+      {% elif strengthAssessmentStarted %}
+        {% set strengthAssessmentStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
+      {% else %}
+        {% set strengthAssessmentStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
+      {% endif %}
+
+      {% if review.chargingDecisionComplete == true %}
         {% set chargingStatus = { text: "Completed" } %}
-      {% elif data.chargingDecision and data.chargingDecision.decision %}
+      {% elif chargingDecisionStarted %}
         {% set chargingStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
       {% else %}
         {% set chargingStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
+      {% endif %}
+
+      {% if data.reviewInformationRequest and data.reviewInformationRequest.complete == true %}
+        {% set informationRequestStatus = { text: "Completed" } %}
+      {% elif data.reviewInformationRequest %}
+        {% set informationRequestStatus = { tag: { text: "In progress", classes: "govuk-tag--blue" } } %}
+      {% else %}
+        {% set informationRequestStatus = { tag: { text: "Not started", classes: "govuk-tag--grey" } } %}
       {% endif %}
 
       {% if data.reviewFirstHearing and data.reviewFirstHearing.confirmed %}
@@ -81,12 +97,26 @@
         ]
       %}
 
+      {%
+        set additionalInformationItems = additionalInformationItems.concat([{
+          title: { text: "Information request" },
+          href: "/cases/" + _case.id + "/review/information-request/check" if data.reviewInformationRequest else "/cases/" + _case.id + "/review/information-request",
+          status: informationRequestStatus
+        }])
+      %}
+
       {% if needsChargingDecision %}
-        {% set chargingAllAnswered = data.chargingDecision and data.chargingDecision.decision and (not chargingDecisionNeedsDefendantSelection or data.chargingDecision.defendantIds.length) %}
+        {%
+          set additionalInformationItems = additionalInformationItems.concat([{
+            title: { text: "Offences and element strength assessment" },
+            href: "/cases/" + _case.id + "/review/strength-assessment/check" if ((review.strengthAssessmentComplete == true) or strengthAssessmentAllAssessed) else "/cases/" + _case.id + "/review/strength-assessment",
+            status: strengthAssessmentStatus
+          }])
+        %}
         {%
           set additionalInformationItems = additionalInformationItems.concat([{
             title: { text: "Charging decision" },
-            href: "/cases/" + _case.id + "/review/charging-decision/check" if ((data.chargingDecision and data.chargingDecision.complete == true) or chargingAllAnswered) else "/cases/" + _case.id + "/review/charging-decision",
+            href: "/cases/" + _case.id + "/review/charging-decision/check" if ((review.chargingDecisionComplete == true) or chargingDecisionAllAnswered) else "/cases/" + _case.id + "/review/charging-decision",
             status: chargingStatus
           }])
         %}

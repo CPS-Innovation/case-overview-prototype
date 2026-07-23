@@ -1,7 +1,5 @@
 {% extends "_layouts/main.html" %}
 
-{% from "_components/page-header/macro.njk" import appPageHeader %}
-
 {% set navId = 'cases' %}
 {% set pageName = document.name %}
 {% set mainClasses = "govuk-!-padding-bottom-0" %}
@@ -19,72 +17,42 @@
   <span class="govuk-caption-l">{{ _case.reference }}</span>
   <h1 class="govuk-heading-l">{{ document.name }}</h1>
 
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-full">
-      {% if offences.length %}
-        {% set offencesHtml %}
-          <p class="govuk-body">
-            <a class="govuk-link" href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1">Add offence</a>
-          </p>
+  {% include "_includes/review/offences.njk" %}
 
-          {% for offence in offences %}
-            {{ appPageHeader({
-              classes: 'govuk-!-margin-bottom-1',
-              heading: {
-                level: 2,
-                text: offence.charge.description,
-                classes: 'govuk-heading-m'
-              },
-              items: [{
-                text: 'Change',
-                href: '/cases/' + caseId + '/review/documents/' + documentId + '/change-offence?reset=1'
-              }]
-            }) }}
-
-            {{ govukSummaryList({ rows: offence.pointsToProveRows }) }}
-          {% endfor %}
-        {% endset %}
-
-        {{ govukDetails({
-          summaryText: "Offences",
-          html: offencesHtml
-        }) }}
-      {% else %}
-        <p class="govuk-body">
-          <a class="govuk-link" href="/cases/{{ caseId }}/review/documents/{{ documentId }}/add-offence?reset=1">Add offence</a>
-        </p>
-      {% endif %}
-    </div>
-  </div>
-
-  {% include "cases/review/_toolbar.html" %}
+  {% include "_includes/review/toolbar.njk" %}
 
   <div class="app-document-area">
     <div class="app-document-layout">
       {% include "cases/documents/_document-pane-text.html" %}
-
-      {% include "cases/review/_annotation-sidebar.html" %}
+      {% include "_includes/review/annotation-sidebar.njk" %}
     </div>
   </div>
 
   <div class="app-annotation-popup js-annotation-popup" hidden aria-hidden="true">
     <div class="app-annotation-popup__actions js-selection-actions">
-      <button type="button" class="app-annotation-popup__btn js-annotate-btn" data-type="evidence">
-        Evidence
-      </button>
+      {% if offences.length %}
+        <button type="button" class="app-annotation-popup__btn js-annotate-btn" data-type="evidence">
+          Evidence
+        </button>
+      {% endif %}
+      {% if offences.length %}
+        <button
+          type="button"
+          class="app-annotation-popup__btn js-annotate-btn"
+          data-type="disclosure"
+        >
+          Disclosure
+        </button>
+      {% endif %}
       <button
         type="button"
         class="app-annotation-popup__btn js-annotate-btn"
-        data-type="disclosure"
+        data-type="information-request"
       >
-        Disclosure
+        Information request note
       </button>
-      <button
-        type="button"
-        class="app-annotation-popup__btn js-annotate-btn"
-        data-type="police-request"
-      >
-        Police request
+      <button type="button" class="app-annotation-popup__btn js-annotate-btn" data-type="note">
+        Note
       </button>
       <button type="button" class="app-annotation-popup__btn js-redact-btn">Redact</button>
       <button type="button" class="app-annotation-popup__btn js-inadmissible-btn">
@@ -92,18 +60,18 @@
       </button>
     </div>
     <div class="app-annotation-popup__actions js-redaction-actions" hidden>
-      <button type="button" class="app-annotation-popup__btn js-remove-redaction-btn">
+      <button type="button" class="app-annotation-popup__btn js-delete-redaction-btn">
         Unredact
       </button>
     </div>
     <div class="app-annotation-popup__actions js-inadmissible-actions" hidden>
-      <button type="button" class="app-annotation-popup__btn js-remove-inadmissible-btn">
+      <button type="button" class="app-annotation-popup__btn js-delete-inadmissible-btn">
         Restore
       </button>
     </div>
   </div>
 
-  {% include "cases/review/_annotation-form.html" %}
+  {% include "_includes/review/annotation-form.njk" %}
 
   <form
     method="post"
@@ -116,7 +84,7 @@
     <input type="hidden" name="occurrenceIndex" id="redaction-occurrence-index" />
   </form>
 
-  <form method="post" id="redaction-remove-form" hidden></form>
+  <form method="post" id="redaction-delete-form" hidden></form>
 
   <form
     method="post"
@@ -125,9 +93,11 @@
     hidden
   >
     <input type="hidden" name="selectedText" id="inadmissible-selected-text" />
+    <input type="hidden" name="paragraphIndex" id="inadmissible-paragraph-index" />
+    <input type="hidden" name="occurrenceIndex" id="inadmissible-occurrence-index" />
   </form>
 
-  <form method="post" id="inadmissible-remove-form" hidden></form>
+  <form method="post" id="inadmissible-delete-form" hidden></form>
 {% endblock %}
 
 {% block pageScripts %}
