@@ -44,13 +44,13 @@ const CROWN_RASSO_CCU_UNITS = [TONY_UNITS.WESSEX_CROWN_COURT, TONY_UNITS.WESSEX_
 
 // STL tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
 const ADMIN_STL_TASKS = [
-  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.NOT_CHARGED, fixedNeedsReview: true },
+  { name: 'Check new PCD case', stlGenerator: generateTodaySTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.NOT_CHARGED, fixedNeedsReview: true, count: 25 },
   { name: 'Check resubmitted PCD case', stlGenerator: generateTomorrowSTL, units: MAGISTRATES_UNITS, fixedStatus: statuses.NOT_CHARGED, fixedNeedsReview: false }
 ];
 
 // PACE clock tasks (pre-charge, no hearing) - Dorset/Hampshire Magistrates only
 const ADMIN_PACE_TASKS = [
-  { name: 'Priority PCD review', paceGenerator: generateLessThan1HourPACE, units: MAGISTRATES_UNITS },
+  { name: 'Priority PCD review', paceGenerator: generateLessThan1HourPACE, units: MAGISTRATES_UNITS, count: 25 },
   { name: 'Priority resubmitted PCD case', paceGenerator: generateLessThan2HoursPACE, units: MAGISTRATES_UNITS }
 ];
 
@@ -650,14 +650,20 @@ async function seedTonyCases(prisma, dependencies, config) {
 
   // Create STL cases (pre-charge, no hearing)
   for (const taskConfig of ADMIN_STL_TASKS) {
-    const result = await createSTLCaseForAdminPool(prisma, taskConfig, fullConfig);
-    if (result) count++;
+    const repeatCount = taskConfig.count || 1;
+    for (let i = 0; i < repeatCount; i++) {
+      const result = await createSTLCaseForAdminPool(prisma, taskConfig, fullConfig);
+      if (result) count++;
+    }
   }
 
   // Create PACE cases (pre-charge, no hearing)
   for (const taskConfig of ADMIN_PACE_TASKS) {
-    const result = await createPACECaseForAdminPool(prisma, taskConfig, fullConfig);
-    if (result) count++;
+    const repeatCount = taskConfig.count || 1;
+    for (let i = 0; i < repeatCount; i++) {
+      const result = await createPACECaseForAdminPool(prisma, taskConfig, fullConfig);
+      if (result) count++;
+    }
   }
 
   // Create CTL cases (with hearing where applicable)
